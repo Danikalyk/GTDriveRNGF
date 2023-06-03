@@ -13,6 +13,8 @@
     "@react-native-community/geolocation": "^3.0.6",
     "react": "18.2.0",
     "react-native": "0.71.8",
+    "react-native-background-fetch": "^4.1.0",
+    "react-native-background-geolocation": "^4.12.1",
     "react-native-file-logger": "^0.4.1",
     "react-native-fs": "^2.20.0",
     "react-native-logs": "^5.0.1"
