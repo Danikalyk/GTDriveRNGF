@@ -21,6 +21,25 @@ const SettingsScreen = ({navigation}: Props) => {
 
   const [isSubmit, setSubmit] = React.useState(false);
 
+
+
+  React.useEffect(() => {
+    const init = async () => {
+      const serverInfo = await localStorage.getItem('serverInfo');
+      if (serverInfo.server) {
+        setServer(serverInfo.server);
+      }
+      if (serverInfo.port) {
+        setPort(serverInfo.port);
+      }
+      if (serverInfo.database) {
+        setDatabase(serverInfo.database);
+      }
+    };
+
+    init();
+  }, []);
+
   const SettingIcon = (props): IconElement => (
     <Icon {...props} name="arrow-back-outline" />
   );
@@ -33,8 +52,14 @@ const SettingsScreen = ({navigation}: Props) => {
     setSubmit(true);
 
     if (server && port && database) {
+      let serverFormatted = server;
+
+      if (!server.includes('://')) {
+        serverFormatted = `http://${server}`;
+      }
+
       await localStorage.setItem('serverInfo', {
-        server,
+        server: serverFormatted,
         port,
         database,
       });

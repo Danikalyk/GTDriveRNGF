@@ -60,7 +60,7 @@ const LoginScreen = ({navigation}: Props) => {
     setPending(true);
     if (login && password) {
       await saveTokens({login, password});
-      await fetchUser();
+      // await fetchUser();
       context.login();
     }
 

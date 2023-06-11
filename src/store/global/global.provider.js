@@ -2,6 +2,9 @@ import {useMemo, useReducer} from 'react';
 import {globalReducer} from './global.reducer';
 import {globalActionTypes as actions} from './global.actions';
 import {GlobalState} from './global.state';
+import {ApplicationProvider} from '@ui-kitten/components';
+
+import * as eva from '@eva-design/eva';
 
 const GLOBAL_STATE = {
   isLoggedIn: undefined,
@@ -37,8 +40,11 @@ export const GlobalStateProvider = ({children}) => {
     [state, dispatch],
   );
 
-  
-
+  const {theme} = state;
   // Wrap the context provider around our component
-  return <GlobalState.Provider value={value}>{children}</GlobalState.Provider>;
+  return (
+    <ApplicationProvider {...eva} theme={eva[theme]}>
+      <GlobalState.Provider value={value}>{children}</GlobalState.Provider>
+    </ApplicationProvider>
+  );
 };

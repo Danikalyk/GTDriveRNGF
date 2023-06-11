@@ -13,13 +13,13 @@ export const UserProvider = ({children}) => {
 
   const value = {currentUser, setUser};
 
-  useEffect(() => {
-    const init = async () => {
-      await fetchUser();
-    };
+  // useEffect(() => {
+  //   const init = async () => {
+  //     await fetchUser();
+  //   };
 
-    init();
-  }, []);
+  //   init();
+  // }, []);
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

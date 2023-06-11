@@ -1,14 +1,14 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import {Button, Layout, Text} from '@ui-kitten/components';
+import React from 'react';
 
-type Props = {}
+type Props = {};
 
 const HomeScreen = (props: Props) => {
   return (
-    <View>
-      <Text>HomeScreen</Text>
-    </View>
-  )
-}
+    <Layout style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text category="h1">HOME</Text>
+    </Layout>
+  );
+};
 
-export default HomeScreen
+export default HomeScreen;
