@@ -1,4 +1,4 @@
-import {useMemo, useReducer} from 'react';
+import {useEffect, useMemo, useReducer} from 'react';
 import {globalReducer} from './global.reducer';
 import {globalActionTypes as actions} from './global.actions';
 import {GlobalState} from './global.state';
@@ -14,6 +14,9 @@ const GLOBAL_STATE = {
 
 export const GlobalStateProvider = ({children}) => {
   const [state, dispatch] = useReducer(globalReducer, GLOBAL_STATE);
+
+
+  
 
   const value = useMemo(
     () => ({

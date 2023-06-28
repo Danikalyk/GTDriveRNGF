@@ -26,13 +26,13 @@ const SettingsScreen = ({navigation}: Props) => {
   React.useEffect(() => {
     const init = async () => {
       const serverInfo = await localStorage.getItem('serverInfo');
-      if (serverInfo.server) {
+      if (serverInfo?.server) {
         setServer(serverInfo.server);
       }
-      if (serverInfo.port) {
+      if (serverInfo?.port) {
         setPort(serverInfo.port);
       }
-      if (serverInfo.database) {
+      if (serverInfo?.database) {
         setDatabase(serverInfo.database);
       }
     };
@@ -63,6 +63,9 @@ const SettingsScreen = ({navigation}: Props) => {
         port,
         database,
       });
+
+
+      onCancel()
     }
   };
 

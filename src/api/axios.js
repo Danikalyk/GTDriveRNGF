@@ -1,17 +1,22 @@
 import axios from 'axios';
+import Base64 from 'base-64';
 import {getTokens} from './auth';
 import localStorage from '../store/localStorage';
 
 const axiosInstance = axios.create();
 
+const axiosInstanceDev = axios.create();
+
 const getBaseUrl = async () => {
   try {
     const serverInfo = await localStorage.getItem('serverInfo');
     const {server, port, database} = serverInfo;
-    return `${server}:${port}/${database}/hs/MobileExchange`;
-  } catch (error) {
-    return '/';
-  }
+    if (server && port && database) {
+      return `${server}${port ? `:${port}` : ''}/${database}/hs/PhoneExchange`;
+    } else {
+      return '/';
+    }
+  } catch (error) {}
 };
 
 axiosInstance.interceptors.request.use(
@@ -28,4 +33,25 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error),
 );
 
-export default axiosInstance;
+axiosInstanceDev.interceptors.request.use(
+  async config => {
+    config.baseURL = await getBaseUrl();
+
+    // const token = `${Base64.encode(`Authorization:Jaguar94`)}`;
+    const auth = {
+      username: 'Authorization',
+      password: 'Jaguar94',
+    };
+    if (auth) {
+      config.headers['Authorization'] = auth;
+      config.headers['Content-Type'] = 'application/json';
+      config.withCredentials = true;
+      config.auth = auth;
+    }
+
+    return config;
+  },
+  error => Promise.reject(error),
+);
+
+export {axiosInstanceDev, axiosInstance};

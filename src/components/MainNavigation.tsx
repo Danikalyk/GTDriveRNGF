@@ -56,7 +56,6 @@ const MainNavigation = (props: Props) => {
   //     return <SplashScreen />;
   //   }
 
-  
   return (
     <NavigationContainer ref={navigationRef}>
       {isLoggedIn ? (

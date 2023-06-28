@@ -1,21 +1,24 @@
 import {View} from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   Button,
-  Divider,
   Icon,
   Input,
   Layout,
-  Text,
   TopNavigation,
+  IndexPath,
+  Select,
+  SelectItem,
 } from '@ui-kitten/components';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {TouchableWithoutFeedback} from '@ui-kitten/components/devsupport';
 import {navigate} from '../RootNavigation';
-import {fetchUser, saveTokens} from '../api/auth';
+import {saveTokens} from '../api/auth';
 import Loader from '../components/Icons/Loader';
 import {GlobalState} from '../store/global/global.state';
 import localStorage from '../store/localStorage';
+import {UserContext} from '../store/user/UserProvider';
+import { UserListItem } from '../types';
 
 const LoginScreen = ({navigation}: Props) => {
   const context = React.useContext(GlobalState);
@@ -27,13 +30,20 @@ const LoginScreen = ({navigation}: Props) => {
 
   const [secureTextEntry, setSecureTextEntry] = React.useState(true);
 
+  const {usersList} = useContext(UserContext);
+
+  const [selectedIndex, setSelectedIndex] = React.useState<
+    IndexPath | IndexPath[]
+  >(new IndexPath(0));
+
   React.useEffect(() => {
     const init = async () => {
       const authInfo = await localStorage.getItem('tokens');
-      if (authInfo.login) {
+
+      if (authInfo?.login) {
         setLogin(authInfo.login);
       }
-      if (authInfo.password) {
+      if (authInfo?.password) {
         setPassword(authInfo.password);
       }
     };
@@ -60,7 +70,7 @@ const LoginScreen = ({navigation}: Props) => {
     setPending(true);
     if (login && password) {
       await saveTokens({login, password});
-      // await fetchUser();
+
       context.login();
     }
 
@@ -70,6 +80,9 @@ const LoginScreen = ({navigation}: Props) => {
   const gotoSettings = () => {
     navigate('SettingsScreen');
   };
+
+
+  console.log({ selectedIndex })
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -83,15 +96,28 @@ const LoginScreen = ({navigation}: Props) => {
         }}>
         <View></View>
         <View>
-          <Input
-            style={{marginBottom: 10}}
-            label="Логин"
-            placeholder="login"
-            value={login}
-            autoFocus
-            status={!!(isSubmit && !login) ? 'danger' : 'primary'}
-            onChangeText={nextValue => setLogin(nextValue)}
-          />
+          {!!usersList && usersList[0] ? (
+            <Select
+              style={{marginBottom: 10}}
+              placeholder="User"
+              value={usersList[selectedIndex?.row].user}
+              selectedIndex={selectedIndex}
+              onSelect={index => setSelectedIndex(index)}>
+              {usersList.map((item: UserListItem) => (
+                <SelectItem title={item.user} />
+              ))}
+            </Select>
+          ) : (
+            <Input
+              style={{marginBottom: 10}}
+              label="Логин"
+              placeholder="login"
+              value={login}
+              autoFocus
+              status={!!(isSubmit && !login) ? 'danger' : 'primary'}
+              onChangeText={nextValue => setLogin(nextValue)}
+            />
+          )}
 
           <Input
             style={{marginBottom: 10}}

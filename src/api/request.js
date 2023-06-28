@@ -1,11 +1,14 @@
-import axiosInstance from './axios';
+import {axiosInstance, axiosInstanceDev} from './axios';
 
-export async function getRequest(url, params = {}) {
-  const req = axiosInstance.get(`${url}`, {params});
+export async function getRequest(url, params = {}, isDev = false) {
+  const req = !isDev
+    ? axiosInstance.get(url, {params})
+    : axiosInstanceDev.get(url, {params});
 
   return req
     .then(res => res.data)
     .catch(error => {
+      console.log('ERRRRRRR', error);
       console.error(error.toJSON());
       return error.toJSON();
     });
