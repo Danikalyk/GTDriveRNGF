@@ -21,11 +21,17 @@ const getBaseUrl = async () => {
 
 axiosInstance.interceptors.request.use(
   async config => {
-    const {token} = getTokens();
+    const {token, login, password} = getTokens();
     config.baseURL = await getBaseUrl();
-    const auth = token ? `Bearer ${token}` : '';
+    // const auth = token ? `Bearer ${token}` : '';
+
+    const auth = {
+      username: login,
+      password: password,
+    };
     if (auth) {
       config.headers['Authorization'] = auth;
+      config.auth = auth;
     }
 
     return config;

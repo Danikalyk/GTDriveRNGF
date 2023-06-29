@@ -1,6 +1,6 @@
 import Base64 from 'base-64';
 import localStorage from '../store/localStorage';
-import {getRequest} from './request';
+import {getRequest, putRequest} from './request';
 
 export async function getTokens() {
   try {
@@ -26,4 +26,9 @@ export async function saveTokens({login, password}) {
 
 export async function fetchUsers() {
   return getRequest('/users', {}, true);
+}
+
+
+export async function userAuth(params) {
+  return putRequest('/auth', params)
 }

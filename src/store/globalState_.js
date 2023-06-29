@@ -5,6 +5,7 @@ const GLOBAL_STATE = {
   isLoggedIn: undefined,
   theme: 'light',
   isModalOpen: false,
+  enabledGeo: false,
 };
 
 // Define the reducer
@@ -39,6 +40,17 @@ const globalReducer = (state, action) => {
       return {
         ...state,
         isModalOpen: false,
+      };
+    case 'ENABLE_GEO':
+      return {
+        ...state,
+        enabledGeo: true,
+      };
+
+    case 'DISABLE_GEO':
+      return {
+        ...state,
+        enabledGeo: false,
       };
     default:
       return state;

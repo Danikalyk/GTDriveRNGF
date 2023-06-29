@@ -13,12 +13,15 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {TouchableWithoutFeedback} from '@ui-kitten/components/devsupport';
 import {navigate} from '../RootNavigation';
-import {saveTokens} from '../api/auth';
+import {saveTokens, userAuth} from '../api/auth';
 import Loader from '../components/Icons/Loader';
 import {GlobalState} from '../store/global/global.state';
 import localStorage from '../store/localStorage';
 import {UserContext} from '../store/user/UserProvider';
-import { UserListItem } from '../types';
+import {UserListItem} from '../types';
+import BackgroundGeolocation from 'react-native-background-geolocation';
+import dayjs from 'dayjs';
+import DeviceInfo from 'react-native-device-info';
 
 const LoginScreen = ({navigation}: Props) => {
   const context = React.useContext(GlobalState);
@@ -68,12 +71,34 @@ const LoginScreen = ({navigation}: Props) => {
   const onLogin = async () => {
     setSubmit(true);
     setPending(true);
-    if (login && password) {
-      await saveTokens({login, password});
 
-      context.login();
-    }
+    await saveTokens({login, password});
 
+    let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
+
+    console.log({deviceInfo});
+
+    let version = DeviceInfo.getVersion();
+    let instanceId = await DeviceInfo.getInstanceId();
+
+
+    const parmas = {
+      user: {
+        uid: usersList[selectedIndex?.row].uid,
+        date: dayjs().format(),
+      },
+      device: {
+        ID: instanceId,
+        ...deviceInfo,
+        version_gtdrive: version,
+      },
+    };
+
+    const user = await userAuth(parmas);
+
+    console.log({parmas});
+    // context.login();
+    context.enableGeo();
     setPending(false);
   };
 
@@ -81,8 +106,7 @@ const LoginScreen = ({navigation}: Props) => {
     navigate('SettingsScreen');
   };
 
-
-  console.log({ selectedIndex })
+  console.log({selectedIndex});
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -104,7 +128,7 @@ const LoginScreen = ({navigation}: Props) => {
               selectedIndex={selectedIndex}
               onSelect={index => setSelectedIndex(index)}>
               {usersList.map((item: UserListItem) => (
-                <SelectItem title={item.user} />
+                <SelectItem title={item.user} key={item.uid} />
               ))}
             </Select>
           ) : (

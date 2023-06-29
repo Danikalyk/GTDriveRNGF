@@ -10,6 +10,7 @@ const GLOBAL_STATE = {
   isLoggedIn: undefined,
   theme: 'light',
   isModalOpen: false,
+  enabledGeo: false,
 };
 
 export const GlobalStateProvider = ({children}) => {
@@ -39,9 +40,17 @@ export const GlobalStateProvider = ({children}) => {
       closeModal: () => {
         dispatch({type: actions.CLOSE_MODAL});
       },
+      enableGeo: () => {
+        dispatch({type: actions.ENABLE_GEO});
+      },
+      disableGeo: () => {
+        dispatch({type: actions.DISABLE_GEO});
+      },
     }),
     [state, dispatch],
   );
+
+  console.log({ value })
 
   const {theme} = state;
   // Wrap the context provider around our component

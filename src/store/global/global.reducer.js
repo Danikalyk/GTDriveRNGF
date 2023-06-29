@@ -32,6 +32,17 @@ export const globalReducer = (state, action) => {
         ...state,
         isModalOpen: false,
       };
+    case actions.ENABLE_GEO:
+      return {
+        ...state,
+        enabledGeo: true,
+      };
+
+    case actions.DISABLE_GEO:
+      return {
+        ...state,
+        enabledGeo: false,
+      };
     default:
       return state;
   }
