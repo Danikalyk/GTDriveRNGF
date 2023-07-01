@@ -6,6 +6,7 @@ export async function getTokens() {
   try {
     return await localStorage.getItem('tokens');
   } catch (e) {
+    console.error('ERROR getTokens', e);
     return null;
   }
 }
@@ -20,6 +21,7 @@ export async function saveTokens({login, password}) {
       token,
     });
   } catch (e) {
+    console.error('ERROR saveTokens', e);
     return null;
   }
 }
@@ -28,7 +30,6 @@ export async function fetchUsers() {
   return getRequest('/users', {}, true);
 }
 
-
 export async function userAuth(params) {
-  return putRequest('/auth', params)
+  return putRequest('/auth', params);
 }

@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {
   Button,
   Icon,
@@ -33,7 +33,7 @@ const LoginScreen = ({navigation}: Props) => {
 
   const [secureTextEntry, setSecureTextEntry] = React.useState(true);
 
-  const {usersList} = useContext(UserContext);
+  const {usersList, setUser} = useContext(UserContext);
 
   const [selectedIndex, setSelectedIndex] = React.useState<
     IndexPath | IndexPath[]
@@ -64,6 +64,12 @@ const LoginScreen = ({navigation}: Props) => {
     </TouchableWithoutFeedback>
   );
 
+  useEffect(() => {
+    if (!!usersList && usersList[0]) {
+      setLogin(usersList[selectedIndex?.row].user);
+    }
+  }, [selectedIndex, usersList]);
+
   const SettingIcon = (props): IconElement => (
     <Icon {...props} name="settings-2-outline" />
   );
@@ -76,11 +82,8 @@ const LoginScreen = ({navigation}: Props) => {
 
     let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
 
-    console.log({deviceInfo});
-
     let version = DeviceInfo.getVersion();
     let instanceId = await DeviceInfo.getInstanceId();
-
 
     const parmas = {
       user: {
@@ -94,19 +97,27 @@ const LoginScreen = ({navigation}: Props) => {
       },
     };
 
-    const user = await userAuth(parmas);
+    try {
+      const user = await userAuth(parmas);
 
-    console.log({parmas});
-    // context.login();
-    context.enableGeo();
-    setPending(false);
+      if (user.name === 'AxiosError') {
+        return;
+      }
+      setUser(usersList[selectedIndex?.row]);
+
+      
+      context.login();
+      context.enableGeo();
+      setPending(false);
+    } catch (error) {
+      console.error(error);
+      setPending(false);
+    }
   };
 
   const gotoSettings = () => {
     navigate('SettingsScreen');
   };
-
-  console.log({selectedIndex});
 
   return (
     <SafeAreaView style={{flex: 1}}>

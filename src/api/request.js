@@ -8,7 +8,6 @@ export async function getRequest(url, params = {}, isDev = false) {
   return req
     .then(res => res.data)
     .catch(error => {
-      console.log('ERRRRRRR', error);
       console.error(error.toJSON());
       return error.toJSON();
     });
@@ -31,7 +30,7 @@ export async function putRequest(url, payload = {}) {
   return req
     .then(res => res.data)
     .catch(error => {
-      console.error(error.toJSON());
+      console.error('putRequest', error.toJSON());
       return error.toJSON();
     });
 }

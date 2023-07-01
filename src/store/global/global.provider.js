@@ -50,7 +50,7 @@ export const GlobalStateProvider = ({children}) => {
     [state, dispatch],
   );
 
-  console.log({ value })
+  
 
   const {theme} = state;
   // Wrap the context provider around our component
