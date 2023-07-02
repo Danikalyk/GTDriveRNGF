@@ -45,7 +45,7 @@ const LoginScreen = ({navigation}: Props) => {
     const init = async () => {
       const authInfo = await localStorage.getItem('tokens');
 
-      console.log({ authInfo })
+      
 
       if (authInfo?.login) {
         setLogin(authInfo.login);
