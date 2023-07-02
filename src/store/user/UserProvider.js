@@ -17,7 +17,7 @@ export const UserProvider = ({children}) => {
   useEffect(() => {
     const init = async () => {
       const {users} = await fetchUsers();
-      
+
       if (users?.[0]) {
         setUsersList(users);
       }

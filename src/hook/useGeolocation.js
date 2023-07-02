@@ -1,9 +1,12 @@
 import React from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
+import {GlobalState} from '../store/global/global.state';
 
-function useGeolocation() {
-  const [enabled, setEnabled] = React.useState(false);
+function useGeolocation(enabledGeo) {
   const [location, setLocation] = React.useState('');
+  const [enabled, setEnabled] = React.useState(enabledGeo);
+
+  console.log({ enabledGeo })
 
   let Logger = BackgroundGeolocation.logger;
 
@@ -12,13 +15,15 @@ function useGeolocation() {
     const onLocation: Subscription = BackgroundGeolocation.onLocation(
       location => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
+
+        console.log({location});
         setLocation(JSON.stringify(location, null, 2));
       },
     );
 
     const onHttp: Subscription = BackgroundGeolocation.onHttp(httpEvent => {
-      //   console.log('[http] ', httpEvent.success, httpEvent.status);
-      //   console.log(httpEvent);
+      console.log('[http] ', httpEvent.success, httpEvent.status);
+      console.log(httpEvent);
       // Logger.emailLog("wasik@787.com").then((success) => {
       //     console.log("[emailLog] success");
       //   }).catch((error) => {
@@ -101,11 +106,7 @@ function useGeolocation() {
     }
   }, [enabled]);
 
-
-  return {
-    enabled,
-    setEnabled,
-  }
+  return {};
 }
 
 export default useGeolocation;

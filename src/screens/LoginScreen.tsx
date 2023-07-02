@@ -9,6 +9,7 @@ import {
   IndexPath,
   Select,
   SelectItem,
+  Spinner,
 } from '@ui-kitten/components';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {TouchableWithoutFeedback} from '@ui-kitten/components/devsupport';
@@ -22,12 +23,13 @@ import {UserListItem} from '../types';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import dayjs from 'dayjs';
 import DeviceInfo from 'react-native-device-info';
+import findIndex from 'lodash/findIndex';
 
 const LoginScreen = ({navigation}: Props) => {
   const context = React.useContext(GlobalState);
   const [login, setLogin] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [pending, setPending] = React.useState(false);
+  const [pending, setPending] = React.useState(true);
 
   const [isSubmit, setSubmit] = React.useState(false);
 
@@ -43,8 +45,16 @@ const LoginScreen = ({navigation}: Props) => {
     const init = async () => {
       const authInfo = await localStorage.getItem('tokens');
 
+      console.log({ authInfo })
+
       if (authInfo?.login) {
         setLogin(authInfo.login);
+
+        if (usersList && usersList[0]) {
+          const index =
+            findIndex(usersList, item => item.user === authInfo?.login) || 0;
+          setSelectedIndex(new IndexPath(index));
+        }
       }
       if (authInfo?.password) {
         setPassword(authInfo.password);
@@ -52,7 +62,7 @@ const LoginScreen = ({navigation}: Props) => {
     };
 
     init();
-  }, []);
+  }, [usersList]);
 
   const toggleSecureEntry = (): void => {
     setSecureTextEntry(!secureTextEntry);
@@ -66,9 +76,9 @@ const LoginScreen = ({navigation}: Props) => {
 
   useEffect(() => {
     if (!!usersList && usersList[0]) {
-      setLogin(usersList[selectedIndex?.row].user);
+      setPending(false);
     }
-  }, [selectedIndex, usersList]);
+  }, [usersList]);
 
   const SettingIcon = (props): IconElement => (
     <Icon {...props} name="settings-2-outline" />
@@ -85,9 +95,8 @@ const LoginScreen = ({navigation}: Props) => {
     let version = DeviceInfo.getVersion();
     let instanceId = await DeviceInfo.getInstanceId();
 
-    const parmas = {
+    const params = {
       user: {
-        uid: usersList[selectedIndex?.row].uid,
         date: dayjs().format(),
       },
       device: {
@@ -97,15 +106,18 @@ const LoginScreen = ({navigation}: Props) => {
       },
     };
 
-    try {
-      const user = await userAuth(parmas);
+    if (usersList[selectedIndex?.row]?.uid) {
+      params.user.uid = usersList[selectedIndex?.row]?.uid;
+    }
 
+    try {
+      const user = await userAuth(params);
+      console.log({user});
       if (user.name === 'AxiosError') {
         return;
       }
       setUser(usersList[selectedIndex?.row]);
 
-      
       context.login();
       context.enableGeo();
       setPending(false);
@@ -122,6 +134,7 @@ const LoginScreen = ({navigation}: Props) => {
   return (
     <SafeAreaView style={{flex: 1}}>
       <TopNavigation title="Вход" alignment="center" />
+
       <Layout
         style={{
           flex: 1,
@@ -129,57 +142,66 @@ const LoginScreen = ({navigation}: Props) => {
           alignItems: 'stretch',
           padding: 20,
         }}>
-        <View></View>
-        <View>
-          {!!usersList && usersList[0] ? (
-            <Select
-              style={{marginBottom: 10}}
-              placeholder="User"
-              value={usersList[selectedIndex?.row].user}
-              selectedIndex={selectedIndex}
-              onSelect={index => setSelectedIndex(index)}>
-              {usersList.map((item: UserListItem) => (
-                <SelectItem title={item.user} key={item.uid} />
-              ))}
-            </Select>
-          ) : (
-            <Input
-              style={{marginBottom: 10}}
-              label="Логин"
-              placeholder="login"
-              value={login}
-              autoFocus
-              status={!!(isSubmit && !login) ? 'danger' : 'primary'}
-              onChangeText={nextValue => setLogin(nextValue)}
-            />
-          )}
+        {pending ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+            }}>
+            <Spinner />
+          </View>
+        ) : (
+          <>
+            <View></View>
+            <View>
+              <Select
+                style={{marginBottom: 10}}
+                placeholder="User"
+                value={usersList[selectedIndex?.row].user}
+                selectedIndex={selectedIndex}
+                onSelect={index => {
+                  setSelectedIndex(index);
+                  setLogin(usersList[index.row].user);
+                }}>
+                {usersList.map((item: UserListItem) => (
+                  <SelectItem title={item.user} key={item.uid} />
+                ))}
+              </Select>
 
-          <Input
-            style={{marginBottom: 10}}
-            value={password}
-            label="Пароль"
-            placeholder="password"
-            status={!!(isSubmit && !password) ? 'danger' : 'primary'}
-            accessoryRight={renderIcon}
-            secureTextEntry={secureTextEntry}
-            onChangeText={nextValue => setPassword(nextValue)}
-          />
-        </View>
-        <View>
-          <Button
-            style={{marginBottom: 20}}
-            onPress={gotoSettings}
-            accessoryLeft={SettingIcon}
-            appearance="outline">
-            Настройки
-          </Button>
-          <Button
-            onPress={onLogin}
-            disabled={pending}
-            accessoryLeft={pending ? Loader : false}>
-            Войти
-          </Button>
-        </View>
+              <Input
+                style={{marginBottom: 10}}
+                value={password}
+                label="Пароль"
+                placeholder="password"
+                status={!!(isSubmit && !password) ? 'danger' : 'primary'}
+                accessoryRight={renderIcon}
+                secureTextEntry={secureTextEntry}
+                onChangeText={nextValue => setPassword(nextValue)}
+              />
+            </View>
+            <View>
+              <Button
+                style={{marginBottom: 20}}
+                onPress={gotoSettings}
+                accessoryLeft={SettingIcon}
+                appearance="outline">
+                Настройки
+              </Button>
+              <Button
+                onPress={onLogin}
+                disabled={pending}
+                accessoryLeft={pending ? Loader : false}>
+                Войти
+              </Button>
+            </View>
+          </>
+        )}
       </Layout>
     </SafeAreaView>
   );

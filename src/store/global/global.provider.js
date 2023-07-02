@@ -5,6 +5,7 @@ import {GlobalState} from './global.state';
 import {ApplicationProvider} from '@ui-kitten/components';
 
 import * as eva from '@eva-design/eva';
+import useGeolocation from '../../hook/useGeolocation';
 
 const GLOBAL_STATE = {
   isLoggedIn: undefined,
@@ -15,9 +16,6 @@ const GLOBAL_STATE = {
 
 export const GlobalStateProvider = ({children}) => {
   const [state, dispatch] = useReducer(globalReducer, GLOBAL_STATE);
-
-
-  
 
   const value = useMemo(
     () => ({
@@ -50,9 +48,14 @@ export const GlobalStateProvider = ({children}) => {
     [state, dispatch],
   );
 
+
+  const {theme, enabledGeo} = state;
+
+  useGeolocation(enabledGeo);
+
   
 
-  const {theme} = state;
+  
   // Wrap the context provider around our component
   return (
     <ApplicationProvider {...eva} theme={eva[theme]}>
