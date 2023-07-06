@@ -72,6 +72,7 @@ function useGeolocation(enabledGeo) {
         startOnBoot: true, // <-- Auto start tracking when device is powered-up.
         // HTTP / SQLite config
         url: `${baseUrl}/geo_info_users`,
+        method: 'PUT',
         // url: `http://localhost:3000/geo_info_users`,
         batchSync: false, // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
         autoSync: true, // <-- [Default: true] Set true to sync each location to server as it arrives.
