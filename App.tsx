@@ -5,10 +5,12 @@ import {EvaIconsPack} from '@ui-kitten/eva-icons';
 import CombinedContextProviders from './src/store/CombinedContextProviders';
 import MainNavigation from './src/components/MainNavigation';
 import {IconRegistry} from '@ui-kitten/components';
+import GeoBackgroundg from './src/components/GeoBackgroundg';
 
 function App(): JSX.Element {
   return (
     <CombinedContextProviders>
+      <GeoBackgroundg />
       <IconRegistry icons={EvaIconsPack} />
       <MainNavigation />
     </CombinedContextProviders>

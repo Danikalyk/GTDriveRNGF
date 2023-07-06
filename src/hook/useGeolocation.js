@@ -1,12 +1,21 @@
-import React from 'react';
+import React, {useContext, useEffect} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import {GlobalState} from '../store/global/global.state';
+import {getBaseUrl} from '../api/axios';
+import {getTokens} from '../api/auth';
+import {UserContext} from '../store/user/UserProvider';
 
 function useGeolocation(enabledGeo) {
   const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
 
-  console.log({ enabledGeo })
+  const {currentUser} = useContext(UserContext);
+
+  console.log({currentUser});
+
+  useEffect(() => {
+    setEnabled(enabledGeo);
+  }, [enabledGeo]);
 
   let Logger = BackgroundGeolocation.logger;
 
@@ -24,11 +33,6 @@ function useGeolocation(enabledGeo) {
     const onHttp: Subscription = BackgroundGeolocation.onHttp(httpEvent => {
       console.log('[http] ', httpEvent.success, httpEvent.status);
       console.log(httpEvent);
-      // Logger.emailLog("wasik@787.com").then((success) => {
-      //     console.log("[emailLog] success");
-      //   }).catch((error) => {
-      //     console.log("[emailLog] FAILURE: ", error);
-      //   });
     });
 
     const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
@@ -47,42 +51,57 @@ function useGeolocation(enabledGeo) {
         console.log('[onProviderChange]', event);
       });
 
-    /// 2. ready the plugin.
-    BackgroundGeolocation.ready({
-      // Geolocation Config
-      enabled: true,
-      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 1,
-      // Activity Recognition
-      stopTimeout: 5,
-      // Application config
-      debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
-      logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
-      stopOnTerminate: false, // <-- Allow the background-service to continue tracking when user closes the app.
-      startOnBoot: true, // <-- Auto start tracking when device is powered-up.
-      // HTTP / SQLite config
-      url: 'http://yourserver.com/locations',
-      batchSync: false, // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
-      autoSync: true, // <-- [Default: true] Set true to sync each location to server as it arrives.
-      headers: {
-        // <-- Optional HTTP headers
-        'X-FOO': 'bar',
-      },
-      params: {
-        // <-- Optional HTTP params
-        auth_token: 'maybe_your_server_authenticates_via_token_YES?',
-      },
-    })
-      .then(state => {
-        setEnabled(state.enabled);
-        console.log(
-          '- BackgroundGeolocation is configured and ready: ',
-          state.enabled,
-        );
+    const init = async () => {
+      const baseUrl = await getBaseUrl();
+      const {token} = await getTokens();
+
+      console.log({token});
+
+      /// 2. ready the plugin.
+      BackgroundGeolocation.ready({
+        // Geolocation Config
+        enabled: true,
+        desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+        distanceFilter: 1,
+        // Activity Recognition
+        stopTimeout: 5,
+        // Application config
+        debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
+        logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
+        stopOnTerminate: false, // <-- Allow the background-service to continue tracking when user closes the app.
+        startOnBoot: true, // <-- Auto start tracking when device is powered-up.
+        // HTTP / SQLite config
+        url: `${baseUrl}/geo_info_users`,
+        // url: `http://localhost:3000/geo_info_users`,
+        batchSync: false, // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
+        autoSync: true, // <-- [Default: true] Set true to sync each location to server as it arrives.
+        headers: {
+          // <-- Optional HTTP headers
+          Authorization: `Basic ${token}`,
+          Accept: 'application/json',
+          'Content-Charset': 'UTF-8',
+          'Content-type': 'application/json',
+        },
+        params: {
+          // <-- Optional HTTP params
+          user: {
+            uid: currentUser?.uid,
+          },
+        },
       })
-      .catch(err => {
-        console.error(err);
-      });
+        .then(state => {
+          setEnabled(state.enabled);
+          console.log(
+            '- BackgroundGeolocation is configured and ready: ',
+            state.enabled,
+          );
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    };
+
+    init();
 
     return () => {
       // Remove BackgroundGeolocation event-subscribers when the View is removed or refreshed

@@ -48,14 +48,8 @@ export const GlobalStateProvider = ({children}) => {
     [state, dispatch],
   );
 
+  const {theme} = state;
 
-  const {theme, enabledGeo} = state;
-
-  useGeolocation(enabledGeo);
-
-  
-
-  
   // Wrap the context provider around our component
   return (
     <ApplicationProvider {...eva} theme={eva[theme]}>

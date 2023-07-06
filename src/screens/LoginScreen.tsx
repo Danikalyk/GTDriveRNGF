@@ -45,8 +45,6 @@ const LoginScreen = ({navigation}: Props) => {
     const init = async () => {
       const authInfo = await localStorage.getItem('tokens');
 
-      
-
       if (authInfo?.login) {
         setLogin(authInfo.login);
 
@@ -112,7 +110,7 @@ const LoginScreen = ({navigation}: Props) => {
 
     try {
       const user = await userAuth(params);
-      console.log({user});
+
       if (user.name === 'AxiosError') {
         return;
       }
@@ -142,66 +140,66 @@ const LoginScreen = ({navigation}: Props) => {
           alignItems: 'stretch',
           padding: 20,
         }}>
-        {pending ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-            }}>
-            <Spinner />
-          </View>
-        ) : (
-          <>
-            <View></View>
-            <View>
-              <Select
-                style={{marginBottom: 10}}
-                placeholder="User"
-                value={usersList[selectedIndex?.row].user}
-                selectedIndex={selectedIndex}
-                onSelect={index => {
-                  setSelectedIndex(index);
-                  setLogin(usersList[index.row].user);
+        <>
+          <View></View>
+          <View>
+            {pending && (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
                 }}>
-                {usersList.map((item: UserListItem) => (
+                <Spinner />
+              </View>
+            )}
+            <Select
+              style={{marginBottom: 10}}
+              placeholder="User"
+              value={usersList?.[selectedIndex?.row]?.user}
+              selectedIndex={selectedIndex}
+              onSelect={index => {
+                setSelectedIndex(index);
+                setLogin(usersList?.[index.row]?.user);
+              }}>
+              {usersList &&
+                usersList.map((item: UserListItem) => (
                   <SelectItem title={item.user} key={item.uid} />
                 ))}
-              </Select>
+            </Select>
 
-              <Input
-                style={{marginBottom: 10}}
-                value={password}
-                label="Пароль"
-                placeholder="password"
-                status={!!(isSubmit && !password) ? 'danger' : 'primary'}
-                accessoryRight={renderIcon}
-                secureTextEntry={secureTextEntry}
-                onChangeText={nextValue => setPassword(nextValue)}
-              />
-            </View>
-            <View>
-              <Button
-                style={{marginBottom: 20}}
-                onPress={gotoSettings}
-                accessoryLeft={SettingIcon}
-                appearance="outline">
-                Настройки
-              </Button>
-              <Button
-                onPress={onLogin}
-                disabled={pending}
-                accessoryLeft={pending ? Loader : false}>
-                Войти
-              </Button>
-            </View>
-          </>
-        )}
+            <Input
+              style={{marginBottom: 10}}
+              value={password}
+              label="Пароль"
+              placeholder="password"
+              status={!!(isSubmit && !password) ? 'danger' : 'primary'}
+              accessoryRight={renderIcon}
+              secureTextEntry={secureTextEntry}
+              onChangeText={nextValue => setPassword(nextValue)}
+            />
+          </View>
+          <View>
+            <Button
+              style={{marginBottom: 20}}
+              onPress={gotoSettings}
+              accessoryLeft={SettingIcon}
+              appearance="outline">
+              Настройки
+            </Button>
+            <Button
+              onPress={onLogin}
+              disabled={pending}
+              accessoryLeft={pending ? Loader : false}>
+              Войти
+            </Button>
+          </View>
+        </>
       </Layout>
     </SafeAreaView>
   );

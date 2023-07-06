@@ -7,7 +7,7 @@ const axiosInstance = axios.create();
 
 const axiosInstanceDev = axios.create();
 
-const getBaseUrl = async () => {
+export const getBaseUrl = async () => {
   try {
     const serverInfo = await localStorage.getItem('serverInfo');
     const {server, port, database} = serverInfo;
