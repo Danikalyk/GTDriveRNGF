@@ -4,6 +4,8 @@ import {GlobalState} from '../store/global/global.state';
 import {getBaseUrl} from '../api/axios';
 import {getTokens} from '../api/auth';
 import {UserContext} from '../store/user/UserProvider';
+import {putRequest} from '../api/request';
+import {uploadLocation} from '../api/routes';
 
 function useGeolocation(enabledGeo) {
   const [location, setLocation] = React.useState('');
@@ -27,12 +29,20 @@ function useGeolocation(enabledGeo) {
 
         console.log({location});
         setLocation(JSON.stringify(location, null, 2));
+        const init = async () => {
+          await uploadLocation({
+            location: location,
+            user: {
+              uid: currentUser?.uid,
+            },
+          });
+        };
+        init();
       },
     );
 
     const onHttp: Subscription = BackgroundGeolocation.onHttp(httpEvent => {
       console.log('[http] ', httpEvent.success, httpEvent.status);
-      console.log(httpEvent);
     });
 
     const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
@@ -78,10 +88,9 @@ function useGeolocation(enabledGeo) {
         autoSync: true, // <-- [Default: true] Set true to sync each location to server as it arrives.
         headers: {
           // <-- Optional HTTP headers
+
+          authorization: `Basic ${token}`,
           Authorization: `Basic ${token}`,
-          Accept: 'application/json',
-          'Content-Charset': 'UTF-8',
-          'Content-type': 'application/json',
         },
         params: {
           // <-- Optional HTTP params
@@ -114,7 +123,7 @@ function useGeolocation(enabledGeo) {
       onActivityChange.remove();
       onProviderChange.remove();
     };
-  }, []);
+  }, [currentUser?.uid]);
 
   /// 3. start / stop BackgroundGeolocation
   React.useEffect(() => {

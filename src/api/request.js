@@ -24,8 +24,10 @@ export async function postRequest(url, payload = {}) {
     });
 }
 
-export async function putRequest(url, payload = {}) {
-  const req = axiosInstance.put(url, payload);
+export async function putRequest(url, params = {}, isDev = false) {
+  const req = !isDev
+    ? axiosInstance.put(url, params)
+    : axiosInstanceDev.put(url, params);
 
   return req
     .then(res => res.data)

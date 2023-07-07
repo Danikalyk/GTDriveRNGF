@@ -111,6 +111,8 @@ const LoginScreen = ({navigation}: Props) => {
     try {
       const user = await userAuth(params);
 
+     
+
       if (user.name === 'AxiosError') {
         return;
       }
