@@ -2,7 +2,7 @@ import React, {useContext, useEffect} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import {GlobalState} from '../store/global/global.state';
 import {getBaseUrl} from '../api/axios';
-import {getTokens} from '../api/auth';
+import {getTokens, tokenDev} from '../api/auth';
 import {UserContext} from '../store/user/UserProvider';
 import {putRequest} from '../api/request';
 import {uploadLocation} from '../api/routes';
@@ -22,22 +22,25 @@ function useGeolocation(enabledGeo) {
   let Logger = BackgroundGeolocation.logger;
 
   React.useEffect(() => {
+    if (!currentUser?.uid) {
+      return
+    }
     /// 1.  Subscribe to events.
     const onLocation: Subscription = BackgroundGeolocation.onLocation(
       location => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
         console.log({location});
-        setLocation(JSON.stringify(location, null, 2));
-        const init = async () => {
-          await uploadLocation({
-            location: location,
-            user: {
-              uid: currentUser?.uid,
-            },
-          });
-        };
-        init();
+        // setLocation(JSON.stringify(location, null, 2));
+        // const init = async () => {
+        //   await uploadLocation({
+        //     location: location,
+        //     user: {
+        //       uid: currentUser?.uid,
+        //     },
+        //   });
+        // };
+        // init();
       },
     );
 
@@ -65,6 +68,7 @@ function useGeolocation(enabledGeo) {
       const baseUrl = await getBaseUrl();
       const {token} = await getTokens();
 
+
       console.log({token});
 
       /// 2. ready the plugin.
@@ -82,15 +86,14 @@ function useGeolocation(enabledGeo) {
         startOnBoot: true, // <-- Auto start tracking when device is powered-up.
         // HTTP / SQLite config
         url: `${baseUrl}/geo_info_users`,
-        method: 'PUT',
         // url: `http://localhost:3000/geo_info_users`,
+        method: 'PUT',
         batchSync: false, // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
         autoSync: true, // <-- [Default: true] Set true to sync each location to server as it arrives.
         headers: {
           // <-- Optional HTTP headers
-
-          authorization: `Basic ${token}`,
-          Authorization: `Basic ${token}`,
+          authorization: `Basic ${tokenDev}`,
+          AUTHENTICATION_TOKEN: tokenDev,
         },
         params: {
           // <-- Optional HTTP params

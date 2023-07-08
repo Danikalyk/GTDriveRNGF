@@ -11,6 +11,8 @@ export async function getTokens() {
   }
 }
 
+export const tokenDev = `${Base64.encode(`Authorization:Jaguar94`)}`;
+
 export async function saveTokens({login, password}) {
   try {
     const token = `${Base64.encode(`${login}:${password}`)}`;
