@@ -11,9 +11,11 @@ import React from 'react';
 import {RefreshControl, ScrollView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import useSWR from 'swr';
-import {StyleSheet} from 'react-native';
+
+import {Alert, StyleSheet, Linking, Platform} from 'react-native';
 import {getRoute, getRoutes} from '../api/routes';
 import {RouterListItem} from '../types';
+import {openAddressOnMap} from '../utils/openAddressOnMap';
 
 type Props = {};
 
@@ -27,30 +29,52 @@ const RouteScreen = (props: Props) => {
     }, 2000);
   }, []);
 
-  const uid = props?.route?.params?.uid;
+  const params = props?.route?.params;
 
-  const {
-    data: route,
-    isLoading,
-    error,
-  } = useSWR(`/routes/${uid}`, () => getRoute(uid));
+  console.log({params});
 
-  const routeItem = route?.data;
+  const handleOpenNavigator = async () => {
+    const url = `yandexnavi://build_route_on_map?lat_to=${params.lat}&lon_to=${params.lon}`;
 
-  if (error || !routeItem) {
-    return null;
-  }
+    openAddressOnMap('', params.lat, params.lon);
+
+    // const supportedYa = await Linking.canOpenURL(url)
+    //   .then(supported => supported)
+    //   .catch(err => Alert.alert('Ошибка', err.toString()));
+    const supportedGoogleMaps = await Linking.canOpenURL(urlAndroidMap)
+      .then(supported => supported)
+      .catch(err => Alert.alert('Ошибка', err.toString()));
+
+    // if (supportedYa) {
+    //   Linking.openURL(url);
+
+    //   return;
+    // }
+
+    console.log({supportedGoogleMaps});
+    if (supportedGoogleMaps) {
+      Linking.openURL(urlAndroidMap);
+
+      return;
+    }
+
+    // Alert.alert('Ошибка', 'Пожалуйста, установите Яндекс Навигатор или ');
+  };
 
   return (
     <SafeAreaView style={{flex: 1}}>
       <Layout style={{flex: 1, padding: 10}}>
-        <Text category="h6" style={{flex: 1, marginBottom: 10}}>
-          {routeItem?.name}
+        <Text category="h6" style={{marginBottom: 10}}>
+          {params?.client_name}
         </Text>
 
-        <Text category="s1" style={{flex: 1}}>
-          {routeItem?.description_full}
+        <Text category="s1" style={{marginBottom: 20}}>
+          {params?.address}
         </Text>
+
+        <Button onPress={handleOpenNavigator}>
+          <Text>Открыть в навигаторе</Text>
+        </Button>
       </Layout>
     </SafeAreaView>
   );
