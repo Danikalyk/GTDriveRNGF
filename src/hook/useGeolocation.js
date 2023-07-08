@@ -23,7 +23,7 @@ function useGeolocation(enabledGeo) {
 
   React.useEffect(() => {
     if (!currentUser?.uid) {
-      return
+      return;
     }
     /// 1.  Subscribe to events.
     const onLocation: Subscription = BackgroundGeolocation.onLocation(
@@ -67,7 +67,6 @@ function useGeolocation(enabledGeo) {
     const init = async () => {
       const baseUrl = await getBaseUrl();
       const {token} = await getTokens();
-
 
       console.log({token});
 

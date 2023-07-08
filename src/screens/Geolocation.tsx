@@ -19,37 +19,31 @@ import BackgroundGeolocation, {
   Subscription,
 } from 'react-native-background-geolocation';
 
-
-
 function App(): JSX.Element {
   const [enabled, setEnabled] = React.useState(false);
   const [location, setLocation] = React.useState('');
 
   let Logger = BackgroundGeolocation.logger;
 
-
-
   React.useEffect(() => {
     /// 1.  Subscribe to events.
     const onLocation: Subscription = BackgroundGeolocation.onLocation(
       location => {
-
-        Logger.debug("Location received in Javascript: " + location.uuid);
+        Logger.debug('Location received in Javascript: ' + location.uuid);
         setLocation(JSON.stringify(location, null, 2));
       },
     );
 
+    const onHttp: Subscription = BackgroundGeolocation.onHttp(httpEvent => {
+      console.log('[http] ', httpEvent.success, httpEvent.status);
+      console.log(httpEvent);
 
-    const onHttp: Subscription =  BackgroundGeolocation.onHttp(httpEvent => {
-        console.log("[http] ", httpEvent.success, httpEvent.status);
-        console.log(httpEvent)
-
-        // Logger.emailLog("wasik@787.com").then((success) => {
-        //     console.log("[emailLog] success");
-        //   }).catch((error) => {
-        //     console.log("[emailLog] FAILURE: ", error);
-        //   });
-      });
+      // Logger.emailLog("wasik@787.com").then((success) => {
+      //     console.log("[emailLog] success");
+      //   }).catch((error) => {
+      //     console.log("[emailLog] FAILURE: ", error);
+      //   });
+    });
 
     const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
       event => {
@@ -92,20 +86,17 @@ function App(): JSX.Element {
         // <-- Optional HTTP params
         auth_token: 'maybe_your_server_authenticates_via_token_YES?',
       },
-    }).then(state => {
-      setEnabled(state.enabled);
-      console.log(
-        '- BackgroundGeolocation is configured and ready: ',
-        state.enabled,
-      );
-    }).catch(err => {
-        console.error(err)
-    });
-
-
-
-
- 
+    })
+      .then(state => {
+        setEnabled(state.enabled);
+        console.log(
+          '- BackgroundGeolocation is configured and ready: ',
+          state.enabled,
+        );
+      })
+      .catch(err => {
+        console.error(err);
+      });
 
     return () => {
       // Remove BackgroundGeolocation event-subscribers when the View is removed or refreshed

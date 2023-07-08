@@ -37,7 +37,7 @@ export const DrawerNavigator = () => (
       component={HomeScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
-        title: "Маршруты"
+        title: 'Маршруты',
       }}
     />
     <Screen
@@ -45,7 +45,7 @@ export const DrawerNavigator = () => (
       component={RouteScreen}
       options={{
         header: props => <TopNavigationHeader {...props} isBack />,
-        title: "Текущий маршрут"
+        title: 'Текущий маршрут',
       }}
     />
     <Screen

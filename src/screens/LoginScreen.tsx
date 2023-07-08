@@ -111,8 +111,6 @@ const LoginScreen = ({navigation}: Props) => {
     try {
       const user = await userAuth(params);
 
-     
-
       if (user.name === 'AxiosError') {
         return;
       }
@@ -133,8 +131,6 @@ const LoginScreen = ({navigation}: Props) => {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      
-
       <Layout
         style={{
           flex: 1,

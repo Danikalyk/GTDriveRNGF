@@ -42,4 +42,9 @@ async function clearStorage() {
   }
 }
 
-export default {getItem, setItem, removeItem, clearStorage};
+export default {
+  getItem,
+  setItem,
+  removeItem,
+  clearStorage,
+};

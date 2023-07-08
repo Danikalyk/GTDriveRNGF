@@ -5,11 +5,10 @@ export async function uploadLocation(params) {
   return putRequest('/geo_info_users', params);
 }
 
-
 export async function getRoutes() {
-  return getRequest('/routes')
+  return getRequest('/routes');
 }
 
 export async function getRoute(uid) {
-  return getRequest(`/routes/${uid}`)
+  return getRequest(`/routes/${uid}`);
 }

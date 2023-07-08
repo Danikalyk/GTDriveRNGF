@@ -8,15 +8,14 @@ import {
 } from '@ui-kitten/components';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {DrawerActions} from '@react-navigation/native';
-import { TouchableWebElement } from '@ui-kitten/components/devsupport';
+import {TouchableWebElement} from '@ui-kitten/components/devsupport';
 
 type Props = {
   navigation: any;
   options: any;
 };
 
-const TopNavigationHeader = ({navigation, route, options, isBack }: Props) => {
-  
+const TopNavigationHeader = ({navigation, route, options, isBack}: Props) => {
   const renderBackAction = (): TouchableWebElement => (
     <TopNavigationAction
       icon={props => <Icon name="arrow-back" {...props} />}

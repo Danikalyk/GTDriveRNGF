@@ -8,7 +8,7 @@ import {IconRegistry} from '@ui-kitten/components';
 import GeoBackgroundg from './src/components/GeoBackgroundg';
 
 import {AppState} from 'react-native';
-import { SWRConfig } from 'swr';
+import {SWRConfig} from 'swr';
 
 function App(): JSX.Element {
   return (
@@ -21,7 +21,7 @@ function App(): JSX.Element {
         initFocus(callback) {
           let appState = AppState.currentState;
 
-          const onAppStateChange = (nextAppState:any) => {
+          const onAppStateChange = (nextAppState: any) => {
             /* Если оно переходит из фонового или неактивного режима в активный */
             if (
               appState.match(/inactive|background/) &&

@@ -21,8 +21,6 @@ const SettingsScreen = ({navigation}: Props) => {
 
   const [isSubmit, setSubmit] = React.useState(false);
 
-
-
   React.useEffect(() => {
     const init = async () => {
       const serverInfo = await localStorage.getItem('serverInfo');
@@ -64,8 +62,7 @@ const SettingsScreen = ({navigation}: Props) => {
         database,
       });
 
-
-      onCancel()
+      onCancel();
     }
   };
 

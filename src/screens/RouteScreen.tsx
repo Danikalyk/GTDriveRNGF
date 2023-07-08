@@ -29,19 +29,6 @@ const RouteScreen = (props: Props) => {
 
   const uid = props?.route?.params?.uid;
 
-  //   {
-  //     "type": 1,
-  //     "uid": "0af23d2a-4629-11ed-ab77-7085c289dbf7",
-  //     "point_description": "ТОЧКА ВЫГРУЗКИ",
-  //     "lat": 61.249805,
-  //     "lon": 75.167083,
-  //     "date": "12.10.22",
-  //     "time": "08:33",
-  //     "client_name": "Клиент66",
-  //     "address": "Ханты-Мансийский Автономный округ - Югра округ  Лангепас г  Парковая ул 7",
-  //     "status": 0
-  // },
-
   const {
     data: route,
     isLoading,
@@ -55,8 +42,6 @@ const RouteScreen = (props: Props) => {
   }
 
   const renderItem = ({item, index}): React.ReactElement => {
-    
-
     return (
       <ListItem
         style={{padding: 20}}
@@ -86,8 +71,10 @@ const RouteScreen = (props: Props) => {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-          
       <List
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         style={styles.list}
         data={routeItem?.points}
         renderItem={renderItem}
@@ -111,7 +98,7 @@ const RouteScreen = (props: Props) => {
 const styles = StyleSheet.create({
   list: {
     flex: 1,
-    
+
     minHeight: 180,
   },
 });

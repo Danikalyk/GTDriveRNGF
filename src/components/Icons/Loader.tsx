@@ -1,6 +1,6 @@
 import React from 'react';
 import {Icon, IconElement} from '@ui-kitten/components';
-import { ImageProps } from 'react-native-svg';
+import {ImageProps} from 'react-native-svg';
 
 type Props = {};
 
@@ -8,9 +8,7 @@ const Loader = (props): IconElement => {
   const pulseIconRef = React.useRef<Icon<Partial<ImageProps>>>();
 
   React.useEffect(() => {
-    
     pulseIconRef.current.startAnimation();
-    
   }, []);
   return (
     <Icon
