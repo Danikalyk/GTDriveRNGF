@@ -133,7 +133,7 @@ const LoginScreen = ({navigation}: Props) => {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      <TopNavigation title="Вход" alignment="center" />
+      
 
       <Layout
         style={{

@@ -15,6 +15,7 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import {HomeDrawer} from './Drawer';
 import TopNavigationHeader from './TopNavigationHeader';
 import {Layout} from 'react-native-reanimated';
+import RouteScreen from '../screens/RouteScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,15 @@ export const DrawerNavigator = () => (
       component={HomeScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
+        title: "Маршруты"
+      }}
+    />
+    <Screen
+      name="RouteScreen"
+      component={RouteScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} isBack />,
+        title: "Текущий маршрут"
       }}
     />
     <Screen

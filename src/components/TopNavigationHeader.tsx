@@ -7,11 +7,16 @@ import {
   TopNavigationAction,
 } from '@ui-kitten/components';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import { DrawerActions } from '@react-navigation/native';
+import {DrawerActions} from '@react-navigation/native';
+import { TouchableWebElement } from '@ui-kitten/components/devsupport';
 
-type Props = {};
+type Props = {
+  navigation: any;
+  options: any;
+};
 
-const TopNavigationHeader = ({navigation}: Props) => {
+const TopNavigationHeader = ({navigation, route, options, isBack }: Props) => {
+  
   const renderBackAction = (): TouchableWebElement => (
     <TopNavigationAction
       icon={props => <Icon name="arrow-back" {...props} />}
@@ -34,15 +39,14 @@ const TopNavigationHeader = ({navigation}: Props) => {
     <Layout style={{}} level="1">
       <TopNavigation
         alignment="center"
-        title="Drive"
+        title={options?.title || 'GTDrive'}
         // subtitle="Subtitle"
         // accessoryLeft={renderBackAction}
-        accessoryRight={renderRightActions}
+        accessoryLeft={isBack ? renderBackAction : renderRightActions}
       />
 
-      <TouchableOpacity onPress={() => navigation.openDrawer()}>
-        <Text>111</Text>
-      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.openDrawer()}></TouchableOpacity>
     </Layout>
   );
 };
