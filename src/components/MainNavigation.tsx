@@ -14,14 +14,44 @@ import {navigationRef} from '../RootNavigation';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {HomeDrawer} from './Drawer';
 import TopNavigationHeader from './TopNavigationHeader';
-import {Layout} from 'react-native-reanimated';
+
 import RouteScreen from '../screens/RouteScreen';
+import TaskScreen from '../screens/TaskScreen';
 
 const Stack = createNativeStackNavigator();
 
 type Props = {};
 
 const {Navigator, Screen} = createDrawerNavigator();
+
+const RoutesNavigation = () => (
+  <Stack.Navigator initialRouteName="Home">
+    <Stack.Screen
+      name="Home"
+      component={HomeScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} />,
+        title: 'Маршруты',
+      }}
+    />
+    <Stack.Screen
+      name="RouteScreen"
+      component={RouteScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} isBack />,
+        title: 'Текущий маршрут',
+      }}
+    />
+    <Stack.Screen
+      name="TaskScreen"
+      component={TaskScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} isBack />,
+        title: 'Карточка контрагента',
+      }}
+    />
+  </Stack.Navigator>
+);
 
 export const DrawerNavigator = () => (
   <Navigator
@@ -33,21 +63,13 @@ export const DrawerNavigator = () => (
     swipeEnabled
     swipeEdgeWidth={50}>
     <Screen
-      name="Home"
-      component={HomeScreen}
+      name="RoutesNavigation"
+      component={RoutesNavigation}
       options={{
-        header: props => <TopNavigationHeader {...props} />,
-        title: 'Маршруты',
+        headerShown: false,
       }}
     />
-    <Screen
-      name="RouteScreen"
-      component={RouteScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Текущий маршрут',
-      }}
-    />
+
     <Screen
       name="SettingsScreen"
       component={SettingsScreen}

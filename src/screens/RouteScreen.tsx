@@ -48,6 +48,7 @@ const RouteScreen = (props: Props) => {
         title={item?.client_name}
         description={item?.address}
         accessoryLeft={() => renderItemLeft(item)}
+        onPress={e => props.navigation.navigate('TaskScreen', {...item})}
       />
     );
   };
