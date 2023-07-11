@@ -62,6 +62,16 @@ function useGeolocation(enabledGeo) {
     const onProviderChange: Subscription =
       BackgroundGeolocation.onProviderChange(event => {
         console.log('[onProviderChange]', event);
+
+        BackgroundGeolocation.setConfig({
+          params: {
+            // <-- Optional HTTP params
+            user: {
+              uid: currentUser?.uid,
+            },
+            provider: {"gps": event?.gps, "network": event?.network}
+          },
+        })
       });
 
     const init = async () => {
@@ -86,6 +96,8 @@ function useGeolocation(enabledGeo) {
         // HTTP / SQLite config
         url: `${baseUrl}/geo_info_users`,
         // url: `http://localhost:3000/geo_info_users`,
+        locationTemplate:
+          '{"coords":{"latitude":"<%= latitude %>","longitude":"<%= longitude %>","accuracy":"<%= accuracy %>","speed":"<%= speed %>"},"battery":{"level":"<%= battery.level %>","is_charging":"<%= battery.is_charging %>"},"timestamp":"<%= timestamp %>","uuid":"<%= uuid %>","event":"<%= event %>","is_moving":"<%= is_moving %>","odometer":"<%= odometer %>"}',
         method: 'PUT',
         batchSync: false, // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
         autoSync: true, // <-- [Default: true] Set true to sync each location to server as it arrives.
@@ -99,6 +111,7 @@ function useGeolocation(enabledGeo) {
           user: {
             uid: currentUser?.uid,
           },
+          provider: {"gps": null, "network": null}
         },
       })
         .then(state => {
@@ -131,6 +144,7 @@ function useGeolocation(enabledGeo) {
   React.useEffect(() => {
     if (enabled) {
       BackgroundGeolocation.start();
+      BackgroundGeolocation.destroyLocations();
     } else {
       BackgroundGeolocation.stop();
       setLocation('');
