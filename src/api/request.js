@@ -1,4 +1,4 @@
-import {axiosInstance, axiosInstanceDev} from './axios';
+import {axiosInstance, axiosInstanceDev, axiosInstanceDevToken} from './axios';
 
 export async function getRequest(url, params = {}, isDev = false) {
   const req = !isDev
@@ -39,6 +39,28 @@ export async function putRequest(url, params = {}, isDev = false) {
 
 export async function deleteRequest(url) {
   const req = axiosInstance.delete(url);
+
+  return req
+    .then(res => res.data)
+    .catch(error => {
+      console.error(error.toJSON());
+      return error.toJSON();
+    });
+}
+
+export async function getRequestJwt(url) {
+  const req = axiosInstanceDevToken.get(url);
+
+  return req
+    .then(res => res.data)
+    .catch(error => {
+      console.error(error.toJSON());
+      return error.toJSON();
+    });
+}
+
+export async function postRequestJwt(url, payload = {}) {
+  const req = axiosInstanceDevToken.post(url, payload);
 
   return req
     .then(res => res.data)

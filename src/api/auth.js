@@ -1,6 +1,6 @@
 import Base64 from 'base-64';
 import localStorage from '../store/localStorage';
-import {getRequest, putRequest} from './request';
+import {getRequest, getRequestJwt, postRequestJwt, putRequest} from './request';
 
 export async function getTokens() {
   try {
@@ -10,8 +10,6 @@ export async function getTokens() {
     return null;
   }
 }
-
-export const tokenDev = `${Base64.encode(`Authorization:Jaguar94`)}`;
 
 export async function saveTokens({login, password}) {
   try {
@@ -34,4 +32,23 @@ export async function fetchUsers() {
 
 export async function userAuth(params) {
   return putRequest('/auth', params);
+}
+
+export async function getDevTokens() {
+  try {
+    // await localStorage.removeItem('devToken'); // TODO удалить потом
+    const token = await localStorage.getItem('devToken');
+    if (token) {
+      return token;
+    } else {
+      const {access} = await getRequestJwt('/token');
+      if (access) {
+        await localStorage.setItem('devToken', access);
+        return access;
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }

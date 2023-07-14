@@ -2,7 +2,7 @@ import React, {useContext, useEffect} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import {GlobalState} from '../store/global/global.state';
 import {getBaseUrl} from '../api/axios';
-import {getTokens, tokenDev} from '../api/auth';
+import {getTokens, getDevTokens} from '../api/auth';
 import {UserContext} from '../store/user/UserProvider';
 import {putRequest} from '../api/request';
 import {uploadLocation} from '../api/routes';
@@ -12,8 +12,6 @@ function useGeolocation(enabledGeo) {
   const [enabled, setEnabled] = React.useState(enabledGeo);
 
   const {currentUser} = useContext(UserContext);
-
-  console.log({currentUser});
 
   useEffect(() => {
     setEnabled(enabledGeo);
@@ -69,16 +67,28 @@ function useGeolocation(enabledGeo) {
             user: {
               uid: currentUser?.uid,
             },
-            provider: {"gps": event?.gps, "network": event?.network}
+            provider: {gps: event?.gps, network: event?.network},
           },
-        })
+        });
       });
+
+    const onAuthorization: Subscription = BackgroundGeolocation.onAuthorization(
+      event => {
+        if (event.success) {
+          console.log('[authorization] ERROR: ', event.error);
+        } else {
+          console.log('[authorization] SUCCESS: ', event.response);
+        }
+      },
+    );
 
     const init = async () => {
       const baseUrl = await getBaseUrl();
       const {token} = await getTokens();
 
-      console.log({token});
+      const tokenDev = await getDevTokens();
+
+      // console.log({tokenDev});
 
       /// 2. ready the plugin.
       BackgroundGeolocation.ready({
@@ -101,17 +111,17 @@ function useGeolocation(enabledGeo) {
         method: 'PUT',
         batchSync: false, // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
         autoSync: true, // <-- [Default: true] Set true to sync each location to server as it arrives.
-        headers: {
-          // <-- Optional HTTP headers
-          authorization: `Basic ${tokenDev}`,
-          AUTHENTICATION_TOKEN: tokenDev,
+        authorization: {
+          strategy: 'JWT',
+          accessToken: tokenDev,
+          expires: 10,
         },
         params: {
           // <-- Optional HTTP params
           user: {
             uid: currentUser?.uid,
           },
-          provider: {"gps": null, "network": null}
+          provider: {gps: null, network: null},
         },
       })
         .then(state => {
@@ -137,6 +147,7 @@ function useGeolocation(enabledGeo) {
       onMotionChange.remove();
       onActivityChange.remove();
       onProviderChange.remove();
+      onAuthorization.remove();
     };
   }, [currentUser?.uid]);
 
@@ -144,7 +155,8 @@ function useGeolocation(enabledGeo) {
   React.useEffect(() => {
     if (enabled) {
       BackgroundGeolocation.start();
-      BackgroundGeolocation.destroyLocations();
+      BackgroundGeolocation.destroyTransistorAuthorizationToken();
+      BackgroundGeolocation.destroyLocations(); // TODO удалить потом
     } else {
       BackgroundGeolocation.stop();
       setLocation('');
