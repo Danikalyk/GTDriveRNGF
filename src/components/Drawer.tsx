@@ -1,7 +1,7 @@
 import React from 'react';
-import {Drawer, DrawerItem} from '@ui-kitten/components';
+import {Drawer, DrawerItem, IndexPath} from '@ui-kitten/components';
 
-export const HomeDrawer = props => {
+export const HomeDrawer = (props: any) => {
   const onItemSelect = (index: IndexPath): void => {
     const selectedTabRoute: string = props.state.routeNames[index.row];
     props.navigation.navigate(selectedTabRoute);
@@ -20,8 +20,14 @@ export const HomeDrawer = props => {
   };
 
   return (
-    <Drawer>
+    <Drawer
+    
+    onSelect={onItemSelect}>
+    
       <DrawerItem key={1} title={'Home'} />
+      <DrawerItem key={2} title={'Chats'} />
+      <DrawerItem key={3} title={'Settings'} />
+      
     </Drawer>
   );
 };

@@ -10,6 +10,7 @@ import LoginScreen from '../screens/LoginScreen';
 import {GlobalState} from '../store/global/global.state';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import ChatsScreen from '../screens/ChatsScreen';
 import {navigationRef} from '../RootNavigation';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {HomeDrawer} from './Drawer';
@@ -73,6 +74,14 @@ export const DrawerNavigator = () => (
     <Screen
       name="SettingsScreen"
       component={SettingsScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} />,
+      }}
+    />
+
+<Screen
+      name="Chats"
+      component={ChatsScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
       }}
