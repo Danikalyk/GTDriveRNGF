@@ -59,9 +59,6 @@ const LoginScreen = ({navigation}: Props) => {
       if (authInfo?.password) {
         setPassword(authInfo.password);
       }
-
-
-      
     };
 
     init();
@@ -90,8 +87,6 @@ const LoginScreen = ({navigation}: Props) => {
   const onLogin = async () => {
     setSubmit(true);
     setPending(true);
-
-    
 
     await saveTokens({login, password});
 

@@ -5,8 +5,6 @@ export async function getRequest(url, params = {}, isDev = false) {
     ? axiosInstance.get(url, {params})
     : axiosInstanceDev.get(url, {params});
 
-
-    
   return req
     .then(res => {
       return res.data;

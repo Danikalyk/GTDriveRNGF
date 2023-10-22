@@ -23,7 +23,7 @@ export const getBaseUrl = async (type = 'PhoneExchange') => {
 axiosInstance.interceptors.request.use(
   async config => {
     const {token, login, password} = await getTokens();
-    console.log({ token, login, password });
+    console.log({token, login, password});
 
     config.baseURL = await getBaseUrl();
     const Authorization = token ? `Bearer ${token}` : '';
