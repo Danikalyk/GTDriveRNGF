@@ -1,4 +1,5 @@
 import {createContext, useEffect, useState} from 'react';
+import useSWR from 'swr';
 import {fetchUsers} from '../../api/auth';
 
 // Playing with this component around
@@ -12,19 +13,15 @@ export const UserProvider = ({children}) => {
   const [currentUser, setUser] = useState(USER_STATE.currentUser);
   const [usersList, setUsersList] = useState(USER_STATE.usersList);
 
-  const value = {currentUser, setUser, usersList};
+  const {data, isLoading, error} = useSWR(`/users`, fetchUsers);
 
   useEffect(() => {
-    const init = async () => {
-      const {users} = await fetchUsers();
+    if (data?.users?.[0]) {
+      setUsersList(data.users);
+    }
+  }, [data]);
 
-      if (users?.[0]) {
-        setUsersList(users);
-      }
-    };
-
-    init();
-  }, []);
+  const value = {currentUser, setUser, usersList};
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

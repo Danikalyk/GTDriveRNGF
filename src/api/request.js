@@ -5,8 +5,12 @@ export async function getRequest(url, params = {}, isDev = false) {
     ? axiosInstance.get(url, {params})
     : axiosInstanceDev.get(url, {params});
 
+
+    
   return req
-    .then(res => res.data)
+    .then(res => {
+      return res.data;
+    })
     .catch(error => {
       console.error(error.toJSON());
       return error.toJSON();

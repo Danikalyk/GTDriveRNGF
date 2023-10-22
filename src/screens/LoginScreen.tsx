@@ -53,10 +53,15 @@ const LoginScreen = ({navigation}: Props) => {
             findIndex(usersList, item => item.user === authInfo?.login) || 0;
           setSelectedIndex(new IndexPath(index));
         }
+      } else {
+        setLogin(usersList?.[0]?.user);
       }
       if (authInfo?.password) {
         setPassword(authInfo.password);
       }
+
+
+      
     };
 
     init();
@@ -86,6 +91,8 @@ const LoginScreen = ({navigation}: Props) => {
     setSubmit(true);
     setPending(true);
 
+    
+
     await saveTokens({login, password});
 
     let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
@@ -112,6 +119,7 @@ const LoginScreen = ({navigation}: Props) => {
       const user = await userAuth(params);
 
       if (user.name === 'AxiosError') {
+        setPending(false);
         return;
       }
       setUser(usersList[selectedIndex?.row]);
