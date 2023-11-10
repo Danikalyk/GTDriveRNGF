@@ -78,6 +78,8 @@ const LoginScreen = ({navigation}: Props) => {
     if (!!usersList && usersList[0]) {
       setPending(false);
     }
+
+    setPending(false); //TODO remove
   }, [usersList]);
 
   const SettingIcon = (props): IconElement => (
@@ -111,19 +113,25 @@ const LoginScreen = ({navigation}: Props) => {
     }
 
     try {
-      const user = await userAuth(params);
-
-      if (user.name === 'AxiosError') {
-        setPending(false);
-        return;
-      }
-      setUser(usersList[selectedIndex?.row]);
-
       context.login();
-      context.enableGeo();
-      setPending(false);
+
+
+      // const user = await userAuth(params);
+
+      // if (user.name === 'AxiosError') {
+      //   setPending(false);
+      //   return;
+      // }
+      // setUser(usersList[selectedIndex?.row]);
+
+      // context.login();
+      // context.enableGeo();
+      // setPending(false);
     } catch (error) {
       console.error(error);
+
+
+      
       setPending(false);
     }
   };
