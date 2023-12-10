@@ -57,7 +57,7 @@ const RoutesNavigation = () => (
 
 const ChatsNavigation = () => (
   <Stack.Navigator initialRouteName="Home">
-    <Screen
+    {/* <Screen
       name="Chats"
       component={ChatsScreen}
       options={{
@@ -65,7 +65,7 @@ const ChatsNavigation = () => (
 
         title: 'Чаты',
       }}
-    />
+    /> */}
 
     <Screen
       name="ChatScreen"

@@ -10,6 +10,7 @@ import {
 import React, {useContext, useRef, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import useSWR from 'swr';
 
 import {Alert, StyleSheet, Linking, Platform} from 'react-native';
@@ -154,6 +155,7 @@ const ChatScreen = (props: Props) => {
 
   const onPressSend = data => {
     // Implement
+    console.log('', data);
   };
 
   const onRefresh = React.useCallback(() => {
@@ -163,7 +165,7 @@ const ChatScreen = (props: Props) => {
     }, 2000);
   }, []);
 
-  console.log('ChatScreen', props);
+  // console.log('ChatScreen', props);
 
   const {currentUser} = useContext(UserContext);
 
@@ -184,27 +186,24 @@ const ChatScreen = (props: Props) => {
   );
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <Layout style={{flex: 1, padding: 10}}>
-        <Chatty
-          messages={messages}
-          headerProps={{
-            user: {
-              id: 0,
-              username: 'Muhammed Kaplan',
-              avatar: {
-                uri: 'https://i.pravatar.cc/300',
-              },
-            },
-          }}
-          footerProps={{
-            // To prevent any unnecessary re-rendering, we're using ref instead of states.
-            onChangeText: _text => (text.current = _text),
-            onPressSend,
-          }}
-        />
-      </Layout>
-    </SafeAreaView>
+    <KeyboardAwareScrollView>
+      <SafeAreaView style={{flex: 1}}>
+        <Layout style={{flex: 1}}>
+          <Chatty
+            bubbleProps={{
+              
+            }}
+            messages={messages}
+            footerProps={{
+              // To prevent any unnecessary re-rendering, we're using ref instead of states.
+              onChangeText: _text => (text.current = _text),
+              onPressSend,
+            }}
+            renderHeader={props => null}
+          />
+        </Layout>
+      </SafeAreaView>
+    </KeyboardAwareScrollView>
   );
 };
 
