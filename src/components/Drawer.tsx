@@ -25,7 +25,7 @@ export const HomeDrawer = (props: any) => {
     onSelect={onItemSelect}>
     
       <DrawerItem key={1} title={'Home'} />
-      <DrawerItem key={2} title={'Chats'} />
+      <DrawerItem key={2} title={'Chat'} />
       <DrawerItem key={3} title={'Settings'} />
       
     </Drawer>

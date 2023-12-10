@@ -11,6 +11,7 @@ import {GlobalState} from '../store/global/global.state';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ChatsScreen from '../screens/ChatsScreen';
+import ChatScreen from '../screens/ChatScreen';
 import {navigationRef} from '../RootNavigation';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {HomeDrawer} from './Drawer';
@@ -54,6 +55,30 @@ const RoutesNavigation = () => (
   </Stack.Navigator>
 );
 
+const ChatsNavigation = () => (
+  <Stack.Navigator initialRouteName="Home">
+    {/* <Screen
+      name="Chats"
+      component={ChatsScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} />,
+
+        title: 'Чаты',
+      }}
+    /> */}
+
+    <Screen
+      name="ChatScreen"
+      component={ChatScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} />,
+
+        title: 'Чат',
+      }}
+    />
+  </Stack.Navigator>
+);
+
 export const DrawerNavigator = () => (
   <Navigator
     initialRouteName={'Home'}
@@ -72,16 +97,16 @@ export const DrawerNavigator = () => (
     />
 
     <Screen
-      name="SettingsScreen"
-      component={SettingsScreen}
+      name="ChatsNavigation"
+      component={ChatsNavigation}
       options={{
-        header: props => <TopNavigationHeader {...props} />,
+        headerShown: false,
       }}
     />
 
-<Screen
-      name="Chats"
-      component={ChatsScreen}
+    <Screen
+      name="SettingsScreen"
+      component={SettingsScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
       }}
