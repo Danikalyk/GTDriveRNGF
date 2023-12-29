@@ -23,7 +23,7 @@ function App(): JSX.Element {
   const [enabled, setEnabled] = React.useState(false);
   const [location, setLocation] = React.useState('');
 
-  let Logger = BackgroundGeolocation.logger;
+  // let Logger = BackgroundGeolocation.logger;
 
   React.useEffect(() => {
     /// 1.  Subscribe to events.

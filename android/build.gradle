@@ -12,6 +12,9 @@ buildscript {
         
        appCompatVersion = "1.4.2"      // Or higher.  Required for new AndroidX compatibility.
        googlePlayServicesLocationVersion = "20.0.0"  // Or higher.
+
+       slf4jVersion = "1.7.36"
+        logbackVersion = "2.0.1"
     }
     repositories {
         google()
