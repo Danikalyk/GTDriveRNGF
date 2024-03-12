@@ -17,7 +17,7 @@ function useGeolocation(enabledGeo) {
     setEnabled(enabledGeo);
   }, [enabledGeo]);
 
-  // let Logger = BackgroundGeolocation.logger;
+  let Logger = BackgroundGeolocation.logger;
 
   React.useEffect(() => {
     if (!currentUser?.uid) {

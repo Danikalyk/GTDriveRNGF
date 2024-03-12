@@ -113,20 +113,22 @@ const LoginScreen = ({navigation}: Props) => {
     }
 
     try {
-      context.login();
-
-
-      // const user = await userAuth(params);
-
-      // if (user.name === 'AxiosError') {
-      //   setPending(false);
-      //   return;
-      // }
-      // setUser(usersList[selectedIndex?.row]);
-
       // context.login();
-      // context.enableGeo();
-      // setPending(false);
+
+
+      const user = await userAuth(params);
+
+      // console.log('userAuth', params);
+
+      if (user.name === 'AxiosError') {
+        setPending(false);
+        return;
+      }
+      setUser(usersList[selectedIndex?.row]);
+
+      context.login();
+      context.enableGeo();
+      setPending(false);
     } catch (error) {
       console.error(error);
 
