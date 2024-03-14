@@ -25,6 +25,8 @@ import dayjs from 'dayjs';
 import DeviceInfo from 'react-native-device-info';
 import findIndex from 'lodash/findIndex';
 
+import {getDevTokens} from '../api/auth';
+
 const LoginScreen = ({navigation}: Props) => {
   const context = React.useContext(GlobalState);
   const [login, setLogin] = React.useState('');
@@ -90,7 +92,8 @@ const LoginScreen = ({navigation}: Props) => {
     setSubmit(true);
     setPending(true);
 
-    await saveTokens({login, password});
+    const jwtToken = await getDevTokens({isRefresh: true});
+    await saveTokens({login, password, jwtToken});
 
     let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
 
@@ -115,7 +118,6 @@ const LoginScreen = ({navigation}: Props) => {
     try {
       // context.login();
 
-
       const user = await userAuth(params);
 
       // console.log('userAuth', params);
@@ -132,8 +134,6 @@ const LoginScreen = ({navigation}: Props) => {
     } catch (error) {
       console.error(error);
 
-
-      
       setPending(false);
     }
   };

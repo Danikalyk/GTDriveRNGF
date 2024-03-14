@@ -1,6 +1,6 @@
 import {createContext, useEffect, useState} from 'react';
 import useSWR from 'swr';
-import {fetchUsers} from '../../api/auth';
+import {fetchUsers, getDevTokens} from '../../api/auth';
 
 // Playing with this component around
 // Using context with useState or useReducer
@@ -15,6 +15,13 @@ export const UserProvider = ({children}) => {
 
   const {data, isLoading, error} = useSWR(`/users`, fetchUsers);
 
+  useEffect(() => {
+    const init = async () => {
+      await getDevTokens({isRefresh: true});
+    };
+
+    init();
+  }, []);
   useEffect(() => {
     if (data?.users?.[0]) {
       setUsersList(data.users);

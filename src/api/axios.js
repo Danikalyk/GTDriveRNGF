@@ -22,16 +22,17 @@ export const getBaseUrl = async (type = 'PhoneExchange') => {
 
 axiosInstance.interceptors.request.use(
   async config => {
-    const {token, login, password} = await getTokens();
-    console.log({token, login, password});
+    const {jwtToken, login, password} = await getTokens();
+    console.log({jwtToken, login, password});
 
     config.baseURL = await getBaseUrl();
-    const Authorization = token ? `Bearer ${token}` : '';
 
-    const auth = {
-      username: login || '',
-      password: password || '',
-    };
+    const auth = !!jwtToken
+      ? `Bearer ${jwtToken}`
+      : {
+          username: login || '',
+          password: password || '',
+        };
     if (auth) {
       config.headers['Authorization'] = auth;
       config.headers['Content-Type'] = 'application/json';

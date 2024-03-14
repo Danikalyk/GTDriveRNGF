@@ -11,14 +11,14 @@ export async function getTokens() {
   }
 }
 
-export async function saveTokens({login, password}) {
+export async function saveTokens({login, password, ...rest}) {
   try {
-    const token = `${Base64.encode(`${login}:${password}`)}`;
+    // const token = `${Base64.encode(`${login}:${password}`)}`;
 
     await localStorage.setItem('tokens', {
       login,
       password,
-      token,
+      ...rest,
     });
   } catch (e) {
     console.error('ERROR saveTokens', e);
@@ -34,16 +34,16 @@ export async function userAuth(params) {
   return putRequest('/auth', params);
 }
 
-export async function getDevTokens() {
+export async function getDevTokens({isRefresh = false}) {
   try {
     // await localStorage.removeItem('devToken'); // TODO удалить потом
-    const token = await localStorage.getItem('devToken');
-    if (token) {
+    const token = await localStorage.getItem('jwtToken');
+    if (token && !isRefresh) {
       return token;
     } else {
       const {access} = await getRequestJwt('/token');
       if (access) {
-        await localStorage.setItem('devToken', access);
+        await localStorage.setItem('jwtToken', access);
         return access;
       }
     }
