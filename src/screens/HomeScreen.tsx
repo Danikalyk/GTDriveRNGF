@@ -70,17 +70,17 @@ const HomeScreen = (props: Props) => {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      {routes && routes?.data && routes?.data[0] && (
+      {
         <List
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           style={styles.list}
-          data={routes?.data}
+          data={routes}
           renderItem={renderItem}
           ItemSeparatorComponent={Divider}
         />
-      )}
+      }
     </SafeAreaView>
   );
 };

@@ -23,7 +23,6 @@ export const getBaseUrl = async (type = 'PhoneExchange') => {
 axiosInstance.interceptors.request.use(
   async config => {
     const {jwtToken, login, password} = await getTokens();
-    console.log({jwtToken, login, password});
 
     config.baseURL = await getBaseUrl();
 
@@ -33,11 +32,12 @@ axiosInstance.interceptors.request.use(
           username: login || '',
           password: password || '',
         };
+
     if (auth) {
       config.headers['Authorization'] = auth;
       config.headers['Content-Type'] = 'application/json';
       config.withCredentials = true;
-      config.auth = auth;
+      //config.auth = auth;
     }
 
     return config;

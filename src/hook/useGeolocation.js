@@ -8,6 +8,9 @@ import {putRequest} from '../api/request';
 import {uploadLocation} from '../api/routes';
 
 function useGeolocation(enabledGeo) {
+
+  console.log("useGeolocation");
+
   const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
 
@@ -86,7 +89,10 @@ function useGeolocation(enabledGeo) {
       const baseUrl = await getBaseUrl();
       const {token} = await getTokens();
 
-      const tokenDev = await getDevTokens();
+      const tokenDev = await getDevTokens({isRefresh: false});
+
+      console.log("tokenDev");
+      console.log(tokenDev);   
 
       // console.log({tokenDev});
 

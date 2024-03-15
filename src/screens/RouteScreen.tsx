@@ -33,9 +33,9 @@ const RouteScreen = (props: Props) => {
     data: route,
     isLoading,
     error,
-  } = useSWR(`/routes/${uid}`, () => getRoute(uid));
+  } = useSWR(`/route/${uid}`, () => getRoute(uid));
 
-  const routeItem = route?.data;
+  const routeItem = route;
 
   if (error || !routeItem) {
     return null;
