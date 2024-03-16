@@ -1,14 +1,14 @@
-import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
 
 import {
+  ApplicationProvider,
   Drawer,
   DrawerItem,
+  IndexPath,
   Layout,
   Text,
-  IndexPath,
-  ApplicationProvider,
 } from '@ui-kitten/components';
 
 import * as eva from '@eva-design/eva';

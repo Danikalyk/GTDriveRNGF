@@ -1,20 +1,12 @@
-import {
-  Button,
-  Divider,
-  Layout,
-  List,
-  ListItem,
-  Text,
-  TopNavigation,
-} from '@ui-kitten/components';
+import {Divider, Layout, List, ListItem, Text} from '@ui-kitten/components';
 import React, {useContext} from 'react';
-import {RefreshControl, ScrollView} from 'react-native-gesture-handler';
+import {StyleSheet} from 'react-native';
+import {RefreshControl} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import useSWR from 'swr';
-import {StyleSheet} from 'react-native';
 import {getRoutes} from '../api/routes';
-import {RouterListItem} from '../types';
 import {UserContext} from '../store/user/UserProvider';
+import {RouterListItem} from '../types';
 
 type Props = {};
 
@@ -30,9 +22,7 @@ const HomeScreen = (props: Props) => {
     }, 2000);
   }, []);
 
-  const {
-    data: routes,
-  } = useSWR(`/routes?user=${currentUser?.uid}`, () =>
+  const {data: routes} = useSWR(`/routes?user=${currentUser?.uid}`, () =>
     getRoutes(currentUser?.uid),
   );
 

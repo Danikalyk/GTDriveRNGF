@@ -1,16 +1,13 @@
-import {View, StyleSheet} from 'react-native';
-import React from 'react';
 import {
   Button,
-  Divider,
   Icon,
   Input,
   Layout,
-  Text,
   TopNavigation,
 } from '@ui-kitten/components';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {TouchableWithoutFeedback} from '@ui-kitten/components/devsupport';
 import {navigate} from '../RootNavigation';
 import localStorage from '../store/localStorage';
 
@@ -43,9 +40,8 @@ const SettingsScreen = ({navigation}: Props) => {
   );
 
   const onCancel = () => {
-    
     let canGoBack = navigation.canGoBack();
-    
+
     if (canGoBack) {
       navigation.goBack();
     } else {

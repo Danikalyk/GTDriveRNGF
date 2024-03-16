@@ -1,4 +1,4 @@
-import {useReducer, createContext} from 'react';
+import {createContext, useReducer} from 'react';
 
 // Define the initial state
 const GLOBAL_STATE = {

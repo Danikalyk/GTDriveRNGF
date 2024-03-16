@@ -1,14 +1,13 @@
-import React from 'react';
+import {DrawerActions} from '@react-navigation/native';
 import {
   Icon,
   Layout,
-  Text,
   TopNavigation,
   TopNavigationAction,
 } from '@ui-kitten/components';
-import {TouchableOpacity} from 'react-native-gesture-handler';
-import {DrawerActions} from '@react-navigation/native';
 import {TouchableWebElement} from '@ui-kitten/components/devsupport';
+import React from 'react';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 type Props = {
   navigation: any;

@@ -1,18 +1,10 @@
-import {
-  Button,
-  Divider,
-  Layout,
-  List,
-  ListItem,
-  Text,
-  TopNavigation,
-} from '@ui-kitten/components';
+import {Divider, Layout, List, ListItem, Text} from '@ui-kitten/components';
 import React from 'react';
-import {RefreshControl, ScrollView} from 'react-native-gesture-handler';
+import {StyleSheet} from 'react-native';
+import {RefreshControl} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import useSWR from 'swr';
-import {StyleSheet} from 'react-native';
-import {getRoute, getRoutes} from '../api/routes';
+import {getRoute} from '../api/routes';
 import {RouterListItem} from '../types';
 
 type Props = {};

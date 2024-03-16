@@ -1,0 +1,8 @@
+.next
+.vscode
+node_modules
+ios
+android
+.idea
+.bundle
+__tests__

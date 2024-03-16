@@ -1,6 +1,5 @@
-import Base64 from 'base-64';
 import localStorage from '../store/localStorage';
-import {getRequest, getRequestJwt, postRequestJwt, putRequest} from './request';
+import {getRequest, getRequestJwt, putRequest} from './request';
 
 export async function getTokens() {
   try {

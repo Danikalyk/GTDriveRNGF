@@ -1,29 +1,28 @@
-import {View} from 'react-native';
-import React, {useContext, useEffect} from 'react';
 import {
   Button,
   Icon,
+  IndexPath,
   Input,
   Layout,
-  TopNavigation,
-  IndexPath,
   Select,
   SelectItem,
   Spinner,
 } from '@ui-kitten/components';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {TouchableWithoutFeedback} from '@ui-kitten/components/devsupport';
-import {navigate} from '../RootNavigation';
+import dayjs from 'dayjs';
+import findIndex from 'lodash/findIndex';
+import React, {useContext, useEffect} from 'react';
+import {View} from 'react-native';
+import BackgroundGeolocation from 'react-native-background-geolocation';
+import DeviceInfo from 'react-native-device-info';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {saveTokens, userAuth} from '../api/auth';
 import Loader from '../components/Icons/Loader';
+import {navigate} from '../RootNavigation';
 import {GlobalState} from '../store/global/global.state';
 import localStorage from '../store/localStorage';
 import {UserContext} from '../store/user/UserProvider';
 import {UserListItem} from '../types';
-import BackgroundGeolocation from 'react-native-background-geolocation';
-import dayjs from 'dayjs';
-import DeviceInfo from 'react-native-device-info';
-import findIndex from 'lodash/findIndex';
 
 import {getDevTokens} from '../api/auth';
 

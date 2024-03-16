@@ -1,7 +1,6 @@
-import {View, Text} from 'react-native';
 import React from 'react';
-import {GlobalState} from '../store/global/global.state';
 import useGeolocation from '../hook/useGeolocation';
+import {GlobalState} from '../store/global/global.state';
 
 type Props = {};
 

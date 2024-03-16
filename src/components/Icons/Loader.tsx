@@ -1,5 +1,5 @@
-import React from 'react';
 import {Icon, IconElement} from '@ui-kitten/components';
+import React from 'react';
 import {ImageProps} from 'react-native-svg';
 
 type Props = {};

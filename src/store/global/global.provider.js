@@ -1,11 +1,10 @@
-import {useEffect, useMemo, useReducer} from 'react';
-import {globalReducer} from './global.reducer';
-import {globalActionTypes as actions} from './global.actions';
-import {GlobalState} from './global.state';
 import {ApplicationProvider} from '@ui-kitten/components';
+import {useMemo, useReducer} from 'react';
+import {globalActionTypes as actions} from './global.actions';
+import {globalReducer} from './global.reducer';
+import {GlobalState} from './global.state';
 
 import * as eva from '@eva-design/eva';
-import useGeolocation from '../../hook/useGeolocation';
 
 const GLOBAL_STATE = {
   isLoggedIn: undefined,

@@ -1,30 +1,17 @@
-import {
-  Button,
-  Divider,
-  Layout,
-  List,
-  ListItem,
-  Text,
-  TopNavigation,
-} from '@ui-kitten/components';
-import React, { useContext } from 'react';
-import {RefreshControl, ScrollView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import useSWR from 'swr';
+import {Divider, Layout, List, ListItem} from '@ui-kitten/components';
+import React, {useContext} from 'react';
 import {StyleSheet} from 'react-native';
-import {getRoutes} from '../api/routes';
+import {RefreshControl} from 'react-native-gesture-handler';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {UserContext} from '../store/user/UserProvider';
 import {RouterListItem} from '../types';
-import { UserContext } from '../store/user/UserProvider';
 
 type Props = {};
 
 const ChatsScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
 
-
   const {usersList, setUser} = useContext(UserContext);
-
-  
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -32,7 +19,6 @@ const ChatsScreen = (props: Props) => {
       setRefreshing(false);
     }, 2000);
   }, []);
-
 
   const renderItem = ({
     item,
@@ -52,24 +38,22 @@ const ChatsScreen = (props: Props) => {
   const renderItemLeft = (item: RouterListItem) => {
     return (
       <Layout>
-        <Layout>
-          
-        </Layout>
+        <Layout></Layout>
       </Layout>
     );
   };
 
   return (
     <SafeAreaView style={{flex: 1}}>
-       <List
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          style={styles.list}
-          data={usersList}
-          renderItem={renderItem}
-          ItemSeparatorComponent={Divider}
-        />
+      <List
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        style={styles.list}
+        data={usersList}
+        renderItem={renderItem}
+        ItemSeparatorComponent={Divider}
+      />
     </SafeAreaView>
   );
 };

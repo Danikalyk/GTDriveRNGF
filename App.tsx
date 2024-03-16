@@ -1,11 +1,11 @@
-import 'react-native-gesture-handler';
 import React from 'react';
+import 'react-native-gesture-handler';
 
-import {EvaIconsPack} from '@ui-kitten/eva-icons';
-import CombinedContextProviders from './src/store/CombinedContextProviders';
-import MainNavigation from './src/components/MainNavigation';
 import {IconRegistry} from '@ui-kitten/components';
+import {EvaIconsPack} from '@ui-kitten/eva-icons';
 import GeoBackgroundg from './src/components/GeoBackgroundg';
+import MainNavigation from './src/components/MainNavigation';
+import CombinedContextProviders from './src/store/CombinedContextProviders';
 
 import {AppState} from 'react-native';
 import {SWRConfig} from 'swr';

@@ -1,7 +1,6 @@
 import axios from 'axios';
-import Base64 from 'base-64';
-import {getTokens} from './auth';
 import localStorage from '../store/localStorage';
+import {getTokens} from './auth';
 
 const axiosInstance = axios.create();
 

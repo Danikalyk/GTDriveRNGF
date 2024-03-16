@@ -1,12 +1,4 @@
-import {
-  Button,
-  Divider,
-  Layout,
-  List,
-  ListItem,
-  Text,
-  TopNavigation,
-} from '@ui-kitten/components';
+import {Layout, Text} from '@ui-kitten/components';
 import React, {
   useCallback,
   useContext,
@@ -14,19 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {RefreshControl, ScrollView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import useSWR from 'swr';
 
-import {Alert, StyleSheet, Linking, Platform} from 'react-native';
-import {getRoute, getRoutes} from '../api/routes';
-import {RouterListItem} from '../types';
-import {openAddressOnMap} from '../utils/openAddressOnMap';
+import {StyleSheet} from 'react-native';
 import {getChat} from '../api/chats';
 import {UserContext} from '../store/user/UserProvider';
-import {Chatty} from 'react-native-chatty';
-import dayjs from 'dayjs';
 
 import {GiftedChat} from 'react-native-gifted-chat';
 
@@ -216,30 +202,25 @@ const ChatScreen = (props: Props) => {
     );
   }, []);
 
-  
-
   return (
     <GiftedChat
-            messages={messages}
-            onSend={messages => onSend(messages)}
-            textInputStyle={{
-              backgroundColor: '#fff',
-              color: '#000',
-              borderRadius: 20,
-            }}
-            user={{
-              _id: 1,
-            }}
-            
-          />
-  )
+      messages={messages}
+      onSend={messages => onSend(messages)}
+      textInputStyle={{
+        backgroundColor: '#fff',
+        color: '#000',
+        borderRadius: 20,
+      }}
+      user={{
+        _id: 1,
+      }}
+    />
+  );
 
   return (
     <KeyboardAwareScrollView>
       <SafeAreaView style={{flex: 1}}>
         <Layout style={{flex: 1}}>
-       
-
           <GiftedChat
             messages={messages}
             onSend={messages => onSend(messages)}

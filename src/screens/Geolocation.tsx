@@ -3,19 +3,6 @@ import React from 'react';
 import {StyleSheet, Switch, Text, View} from 'react-native';
 
 import BackgroundGeolocation, {
-  State,
-  Config,
-  Location,
-  LocationError,
-  Geofence,
-  GeofenceEvent,
-  GeofencesChangeEvent,
-  HeartbeatEvent,
-  HttpEvent,
-  MotionActivityEvent,
-  MotionChangeEvent,
-  ProviderChangeEvent,
-  ConnectivityChangeEvent,
   Subscription,
 } from 'react-native-background-geolocation';
 

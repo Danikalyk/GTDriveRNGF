@@ -3,17 +3,13 @@ import React, {useContext, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import * as eva from '@eva-design/eva';
-import {ApplicationProvider, Drawer, IndexPath} from '@ui-kitten/components';
-
-import LoginScreen from '../screens/LoginScreen';
-import {GlobalState} from '../store/global/global.state';
-import HomeScreen from '../screens/HomeScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import ChatsScreen from '../screens/ChatsScreen';
-import ChatScreen from '../screens/ChatScreen';
-import {navigationRef} from '../RootNavigation';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import {navigationRef} from '../RootNavigation';
+import ChatScreen from '../screens/ChatScreen';
+import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import {GlobalState} from '../store/global/global.state';
 import {HomeDrawer} from './Drawer';
 import TopNavigationHeader from './TopNavigationHeader';
 

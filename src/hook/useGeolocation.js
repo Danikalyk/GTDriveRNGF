@@ -1,15 +1,11 @@
 import React, {useContext, useEffect} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
-import {GlobalState} from '../store/global/global.state';
+import {getDevTokens, getTokens} from '../api/auth';
 import {getBaseUrl} from '../api/axios';
-import {getTokens, getDevTokens} from '../api/auth';
 import {UserContext} from '../store/user/UserProvider';
-import {putRequest} from '../api/request';
-import {uploadLocation} from '../api/routes';
 
 function useGeolocation(enabledGeo) {
-
-  console.log("useGeolocation");
+  console.log('useGeolocation');
 
   const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
@@ -91,8 +87,8 @@ function useGeolocation(enabledGeo) {
 
       const tokenDev = await getDevTokens({isRefresh: false});
 
-      console.log("tokenDev");
-      console.log(tokenDev);   
+      console.log('tokenDev');
+      console.log(tokenDev);
 
       // console.log({tokenDev});
 
