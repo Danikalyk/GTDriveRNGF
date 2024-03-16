@@ -76,7 +76,7 @@ axiosInstanceDevToken.interceptors.request.use(
       config.headers['Authorization'] = auth;
       config.headers['Content-Type'] = 'application/json';
       config.withCredentials = true;
-      config.auth = auth;
+      // config.auth = auth;
     }
 
     return config;

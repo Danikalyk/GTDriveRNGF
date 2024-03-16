@@ -71,3 +71,7 @@ export async function postRequestJwt(url, payload = {}) {
       return error.toJSON();
     });
 }
+
+export const pingServer = async () => {
+  return await axiosInstanceDev.get('/ping');
+};

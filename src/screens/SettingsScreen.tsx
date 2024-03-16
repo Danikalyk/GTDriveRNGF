@@ -8,6 +8,7 @@ import {
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {pingServer} from '../api/request';
 import {navigate} from '../RootNavigation';
 import localStorage from '../store/localStorage';
 
@@ -15,7 +16,8 @@ const SettingsScreen = ({navigation}: Props) => {
   const [server, setServer] = React.useState('');
   const [port, setPort] = React.useState('');
   const [database, setDatabase] = React.useState('');
-
+  const [serverStatus, setServerStatus] = React.useState(false);
+  const [isCheckStatus, setCheckStatus] = React.useState(false);
   const [isSubmit, setSubmit] = React.useState(false);
 
   React.useEffect(() => {
@@ -37,6 +39,14 @@ const SettingsScreen = ({navigation}: Props) => {
 
   const SettingIcon = (props): IconElement => (
     <Icon {...props} name="arrow-back-outline" />
+  );
+
+  const SuccessIcon = (props): IconElement => (
+    <Icon {...props} name="checkmark-circle-outline" />
+  );
+
+  const AlertIcon = (props): IconElement => (
+    <Icon {...props} name="alert-circle-outline" />
   );
 
   const onCancel = () => {
@@ -67,6 +77,15 @@ const SettingsScreen = ({navigation}: Props) => {
 
       onCancel();
     }
+  };
+
+  const onCheckServer = async () => {
+    const result = await pingServer();
+    if (result?.status === 200) {
+      setServerStatus(result.status);
+    }
+
+    setCheckStatus(true);
   };
 
   return (
@@ -113,6 +132,28 @@ const SettingsScreen = ({navigation}: Props) => {
                 status={!!(isSubmit && !database) ? 'danger' : 'primary'}
               />
             </Layout>
+            {Boolean(server && port && database) && (
+              <Button
+                style={{margin: 5, marginTop: 10}}
+                onPress={onCheckServer}
+                status={
+                  serverStatus === 200
+                    ? 'success'
+                    : isCheckStatus
+                    ? 'danger'
+                    : 'primary'
+                }
+                accessoryLeft={
+                  serverStatus === 200
+                    ? SuccessIcon
+                    : isCheckStatus
+                    ? AlertIcon
+                    : null
+                }
+                appearance="outline">
+                Проверить сервер
+              </Button>
+            )}
           </>
         </View>
         <View>
