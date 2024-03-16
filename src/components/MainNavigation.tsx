@@ -19,6 +19,7 @@ import TopNavigationHeader from './TopNavigationHeader';
 
 import RouteScreen from '../screens/RouteScreen';
 import TaskScreen from '../screens/TaskScreen';
+import localStorage from '../store/localStorage';
 
 const Stack = createNativeStackNavigator();
 
@@ -116,18 +117,35 @@ export const DrawerNavigator = () => (
 
 const MainNavigation = (props: Props) => {
   const {isLoggedIn} = useContext(GlobalState);
+  const [initialScreen, setInitialScreen] = React.useState('');
 
-  //   if (state.isLoading) {
-  //     // We haven't finished checking for the token yet
-  //     return <SplashScreen />;
-  //   }
+  useEffect(() => {
+    const init = async () => {
+      const serverInfo = (await localStorage.getItem('serverInfo')) || {};
+      const {server, port, database} = serverInfo;
+      if (server && port && database) {
+        setInitialScreen('Login');
+      } else {
+        setInitialScreen('SettingsScreen');
+      }
+    };
+
+    init();
+  }, []);
+
+  if (!initialScreen) {
+    // We haven't finished checking for the token yet
+    return null;
+  }
 
   return (
     <NavigationContainer ref={navigationRef}>
       {isLoggedIn ? (
         <DrawerNavigator />
       ) : (
-        <Stack.Navigator screenOptions={{headerShown: false}}>
+        <Stack.Navigator
+          screenOptions={{headerShown: false}}
+          initialRouteName={initialScreen}>
           <Stack.Screen
             name="Login"
             component={LoginScreen}

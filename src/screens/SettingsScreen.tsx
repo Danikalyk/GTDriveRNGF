@@ -43,7 +43,14 @@ const SettingsScreen = ({navigation}: Props) => {
   );
 
   const onCancel = () => {
-    navigation.goBack();
+    
+    let canGoBack = navigation.canGoBack();
+    
+    if (canGoBack) {
+      navigation.goBack();
+    } else {
+      navigate('Login');
+    }
   };
 
   const onSave = async () => {
