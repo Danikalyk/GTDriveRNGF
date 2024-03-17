@@ -5,9 +5,10 @@ import {
   Layout,
   TopNavigation,
 } from '@ui-kitten/components';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {getDevTokens} from '../api/auth';
 import {pingServer} from '../api/request';
 import {navigate} from '../RootNavigation';
 import localStorage from '../store/localStorage';
@@ -19,6 +20,7 @@ const SettingsScreen = ({navigation}: Props) => {
   const [serverStatus, setServerStatus] = React.useState(false);
   const [isCheckStatus, setCheckStatus] = React.useState(false);
   const [isSubmit, setSubmit] = React.useState(false);
+  const [token, setToken] = React.useState('');
 
   React.useEffect(() => {
     const init = async () => {
@@ -88,6 +90,26 @@ const SettingsScreen = ({navigation}: Props) => {
     setCheckStatus(true);
   };
 
+  const refreshToken = async () => {
+    const token = await getDevTokens({isRefresh: true});
+    if (token) {
+      setToken(token);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setToken('');
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [token]);
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <TopNavigation title="Настройки" alignment="center" />
@@ -133,26 +155,35 @@ const SettingsScreen = ({navigation}: Props) => {
               />
             </Layout>
             {Boolean(server && port && database) && (
-              <Button
-                style={{margin: 5, marginTop: 10}}
-                onPress={onCheckServer}
-                status={
-                  serverStatus === 200
-                    ? 'success'
-                    : isCheckStatus
-                    ? 'danger'
-                    : 'primary'
-                }
-                accessoryLeft={
-                  serverStatus === 200
-                    ? SuccessIcon
-                    : isCheckStatus
-                    ? AlertIcon
-                    : null
-                }
-                appearance="outline">
-                Проверить сервер
-              </Button>
+              <>
+                <Button
+                  style={{margin: 5, marginTop: 10}}
+                  onPress={onCheckServer}
+                  status={
+                    serverStatus === 200
+                      ? 'success'
+                      : isCheckStatus
+                      ? 'danger'
+                      : 'primary'
+                  }
+                  accessoryLeft={
+                    serverStatus === 200
+                      ? SuccessIcon
+                      : isCheckStatus
+                      ? AlertIcon
+                      : null
+                  }
+                  appearance="outline">
+                  Проверить сервер
+                </Button>
+                <Button
+                  style={{margin: 5, marginTop: 10}}
+                  onPress={refreshToken}
+                  status={token ? 'success' : 'primary'}
+                  accessoryLeft={!!token ? SuccessIcon : null}>
+                  Обновить токен
+                </Button>
+              </>
             )}
           </>
         </View>
