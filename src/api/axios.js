@@ -1,6 +1,6 @@
 import axios from 'axios';
 import localStorage from '../store/localStorage';
-import {getTokens} from './auth';
+import {getDevTokens, getTokens} from './auth';
 
 const axiosInstance = axios.create();
 
@@ -41,7 +41,24 @@ axiosInstance.interceptors.request.use(
 
     return config;
   },
-  error => Promise.reject(error),
+  async error => {
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 402)
+    ) {
+      try {
+        const newAccessToken = await getDevTokens({isRefresh: true});
+        // Update the request headers with the new access token
+        error.config.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        // Retry the original request
+        return axiosInstance(error.config);
+      } catch (refreshError) {
+        // Handle token refresh error
+        throw refreshError;
+      }
+    }
+    return Promise.reject(error);
+  },
 );
 
 axiosInstanceDev.interceptors.request.use(
