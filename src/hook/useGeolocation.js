@@ -22,6 +22,10 @@ function useGeolocation(enabledGeo) {
     if (!currentUser?.uid) {
       return;
     }
+
+   
+
+
     /// 1.  Subscribe to events.
     const onLocation: Subscription = BackgroundGeolocation.onLocation(
       location => {
@@ -87,10 +91,9 @@ function useGeolocation(enabledGeo) {
 
       const tokenDev = await getDevTokens({isRefresh: false});
 
-      console.log('tokenDev');
-      console.log(tokenDev);
+      let providerState = await BackgroundGeolocation.getProviderState();
+      console.log("- Provider state: ", providerState);
 
-      // console.log({tokenDev});
 
       /// 2. ready the plugin.
       BackgroundGeolocation.ready({
@@ -123,7 +126,7 @@ function useGeolocation(enabledGeo) {
           user: {
             uid: currentUser?.uid,
           },
-          provider: {gps: null, network: null},
+          provider: {gps: providerState?.gps, network: providerState?.network},
         },
       })
         .then(state => {
