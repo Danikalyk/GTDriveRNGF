@@ -5,15 +5,14 @@ import {RefreshControl} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import useSWR from 'swr';
 import {getRoutes} from '../api/routes';
+import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 import {RouterListItem} from '../types';
-import { GlobalState } from '../store/global/global.state';
 
 type Props = {};
 
 const HomeScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
-
 
   const {location} = useContext(GlobalState);
 
