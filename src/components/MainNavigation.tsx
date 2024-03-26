@@ -8,6 +8,7 @@ import {navigationRef} from '../RootNavigation';
 import ChatScreen from '../screens/ChatScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
+import MapScreen from '../screens/MapScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import {GlobalState} from '../store/global/global.state';
 import {HomeDrawer} from './Drawer';
@@ -85,28 +86,38 @@ export const DrawerNavigator = () => (
     drawerPosition="left"
     swipeEnabled
     swipeEdgeWidth={50}>
-    <Screen
-      name="RoutesNavigation"
-      component={RoutesNavigation}
-      options={{
-        headerShown: false,
-      }}
-    />
+   
+      <Screen
+        name="RoutesNavigation"
+        component={RoutesNavigation}
+        options={{
+          headerShown: false,
+        }}
+      />
 
-    <Screen
-      name="ChatsNavigation"
-      component={ChatsNavigation}
-      options={{
-        headerShown: false,
-      }}
-    />
+      <Screen
+        name="ChatsNavigation"
+        component={ChatsNavigation}
+        options={{
+          headerShown: false,
+        }}
+      />
 
-    <Screen
-      name="SettingsScreen"
-      component={SettingsScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} />,
-      }}
+      <Screen
+        name="SettingsScreen"
+        component={SettingsScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} />,
+        }}
+      />
+
+      <Screen
+        name="MapScreen"
+        component={MapScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} />,
+        }}
+        
     />
   </Navigator>
 );

@@ -24,6 +24,7 @@ export const HomeDrawer = (props: any) => {
       <DrawerItem key={1} title={'Home'} />
       <DrawerItem key={2} title={'Chat'} />
       <DrawerItem key={3} title={'Settings'} />
+      <DrawerItem key={4} title={'Map'} />
     </Drawer>
   );
 };
