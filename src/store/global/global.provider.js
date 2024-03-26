@@ -11,6 +11,7 @@ const GLOBAL_STATE = {
   theme: 'light',
   isModalOpen: false,
   enabledGeo: false,
+  location: null,
 };
 
 export const GlobalStateProvider = ({children}) => {
@@ -41,7 +42,10 @@ export const GlobalStateProvider = ({children}) => {
         dispatch({type: actions.ENABLE_GEO});
       },
       disableGeo: () => {
-        dispatch({type: actions.DISABLE_GEO});
+        dispatch({type: actions.s});
+      },
+      setLocation: location => {
+        dispatch({type: actions.SET_LOCATION, payload: location});
       },
     }),
     [state, dispatch],

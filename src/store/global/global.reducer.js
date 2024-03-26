@@ -43,6 +43,12 @@ export const globalReducer = (state, action) => {
         ...state,
         enabledGeo: false,
       };
+
+    case actions.SET_LOCATION:
+      return {
+        ...state,
+        location: action.payload,
+      };
     default:
       return state;
   }

@@ -2,10 +2,12 @@ import React, {useContext, useEffect} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import {getDevTokens, getTokens} from '../api/auth';
 import {getBaseUrl} from '../api/axios';
+import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 
 function useGeolocation(enabledGeo) {
   console.log('useGeolocation');
+  const context = React.useContext(GlobalState);
 
   const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
@@ -23,25 +25,14 @@ function useGeolocation(enabledGeo) {
       return;
     }
 
-   
-
-
     /// 1.  Subscribe to events.
     const onLocation: Subscription = BackgroundGeolocation.onLocation(
       location => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
         console.log({location});
-        // setLocation(JSON.stringify(location, null, 2));
-        // const init = async () => {
-        //   await uploadLocation({
-        //     location: location,
-        //     user: {
-        //       uid: currentUser?.uid,
-        //     },
-        //   });
-        // };
-        // init();
+
+        context.setLocation(location);
       },
     );
 
@@ -92,8 +83,7 @@ function useGeolocation(enabledGeo) {
       const tokenDev = await getDevTokens({isRefresh: false});
 
       let providerState = await BackgroundGeolocation.getProviderState();
-      console.log("- Provider state: ", providerState);
-
+      console.log('- Provider state: ', providerState);
 
       /// 2. ready the plugin.
       BackgroundGeolocation.ready({

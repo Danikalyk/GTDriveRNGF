@@ -7,11 +7,17 @@ import useSWR from 'swr';
 import {getRoutes} from '../api/routes';
 import {UserContext} from '../store/user/UserProvider';
 import {RouterListItem} from '../types';
+import { GlobalState } from '../store/global/global.state';
 
 type Props = {};
 
 const HomeScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
+
+
+  const {location} = useContext(GlobalState);
+
+  console.log('@@@HomeScreen', {location});
 
   const {currentUser} = useContext(UserContext);
 
