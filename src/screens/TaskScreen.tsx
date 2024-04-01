@@ -2,8 +2,11 @@ import {Button, Layout, Text} from '@ui-kitten/components';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {Alert, Linking, StyleSheet} from 'react-native';
+import {Alert, Linking, StyleSheet, View} from 'react-native';
 import {openAddressOnMap} from '../utils/openAddressOnMap';
+
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import AddPhoto from '../components/AddPhoto/AddPhoto';
 
 type Props = {};
 
@@ -52,7 +55,7 @@ const RouteScreen = (props: Props) => {
   return (
     <SafeAreaView style={{flex: 1}}>
       <Layout style={{flex: 1, padding: 10}}>
-        <Text category="h6" style={{marginBottom: 10}}>
+        <Text category="h5" style={{marginBottom: 10}}>
           {params?.client_name}
         </Text>
 
@@ -63,6 +66,12 @@ const RouteScreen = (props: Props) => {
         <Button onPress={handleOpenNavigator}>
           <Text>Открыть в навигаторе</Text>
         </Button>
+
+        <Text category="h6" style={{marginBottom: 10, marginTop: 20}}>
+          Фото
+        </Text>
+
+        <AddPhoto />
       </Layout>
     </SafeAreaView>
   );
