@@ -5,36 +5,48 @@ import {
   ListItem,
   Text
 } from '@ui-kitten/components';
-import React, {useEffect} from 'react';
-import {StyleSheet, SafeAreaView} from 'react-native';
+import React, { useEffect, useContext, useRef } from 'react';
+import { StyleSheet, SafeAreaView } from 'react-native';
 import useSWR from 'swr';
-import {WebView} from 'react-native-webview';
+import { WebView } from 'react-native-webview';
 import map_scripts from '../map_scripts';
 import BackgroundGeolocation from 'react-native-background-geolocation';
+import { GlobalState } from '../store/global/global.state';
 
 type Props = {};
 
 const MapScreen = (props: Props) => {
+  const { location } = useContext(GlobalState);
+  const Map_Ref = useRef(null);
+  const lat = location?.coords.latitude;
+  const lon = location?.coords.longitude;
 
-  //React.useEffect(() => {
-  //}, []);
+  useEffect(() => {
+    const script = `
+      L.marker([${lat}, ${lon}]).addTo(map);
+    `;
+    if (Map_Ref.current) {
+      Map_Ref.current.injectJavaScript(script);
+    }
+  }, [location]);
 
-
-
-    _goToMyPosition = (lat, lon) => {
-    this.refs.Map_Ref.injectJavaScript(`
-          map.setView([${lat}, ${lon}], 10)
-          
-          L.marker([${lat}, ${lon}]).addTo(mymap)
-        `);
-  };
+  jsInit = (lat, lon) => { 
+    const script = `
+      init(${lat}, ${lon});
+    `;
+    
+    if (Map_Ref.current) {
+      Map_Ref.current.injectJavaScript(script);
+    }
+  }; 
 
   return (
     <SafeAreaView style={styles.Container}>
       <WebView
-        useRef={'Map_Ref'}
-        source={{html: map_scripts}}
+        ref={Map_Ref}
+        source={{ html: map_scripts }}
         style={styles.Webview}
+        onLoad={() => this.jsInit(lat, lon)}
       />
     </SafeAreaView>
 
@@ -47,11 +59,11 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: 'grey',
 
-    },
+  },
   Webview: {
     flex: 2,
 
-    },
-  });
+  },
+});
 
 export default MapScreen;

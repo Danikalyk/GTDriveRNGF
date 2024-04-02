@@ -1,5 +1,5 @@
 import { Divider, Layout, List, ListItem, Text, Button, TabBar, Tab } from '@ui-kitten/components';
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,12 +11,17 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { WebView } from 'react-native-webview';
 import map_scripts from '../map_scripts';
+import { GlobalState } from '../store/global/global.state';
 
 type Props = {};
 
 const RouteScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [pending, setPending] = React.useState(true);
+  const { location } = useContext(GlobalState);
+  const Map_Ref = useRef(null);
+  const lat = location?.coords.latitude;
+  const lon = location?.coords.longitude;
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -73,8 +78,6 @@ const RouteScreen = (props: Props) => {
   };
 
   const getThisRoute = async () => {
-
-
   };
 
   // Табы
@@ -113,12 +116,21 @@ const RouteScreen = (props: Props) => {
     </SafeAreaView>
   );
 
+  jsInit = (lat, lon, routeItem) => {
+
+    if (Map_Ref.current) {
+      Map_Ref.current.injectJavaScript(`init(${lat}, ${lon});`);
+      Map_Ref.current.injectJavaScript(`renderPoints(${JSON.stringify(routeItem)})`);
+    };
+  };
+
   const MapScreen = () => (
     <SafeAreaView style={styles.Container}>
       <WebView
-        useRef={'Map_Ref'}
+        ref={Map_Ref}
         source={{ html: map_scripts }}
         style={styles.Webview}
+        onLoad={() => this.jsInit(lat, lon, routeItem)}
       />
     </SafeAreaView>
   );
@@ -139,11 +151,9 @@ const RouteScreen = (props: Props) => {
     </Navigator>
   );
 
-
-
   return (
     <NavigationContainer independent={true}>
-        <TabNavigator />
+      <TabNavigator />
     </NavigationContainer>
   );
 };
