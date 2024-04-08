@@ -25,9 +25,17 @@ const TrashIcon = (props): IconElement => (
   <Icon {...props} name="trash-2-outline" />
 );
 
-function AddPhoto({}: Props) {
+function AddPhoto(props: Props) {
   const [images, setImages] = useState([]);
   const [pickerResponse, setPickerResponse] = useState<any>(null);
+
+  const params = props?.route?.params;
+
+  const uid_destination = props?.route?.params?.uid;
+  const uid_route = props?.route?.params?.uid_route;
+  
+
+  console.log('@AddPhoto params', params);
 
   useEffect(() => {
     if (pickerResponse) {
@@ -50,17 +58,24 @@ function AddPhoto({}: Props) {
       mediaType: 'photo',
       includeBase64: true,
       selectionLimit: 10,
-      maxWidth: 1000, // TODO: fix width
-      maxHeight: 1000, // TODO: fix height
+      maxWidth: 2560, // TODO: fix width
+      maxHeight: 1440, // TODO: fix height
     };
     launchCamera(options, setPickerResponse);
   }, []);
 
   const onSubmitPhoto = async () => {
-    const result = await acceptImages({images}); // TODO: check images api
+
+    const payload = {
+      uid_route: uid_route,
+      uid_destination: uid_destination,
+      images: images.map((image) => image.assets[0].base64),
+    }
+    const result = await acceptImages(payload); // TODO: check images api
 
     console.log('@onSubmitPhoto result', result);
   };
+
 
   return (
     <View style={styles.container}>
