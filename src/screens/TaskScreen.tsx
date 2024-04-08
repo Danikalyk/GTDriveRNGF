@@ -67,7 +67,9 @@ const RouteScreen = (props: Props) => {
   const dataButtons = [
     {title: '1', icon: 'phone'},
     {title: '2', icon: 'message-square'},
-    {title: '3', icon: 'alert-circle'},
+    {title: '3', icon: 'alert-circle', onClick: () => {
+      props.navigation.navigate('AccidentScreen', {...params});
+    }},
     {
       title: '4',
       icon: 'camera',

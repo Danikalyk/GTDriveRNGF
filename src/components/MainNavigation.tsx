@@ -17,6 +17,7 @@ import TopNavigationHeader from './TopNavigationHeader';
 
 import RouteScreen from '../screens/RouteScreen';
 import TaskScreen from '../screens/TaskScreen';
+import AccidentScreen from '../screens/AccidentScreen';
 import localStorage from '../store/localStorage';
 
 const Stack = createNativeStackNavigator();
@@ -57,6 +58,14 @@ const RoutesNavigation = () => (
       options={{
         header: props => <TopNavigationHeader {...props} isBack />,
         title: 'Фото',
+      }}
+    />
+     <Stack.Screen
+      name="AccidentScreen"
+      component={AccidentScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} isBack />,
+        title: 'Проишествие',
       }}
     />
   </Stack.Navigator>
