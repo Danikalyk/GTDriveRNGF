@@ -69,7 +69,7 @@ const RouteScreen = (props: Props) => {
     {title: '2', icon: 'message-square'},
     {title: '3', icon: 'alert-circle'},
     {title: '4', icon: 'camera', onClick: () => {
-      props.navigation.navigate('TaskPhotoScreen', {...params});
+      props.navigation.navigate('AddPhoto');
     }},
   ];
 
@@ -111,43 +111,17 @@ const RouteScreen = (props: Props) => {
     <ScrollView contentContainerStyle={styles.wrap}>
       <SafeAreaView style={{flex: 1}}>
         <Layout style={{flex: 1, padding: 10}}>
-          <Text category="h6" style={{marginBottom: 10}}>
-            {params?.client_name}
-          </Text>
-
-          <Text category="s1" style={{marginBottom: 20}}>
-            {params?.address}
-          </Text>
-
-          <Layout style={styles.container} level="1">
-            <ButtonGroup
-              selectedIndex={selectedIndex}
-              onSelect={onSelect}
-              style={styles.buttonGroup}
-              size="small">
-              {dataButtons.map((item, index) => (
-                <Button
-                  key={index}
-                  accessoryLeft={props => <Icon {...props} name={item.icon} />}
-                  onPress={item?.onClick}
-                />
-              ))}
-            </ButtonGroup>
-          </Layout>
-
-          <List
-            style={styles.list}
-            ListHeaderComponent={renderHeader}
-            data={orders}
-            renderItem={renderItem}
-            ItemSeparatorComponent={Divider}
-          />
-
-          <Button onPress={handleOpenNavigator}>
-            <Text>Открыть в навигаторе</Text>
-          </Button>
+         
 
          
+
+       
+
+          <Text category="h6" style={{marginBottom: 10, marginTop: 20}}>
+            Добавить фото
+          </Text>
+
+          <AddPhoto />
         </Layout>
       </SafeAreaView>
     </ScrollView>

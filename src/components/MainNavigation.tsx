@@ -9,6 +9,7 @@ import ChatScreen from '../screens/ChatScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MapScreen from '../screens/MapScreen';
+import TaskPhotoScreen from '../screens/TaskPhotoScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import {GlobalState} from '../store/global/global.state';
 import {HomeDrawer} from './Drawer';
@@ -48,6 +49,14 @@ const RoutesNavigation = () => (
       options={{
         header: props => <TopNavigationHeader {...props} isBack />,
         title: 'Карточка контрагента',
+      }}
+    />
+     <Stack.Screen
+      name="TaskPhotoScreen"
+      component={TaskPhotoScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} isBack />,
+        title: 'Фото',
       }}
     />
   </Stack.Navigator>
