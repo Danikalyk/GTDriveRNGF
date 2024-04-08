@@ -1,4 +1,4 @@
-import {Divider, Layout, List, ListItem, Text} from '@ui-kitten/components';
+import {Divider, Layout, List, ListItem, Text, View} from '@ui-kitten/components';
 import React, {useContext} from 'react';
 import {StyleSheet} from 'react-native';
 import {RefreshControl} from 'react-native-gesture-handler';
