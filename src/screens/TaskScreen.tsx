@@ -33,7 +33,7 @@ const RouteScreen = (props: Props) => {
   const params = props?.route?.params;
   const orders = props?.route?.params.orders;
 
-  console.log({ params });
+  console.log({params});
   // console.log({orders});
 
   const handleOpenNavigator = async () => {
@@ -68,9 +68,13 @@ const RouteScreen = (props: Props) => {
     {title: '1', icon: 'phone'},
     {title: '2', icon: 'message-square'},
     {title: '3', icon: 'alert-circle'},
-    {title: '4', icon: 'camera', onClick: () => {
-      props.navigation.navigate('TaskPhotoScreen', {...params});
-    }},
+    {
+      title: '4',
+      icon: 'camera',
+      onClick: () => {
+        props.navigation.navigate('TaskPhotoScreen', {...params});
+      },
+    },
   ];
 
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -108,49 +112,45 @@ const RouteScreen = (props: Props) => {
   };
 
   return (
-    
-      <SafeAreaView style={{flex: 1}}>
-        <Layout style={{flex: 1, padding: 10}}>
-          <Text category="h6" style={{marginBottom: 10}}>
-            {params?.client_name}
-          </Text>
+    <SafeAreaView style={{flex: 1}}>
+      <Layout style={{flex: 1, padding: 10}}>
+        <Text category="h6" style={{marginBottom: 10}}>
+          {params?.client_name}
+        </Text>
 
-          <Text category="s1" style={{marginBottom: 20}}>
-            {params?.address}
-          </Text>
+        <Text category="s1" style={{marginBottom: 20}}>
+          {params?.address}
+        </Text>
 
-          <Layout style={styles.container} level="1">
-            <ButtonGroup
-              selectedIndex={selectedIndex}
-              onSelect={onSelect}
-              style={styles.buttonGroup}
-              size="small">
-              {dataButtons.map((item, index) => (
-                <Button
-                  key={index}
-                  accessoryLeft={props => <Icon {...props} name={item.icon} />}
-                  onPress={item?.onClick}
-                />
-              ))}
-            </ButtonGroup>
-          </Layout>
-
-          <List
-            style={styles.list}
-            ListHeaderComponent={renderHeader}
-            data={orders}
-            renderItem={renderItem}
-            ItemSeparatorComponent={Divider}
-          />
-
-          <Button onPress={handleOpenNavigator}>
-            <Text>Открыть в навигаторе</Text>
-          </Button>
-
-         
+        <Layout style={styles.container} level="1">
+          <ButtonGroup
+            selectedIndex={selectedIndex}
+            onSelect={onSelect}
+            style={styles.buttonGroup}
+            size="small">
+            {dataButtons.map((item, index) => (
+              <Button
+                key={index}
+                accessoryLeft={props => <Icon {...props} name={item.icon} />}
+                onPress={item?.onClick}
+              />
+            ))}
+          </ButtonGroup>
         </Layout>
-      </SafeAreaView>
-    
+
+        <List
+          style={styles.list}
+          ListHeaderComponent={renderHeader}
+          data={orders}
+          renderItem={renderItem}
+          ItemSeparatorComponent={Divider}
+        />
+
+        <Button onPress={handleOpenNavigator}>
+          <Text>Открыть в навигаторе</Text>
+        </Button>
+      </Layout>
+    </SafeAreaView>
   );
 };
 

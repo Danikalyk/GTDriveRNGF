@@ -30,12 +30,6 @@ const RouteScreen = (props: Props) => {
     }, 2000);
   }, []);
 
- 
-
-
-
-
-
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
       <SafeAreaView style={{flex: 1}}>

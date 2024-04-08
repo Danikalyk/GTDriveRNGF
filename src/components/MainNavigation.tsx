@@ -51,7 +51,7 @@ const RoutesNavigation = () => (
         title: 'Карточка контрагента',
       }}
     />
-     <Stack.Screen
+    <Stack.Screen
       name="TaskPhotoScreen"
       component={TaskPhotoScreen}
       options={{
@@ -95,38 +95,36 @@ export const DrawerNavigator = () => (
     drawerPosition="left"
     swipeEnabled
     swipeEdgeWidth={50}>
-   
-      <Screen
-        name="RoutesNavigation"
-        component={RoutesNavigation}
-        options={{
-          headerShown: false,
-        }}
-      />
+    <Screen
+      name="RoutesNavigation"
+      component={RoutesNavigation}
+      options={{
+        headerShown: false,
+      }}
+    />
 
-      <Screen
-        name="ChatsNavigation"
-        component={ChatsNavigation}
-        options={{
-          headerShown: false,
-        }}
-      />
+    <Screen
+      name="ChatsNavigation"
+      component={ChatsNavigation}
+      options={{
+        headerShown: false,
+      }}
+    />
 
-      <Screen
-        name="SettingsScreen"
-        component={SettingsScreen}
-        options={{
-          header: props => <TopNavigationHeader {...props} />,
-        }}
-      />
+    <Screen
+      name="SettingsScreen"
+      component={SettingsScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} />,
+      }}
+    />
 
-      <Screen
-        name="MapScreen"
-        component={MapScreen}
-        options={{
-          header: props => <TopNavigationHeader {...props} />,
-        }}
-        
+    <Screen
+      name="MapScreen"
+      component={MapScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} />,
+      }}
     />
   </Navigator>
 );

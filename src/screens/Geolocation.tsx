@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import {StyleSheet, Switch, Text, View} from 'react-native';
 
 import BackgroundGeolocation, {
   Subscription,
@@ -108,10 +108,10 @@ function App(): JSX.Element {
   }, [enabled]);
 
   return (
-    <View style={{ alignItems: 'center' }}>
+    <View style={{alignItems: 'center'}}>
       <Text>Click to enable BackgroundGeolocation</Text>
       <Switch value={enabled} onValueChange={setEnabled} />
-      <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{location}</Text>
+      <Text style={{fontFamily: 'monospace', fontSize: 12}}>{location}</Text>
     </View>
   );
 }

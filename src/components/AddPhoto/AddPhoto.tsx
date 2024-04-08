@@ -10,7 +10,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {Image} from 'react-native-svg';
-import { acceptImages } from '../../api/photo';
+import {acceptImages} from '../../api/photo';
 
 type Props = {};
 
@@ -33,7 +33,6 @@ function AddPhoto(props: Props) {
 
   const uid_destination = props?.route?.params?.uid;
   const uid_route = props?.route?.params?.uid_route;
-  
 
   console.log('@AddPhoto params', params);
 
@@ -65,17 +64,15 @@ function AddPhoto(props: Props) {
   }, []);
 
   const onSubmitPhoto = async () => {
-
     const payload = {
       uid_route: uid_route,
       uid_destination: uid_destination,
-      images: images.map((image) => image.assets[0].base64),
-    }
+      images: images.map(image => image.assets[0].base64),
+    };
     const result = await acceptImages(payload); // TODO: check images api
 
     console.log('@onSubmitPhoto result', result);
   };
-
 
   return (
     <View style={styles.container}>
