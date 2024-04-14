@@ -1,14 +1,32 @@
-import { Button, Layout, Text, ButtonGroup, Icon, IconElement, List, ListItem, Divider, CheckBox } from '@ui-kitten/components';
+import {
+  Button,
+  Layout,
+  Text,
+  ButtonGroup,
+  Icon,
+  IconElement,
+  List,
+  ListItem,
+  Divider,
+  CheckBox,
+  Card,
+  Toggle,
+  Modal,
+} from '@ui-kitten/components';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { openAddressOnMap } from '../utils/openAddressOnMap';
-import {RouterListItem} from '../types';
+import { RouterListItem } from '../types';
+import { postRoute } from '../api/routes';
 
 type Props = {};
 
 const RouteScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
+  const [visible, setVisible] = React.useState(false);
+  const [modalContent, setModalContent] = React.useState(null);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -17,12 +35,11 @@ const RouteScreen = (props: Props) => {
     }, 2000);
   }, []);
 
+  console.log(JSON.stringify(props.route));
+
   const params = props?.route?.params;
   const orders = props?.route?.params.orders;
-
-  //console.log({ params });
-  console.log({ orders });
-
+  const uid = props?.route?.params.uid;
 
   const handleOpenNavigator = async () => {
     const url = `yandexnavi://build_route_on_map?lat_to=${params.lat}&lon_to=${params.lon}`;
@@ -42,7 +59,6 @@ const RouteScreen = (props: Props) => {
     //   return;
     // }
 
-    console.log({ supportedGoogleMaps });
     if (supportedGoogleMaps) {
       Linking.openURL(urlAndroidMap);
 
@@ -52,26 +68,83 @@ const RouteScreen = (props: Props) => {
     // Alert.alert('Ошибка', 'Пожалуйста, установите Яндекс Навигатор или ');
   };
 
-  const dataButtons = [
-    { title: '1', icon: 'phone' },
-    { title: '2', icon: 'message-square' },
-    { title: '3', icon: 'alert-circle' },
-    { title: '4', icon: 'camera' }
-  ];
 
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const putTimeToServer = item => {
+    const currentDate = new Date();
 
-  const onSelect = (index) => {
+    const data = {
+      screen: item.screen,
+      order: item.uid,
+      type: item.type,
+      date: currentDate.toJSON()
+    };
+
+    const jsonData = JSON.stringify(data);
+
+    const user = postRoute(uid, jsonData);
+
+    setVisible(false);
+  }
+
+  const onSelect = index => {
     setSelectedIndex(index);
   };
 
-  const renderHeader = () => (
-    <View>
-      <Text style={{fontWeight: 'bold'}}>
-        Заказы
-      </Text>
-    </View>
-  );
+  const getCardStatus = (item: RouterListItem, index) => {
+    if (item.status === 1) {
+      return 'warning';
+    } else {
+      return 'basic';
+    }
+  };
+
+  const getToggleStatus = item => {
+    let date1c = new Date(item.date).getTime();
+    let dateEmpty = new Date("0001-01-01T00:00:00+00:00").getTime();
+
+    return date1c !== dateEmpty;
+  };
+
+  const onPressCard = (item) => {
+    if (item.tasks.length === 0) {
+      setModalContent(
+        <Card disabled={true}>
+          <Text>
+            Необходимо зафиксировать время 
+          </Text>
+
+          <Text>
+            {item.name}
+          </Text>
+
+          <Layout
+            style={styles.container}
+            level='1'
+          >
+            <Button 
+              style={styles.buttonModal}  
+              status='basic'
+              onPress={() => setVisible(false)}
+            >
+              Отмена
+            </Button>
+            <Button 
+              style={styles.buttonModal}
+              status='success'
+              onPress={() => putTimeToServer(item)}
+              //onPress={() => setVisible(false)}
+            >
+              Зафиксировать
+            </Button>
+          </Layout>
+        </Card>
+      );
+
+      setVisible(true);
+    } else {
+      props.navigation.navigate('TaskOrderScreen', { ...item });
+    }
+  };
 
   const renderItem = ({
     item,
@@ -80,20 +153,102 @@ const RouteScreen = (props: Props) => {
     item: RouterListItem;
     index: number;
   }): React.ReactElement => (
-    <ListItem
-      title={item?.name}
-      accessoryRight={() => renderItemRight(item)}
-      //onPress={e => props.navigation.navigate('RouteScreen', {...item})}
-    />
+    <Card
+      style={styles.item}
+      status={getCardStatus(item)}
+      header={() => renderItemName(item)}
+      onPress={() => onPressCard(item)}
+      style={styles.card}>
+      <Text> {renderCardText(item)}</Text>
+    </Card>
   );
 
-  const renderItemRight = (item: RouterListItem, index) => {
+  const renderCardText = item => {
+    if (item.type !== 4) {
+      if(getToggleStatus(item)){
+        return (
+          <Layout style={styles.containerCard}>
+            <Toggle checked={getToggleStatus(item)}></Toggle>
+  
+            <View style={styles.containerCardText}>
+              <Text>Дата Прибытия: {item.date}</Text>
+            </View>
+          </Layout>
+        );
+      }else{
+        return (
+          <Layout style={styles.containerCard}>
+            <Toggle checked={getToggleStatus(item)}></Toggle>
+  
+            <View style={styles.containerCardText}>
+              <Text>Необходимо зафиксировать время</Text>
+            </View>
+          </Layout>
+        );
+      }    
+    } else {
+      return (
+        <Layout style={styles.containerCard}>
+          <Toggle checked={getToggleStatus(item)}></Toggle>
+
+          <View style={styles.containerCardText}>
+            <Text>Объем = {`${item.weight}`}</Text>
+            <Text>Вес = {`${item.volume}`}</Text>
+          </View>
+        </Layout>
+      );
+    }
+
+
+
+
+
+    if (item.name === 'Прибытие на точку') {
+     
+    } else {
+      
+    }
+  };
+
+  const renderItemName = (item: RouterListItem, index) => {
+    const hasTasks = item.tasks.length !== 0;
+
     return (
-      <Layout>
-        <CheckBox checked={item.status} />
+      <Layout style={styles.containerName}>
+        <Text category="h6" style={styles.name}>
+          {`${item.name}`}
+        </Text>
+
+        {hasTasks && <Icon name="alert-circle-outline" width={24} height={24} style={{ padding: 7, marginRight: 10 }} />}
       </Layout>
     );
   };
+
+  const openTelegramWithNumber = phoneNumber => {
+    Linking.openURL(`https://t.me/${phoneNumber}`);
+  };
+
+  const openPhoneWithNumber = phoneNumber => {
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const renderBottomButtons = () => {
+    const allShipped = orders?.find(item => item.status === 0);
+
+    if (!allShipped) {
+      return (
+        <Button onPress={handleOpenNavigator}>
+          <Text>Завершить отгрузку</Text>
+        </Button>
+      )
+    } else {
+      return (
+        <Button onPress={handleOpenNavigator}>
+          <Text>Открыть в навигаторе</Text>
+        </Button>
+      )
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -106,27 +261,46 @@ const RouteScreen = (props: Props) => {
           {params?.address}
         </Text>
 
-        <Layout style={styles.container} level='1'>
-          <ButtonGroup selectedIndex={selectedIndex} onSelect={onSelect} style={styles.buttonGroup} size='small'>
-            {dataButtons.map((item, index) => (
-              <Button key={index} accessoryLeft={(props) => <Icon {...props} name={item.icon} />} />
-            ))}
+        <Layout style={styles.container} level="1">
+          <ButtonGroup
+            selectedIndex={selectedIndex}
+            onSelect={onSelect}
+            style={styles.buttonGroup}
+            size="small">
+            <Button
+              key={1}
+              onPress={() => openPhoneWithNumber('79222965859')}
+              accessoryLeft={<Icon name="phone" />}
+            />
+            <Button
+              key={2}
+              onPress={() => openTelegramWithNumber('79222965859')}
+              accessoryLeft={<Icon name="message-square" />}
+            />
+            <Button
+              key={3}
+              onPress={() => openTelegramWithNumber('79222965859')}
+              accessoryLeft={<Icon name="alert-circle" />}
+            />
+            <Button
+              key={4}
+              onPress={() => openTelegramWithNumber('79222965859')}
+              accessoryLeft={<Icon name="camera" />}
+            />
           </ButtonGroup>
         </Layout>
 
- 
-            <List
-              style={styles.list}
-              ListHeaderComponent={renderHeader}
-              data={orders}
-              renderItem={renderItem}
-              ItemSeparatorComponent={Divider}
-            />
-          
+        <List style={styles.list} data={orders} renderItem={renderItem} />
 
-        <Button onPress={handleOpenNavigator}>
-          <Text>Открыть в навигаторе</Text>
-        </Button>
+        <Modal
+          visible={visible}
+          backdropStyle={styles.backdrop}
+          onBackdropPress={() => setVisible(false)}
+        >
+          {modalContent}
+        </Modal>
+
+        {renderBottomButtons()}
       </Layout>
     </SafeAreaView>
   );
@@ -135,15 +309,44 @@ const RouteScreen = (props: Props) => {
 const styles = StyleSheet.create({
   list: {
     flex: 1,
-
     minHeight: 180,
   },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+  },
+  title: {
+    margin: 10,
   },
   buttonGroup: {
+    margin: 2,
+  },
+  card: {
+    margin: 5,
+  },
+  name: {
+    padding: 7,
+  },
+  containerCard: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  containerCardText: {
+    flex: 1,
+    flexDirection: 'column',
+    paddingLeft: 20,
+  },
+  containerName: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  buttonModal: {
     margin: 2,
   },
 });
