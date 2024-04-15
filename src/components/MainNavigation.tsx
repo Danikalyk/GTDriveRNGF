@@ -14,6 +14,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import {GlobalState} from '../store/global/global.state';
 import {HomeDrawer} from './Drawer';
 import TopNavigationHeader from './TopNavigationHeader';
+import TaskOrderScreen from '../screens/TaskOrderScreen';
 
 import RouteScreen from '../screens/RouteScreen';
 import TaskScreen from '../screens/TaskScreen';
@@ -57,6 +58,14 @@ const RoutesNavigation = () => (
       options={{
         header: props => <TopNavigationHeader {...props} isBack />,
         title: 'Фото',
+      }}
+    />
+    <Stack.Screen
+      name="TaskOrderScreen"
+      component={TaskOrderScreen}
+      options={{
+        header: props => <TopNavigationHeader {...props} isBack />,
+        title: 'Информация по заказу',
       }}
     />
   </Stack.Navigator>

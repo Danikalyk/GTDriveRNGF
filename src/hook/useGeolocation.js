@@ -6,7 +6,6 @@ import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 
 function useGeolocation(enabledGeo) {
-  console.log('useGeolocation');
   const context = React.useContext(GlobalState);
 
   const [location, setLocation] = React.useState('');
@@ -30,7 +29,7 @@ function useGeolocation(enabledGeo) {
       location => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
-        console.log({location});
+        //console.log({location});
 
         context.setLocation(location);
       },

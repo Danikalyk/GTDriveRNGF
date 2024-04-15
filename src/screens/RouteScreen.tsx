@@ -1,20 +1,11 @@
-import {
-  Divider,
-  Layout,
-  List,
-  ListItem,
-  Text,
-  Button,
-  TabBar,
-  Tab,
-} from '@ui-kitten/components';
-import React, {useEffect, useContext, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {RefreshControl} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { Divider, Layout, List, ListItem, Text, Button, TabBar, Tab, CheckBox, Card, Toggle, Icon } from '@ui-kitten/components';
+import React, { useEffect, useContext, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { RefreshControl } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import useSWR from 'swr';
-import {getRoute} from '../api/routes';
-import {RouterListItem} from '../types';
+import { getRoute, postRoute } from '../api/routes';
+import { RouterListItem } from '../types';
 import Loader from '../components/Icons/Loader';
 import {NavigationContainer} from '@react-navigation/native';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
@@ -29,8 +20,8 @@ const RouteScreen = (props: Props) => {
   const [pending, setPending] = React.useState(true);
   const {location} = useContext(GlobalState);
   const Map_Ref = useRef(null);
-  const lat = location?.coords.latitude;
-  const lon = location?.coords.longitude;
+  const lat = location?.coords?.latitude;
+  const lon = location?.coords?.longitude;
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -57,10 +48,9 @@ const RouteScreen = (props: Props) => {
     return null;
   }
 
-  const renderItem = ({item, index}): React.ReactElement => {
+  /*const renderItem = ({ item, index }): React.ReactElement => {
     return (
       <ListItem
-        style={{padding: 20}}
         title={item?.client_name}
         description={item?.address}
         accessoryLeft={() => renderItemLeft(item)}
@@ -69,6 +59,73 @@ const RouteScreen = (props: Props) => {
         }
       />
     );
+  };*/
+
+  const getCardStatus = (item: RouterListItem) => {
+    if (item.status === 1) {
+      return 'danger';
+    } else if (item.status === 2) {
+      return 'primary';
+    } else if (item.status === 3) {
+      return 'success';
+    } else {
+      return 'basic';
+    }
+  };
+
+  const renderItemName = (item: RouterListItem) => {
+    return (
+      <Layout style={styles.containerName}>
+        <Icon name="pin-outline" width={23} height={23} style={{  }}></Icon> 
+
+        <Text category="h6" style={styles.cardName}>
+          {`${item?.client_name}`}
+        </Text>
+      </Layout>
+    );
+  };
+
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: RouterListItem;
+    index: number;
+  }): React.ReactElement => (
+    <View style={{padding: 10}}>
+      <Card
+        style={{}}
+        status={getCardStatus(item)}
+        header={() => renderItemName(item)}
+        onPress={e => props.navigation.navigate('TaskScreen', { ...item })}
+        style={styles.card}>
+        <Text> {renderCardText(item)}</Text>
+      </Card>
+    </View>
+  );
+
+  const renderCardText = item => {
+    return (
+      <Layout style={styles.containerCard}>
+        {renderItemLeft(item)}
+
+        <View style={styles.containerCardText}>
+          <Text>
+            Объем: {item?.volume}, м3
+          </Text>
+          <Text>
+            Вес: {item?.weight}, кг
+          </Text>
+          <Text>
+            Загрузка: {item?.loading}, %
+          </Text>
+        </View>
+      </Layout>
+    );
+  }; 
+
+  const getToggleStatus = (item, index) => {
+    return item.status !== 0;
   };
 
   const renderItemLeft = (item: RouterListItem) => {
@@ -88,7 +145,23 @@ const RouteScreen = (props: Props) => {
     );
   };
 
-  const getThisRoute = async () => {};
+  const getThisRoute = async () => {
+
+    const currentDate = new Date();
+
+    const data = {
+      screen: 0,
+      type: 1,
+      date: currentDate.toJSON()
+    };
+
+    const jsonData = JSON.stringify(data);
+
+    const user = postRoute(uid, jsonData);
+
+    console.log({user});
+
+  };
 
   // Табы
   const {Navigator, Screen} = createMaterialTopTabNavigator();
@@ -104,15 +177,36 @@ const RouteScreen = (props: Props) => {
         renderItem={renderItem}
         ItemSeparatorComponent={Divider}
         ListHeaderComponent={
-          <Layout style={{flex: 1, padding: 10}}>
-            <Text category="h6" style={{flex: 1, marginBottom: 10}}>
-              {routeItem?.name}
-            </Text>
-
-            <Text category="s1" style={{flex: 1}}>
-              {routeItem?.description_full}
-            </Text>
-          </Layout>
+          <View>
+            <Card
+              status='warning'
+              style = {{margin: 5}}
+            >
+              <Text category="h6" style={{ flex: 1, marginBottom: 10 }}>
+                {routeItem?.name}
+              </Text>
+              <Text>
+                Возврат на склад: {routeItem?.returnToWarehouse}
+              </Text>
+              <Text>
+                Объем: {routeItem?.volume}, м3
+              </Text>
+              <Text>
+                Вес: {routeItem?.weight}, кг
+              </Text>
+              <Text>
+                Загрузка: {routeItem?.loading}%
+              </Text>
+              <Text category="s1" style={{ flex: 1 }}>
+                {routeItem?.description_full}
+              </Text>
+            </Card>
+            <View>
+              <Text category="h5" style={styles.title}>
+                Точки Доставки
+              </Text>
+            </View>
+          </View>
         }
       />
       <View>
@@ -183,6 +277,31 @@ const styles = StyleSheet.create({
   Webview: {
     flex: 2,
   },
+  containerCard: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  containerCardText: {
+    flex: 1,
+    flexDirection: 'column',
+    paddingLeft: 20,
+  },
+  containerName: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  title: {
+    padding: 10,
+  },
+  itemCard: {
+    margin: 5,
+    padding: 5
+  },
+  cardName: {
+    padding: 5
+  }
 });
 
 export default RouteScreen;
