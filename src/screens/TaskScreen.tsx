@@ -133,7 +133,7 @@ const RouteScreen = (props: Props) => {
         />
         <Button
           key={4}
-          onPress={() => openTelegramWithNumber('79222965859')}
+          onPress={() => props.navigation.navigate('TaskPhotoScreen', {...item})}
           accessoryLeft={<Icon name="camera" />}
         />
       </ButtonGroup>
