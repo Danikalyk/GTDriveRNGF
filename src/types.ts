@@ -9,5 +9,8 @@ export type RouterListItem = {
   loading_date: string;
   loading_time: string;
   description: string;
-  status: string;
+  status: number;
+  weight: number;
+  volume: number;
+  date: string;
 };
