@@ -128,7 +128,7 @@ const RouteScreen = (props: Props) => {
         />
         <Button
           key={3}
-          onPress={() => openTelegramWithNumber('79222965859')}
+          onPress={() => props.navigation.navigate('AccidentScreen', {...item})}
           accessoryLeft={<Icon name="alert-circle" />}
         />
         <Button
