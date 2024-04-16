@@ -14,15 +14,14 @@ import {
   Modal,
 } from '@ui-kitten/components';
 import React from 'react';
+import AddPhoto from '../components/AddPhoto/AddPhoto';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { openAddressOnMap } from '../utils/openAddressOnMap';
 import { RouterListItem } from '../types';
 import { postRoute } from '../api/routes';
 import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
-
-import AddPhoto from '../components/AddPhoto/AddPhoto';
-import {ScrollView} from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 
 type Props = {};
 
@@ -133,7 +132,7 @@ const RouteScreen = (props: Props) => {
         />
         <Button
           key={4}
-          onPress={() => openTelegramWithNumber('79222965859')}
+          onPress={() => props.navigation.navigate('TaskPhotoScreen', { ...item })}
           accessoryLeft={<Icon name="camera" />}
         />
       </ButtonGroup>
@@ -182,7 +181,7 @@ const RouteScreen = (props: Props) => {
       <View>
         <Button
           style={{}}
-          onPress={handleOpenNavigator}
+          onPress={finishCurrentPoint}
         >
           Завершить точку
         </Button>
@@ -191,7 +190,10 @@ const RouteScreen = (props: Props) => {
   }
 
   const renderMainCardFooter = params => {
-    if (params.point === 0) {
+    allOrderFinished = params.orders.every(order => order.status === 3);
+    console.log(JSON.stringify(params));
+
+    if (params.point === 0) { //-- ЭтоТочка
       if (params.status === 0) {
         return (
           renderButtonStartPoint()
@@ -200,13 +202,21 @@ const RouteScreen = (props: Props) => {
         return (
           renderButtonOpenNavigator()
         );
-      } else if (params.status === 3) {
+      } else if (params.status === 2 && allOrderFinished) {
         return (
-          renderButtonOpenNavigator()
+          renderButtonFinishPoint()
         );
       }
-    } else if (params.point === 1) {
-
+    } else if (params.point === 1) { //-- ЭтоСклад 
+      if (params.status === 1) {
+        return (
+          renderButtonOpenNavigator()
+        ); 
+      } else if (params.status === 2 && allOrderFinished) {
+        return (
+          renderButtonFinishPoint()
+        ); 
+      }
     }
 
     return;
@@ -293,7 +303,7 @@ const RouteScreen = (props: Props) => {
 
   const renderCardOrder = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => (
     <Card
-      style={styles.item}
+      style={{}}
       status={getCardStatus(item.status)}
       header={() => renderCardOrderName(item)}
       onPress={() => onPressCardOrder(item)}
@@ -360,6 +370,7 @@ const RouteScreen = (props: Props) => {
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 5;
+    data.point = params.point;
     data.uidPoint = params.uidPoint;
 
     data = JSON.stringify(data);
@@ -369,20 +380,23 @@ const RouteScreen = (props: Props) => {
 
   const finishCurrentPoint = () => {
     let data = getDataPostRoute();
-    /*data.screen = item.screen;
-    data.order = item.uid;
-    data.type = item.type;*/
+    data.screen = 2;
+    data.type = 6;
+    data.point = params.point;
+    data.uidPoint = params.uidPoint;
 
     data = JSON.stringify(data);
 
-    //postRoute(uid, data);
+    postRoute(uid, data);
   }
 
   const putTimeCardToServer = item => {
     let data = getDataPostRoute();
-    data.screen = item.screen;
-    data.order = item.uid;
+    data.screen = 2;
     data.type = item.type;
+    data.point = params.point;
+    data.uidPoint = params.uidPoint;
+    data.uidOrder = item.uidOrder; 
 
     data = JSON.stringify(data);
 
@@ -450,6 +464,7 @@ const styles = StyleSheet.create({
   containerCard: {
     flex: 1,
     flexDirection: 'row',
+
   },
   containerCardText: {
     flex: 1,
