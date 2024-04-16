@@ -1,17 +1,17 @@
 /* eslint-disable react/no-unstable-nested-components */
+import map_scripts from '../map_scripts';
+import useSWR from 'swr';
+import Loader from '../components/Icons/Loader';
 import { Divider, Layout, List, ListItem, Text, Button, TabBar, Tab, CheckBox, Card, Toggle, Icon, BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
 import React, { useEffect, useContext, useRef } from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import useSWR from 'swr';
 import { getRoute, postRoute } from '../api/routes';
 import { RouterListItem } from '../types';
-import Loader from '../components/Icons/Loader';
-import {NavigationContainer} from '@react-navigation/native';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import {WebView} from 'react-native-webview';
-import map_scripts from '../map_scripts';
+import { NavigationContainer } from '@react-navigation/native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { WebView } from 'react-native-webview';
 import { GlobalState } from '../store/global/global.state';
 import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
 
@@ -20,7 +20,6 @@ type Props = {};
 const RouteScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [pending, setPending] = React.useState(true);
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
   const { location } = useContext(GlobalState);
   const Map_Ref = useRef(null);
   const lat = location?.coords?.latitude;
@@ -38,60 +37,29 @@ const RouteScreen = (props: Props) => {
   }, []);
 
   const uid = props?.route?.params?.uid;
-
   const {
     data: route,
     isLoading,
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
-
   const routeItem = route;
 
   if (error || !routeItem) {
     return null;
   }
 
-
-
-
-
-
-
-  const getToggleStatus = (item, index) => {
-    return item.status !== 0;
-  };
-
-
-  const getThisRoute = async () => {
-
-    const currentDate = new Date();
-
-    const data = {
-      screen: 0,
-      type: 1,
-      date: currentDate.toJSON()
-    };
-
-    const jsonData = JSON.stringify(data);
-
-    const user = postRoute(uid, jsonData);
-
-    console.log({ user });
-
-  };
-
   // Табы
-  const {Navigator, Screen} = createMaterialTopTabNavigator();
+  const { Navigator, Screen } = createMaterialTopTabNavigator();
 
-
-
+  
+  // ---------- Карточки шапки ----------
 
   const renderMainCard = () => {
     return (
       <View>
         <Card
           status='warning'
-          header={renderMainCardHeader(routeItem)}
+          header={renderMainCardHeader()}
           footer={renderMainCardFooter()}
           style={{ margin: 5 }}
         >
@@ -121,7 +89,7 @@ const RouteScreen = (props: Props) => {
         <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Icon name="car-outline" width={23} height={23} style={{ marginRight: 5 }}></Icon>
           <Text category="h6">{routeItem?.name}</Text>
-      
+
           {renderMainCardReturnToWarehouse()}
         </Layout>
       </View>
@@ -129,7 +97,7 @@ const RouteScreen = (props: Props) => {
   }
 
   const renderMainCardFooter = () => {
-    if (routeItem.status === 0) {
+    if(!routeItem.check) {
       return (
         <View>
           <Button
@@ -140,9 +108,9 @@ const RouteScreen = (props: Props) => {
           >
             Начать Маршрут
           </Button>
-        </View>
+        </View>  
       )
-    } 
+    }
   }
 
   const renderMainCardReturnToWarehouse = () => {
@@ -160,6 +128,7 @@ const RouteScreen = (props: Props) => {
       )
     }
   }
+
 
   // ---------- Карточки точек доставки ----------
 
@@ -242,7 +211,7 @@ const RouteScreen = (props: Props) => {
   const renderCardPointNameIcon = () => {
     //-- заделка под разные иконки в зависимости от точки доставки
 
-    return(
+    return (
       <Icon name="pin-outline" width={23} height={23} style={{ margin: 10 }}></Icon>
     )
   }
@@ -283,6 +252,20 @@ const RouteScreen = (props: Props) => {
         `renderPoints(${JSON.stringify(routeItem)})`,
       );
     }
+  };
+
+
+  // ---------- Запросы к серверу ----------
+
+  const getThisRoute = async () => {
+    let data = getDataPostRoute();
+    data.screen = 0;
+    data.type = 5;
+    data.uid = uid;
+
+    data = JSON.stringify(data);
+
+    postRoute(uid, data);
   };
 
   // ---------- Табы ----------
