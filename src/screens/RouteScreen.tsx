@@ -1,6 +1,7 @@
-import { Divider, Layout, List, ListItem, Text, Button, TabBar, Tab, CheckBox, Card, Toggle, Icon } from '@ui-kitten/components';
+/* eslint-disable react/no-unstable-nested-components */
+import { Divider, Layout, List, ListItem, Text, Button, TabBar, Tab, CheckBox, Card, Toggle, Icon, BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
 import React, { useEffect, useContext, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useSWR from 'swr';
@@ -11,14 +12,16 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {WebView} from 'react-native-webview';
 import map_scripts from '../map_scripts';
-import {GlobalState} from '../store/global/global.state';
+import { GlobalState } from '../store/global/global.state';
+import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
 
 type Props = {};
 
 const RouteScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [pending, setPending] = React.useState(true);
-  const {location} = useContext(GlobalState);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const { location } = useContext(GlobalState);
   const Map_Ref = useRef(null);
   const lat = location?.coords?.latitude;
   const lon = location?.coords?.longitude;
@@ -48,102 +51,16 @@ const RouteScreen = (props: Props) => {
     return null;
   }
 
-  /*const renderItem = ({ item, index }): React.ReactElement => {
-    return (
-      <ListItem
-        title={item?.client_name}
-        description={item?.address}
-        accessoryLeft={() => renderItemLeft(item)}
-        onPress={e =>
-          props.navigation.navigate('TaskScreen', {...item, uid_route: uid})
-        }
-      />
-    );
-  };*/
 
-  const getCardStatus = (item: RouterListItem) => {
-    if (item.status === 1) {
-      return 'danger';
-    } else if (item.status === 2) {
-      return 'primary';
-    } else if (item.status === 3) {
-      return 'success';
-    } else {
-      return 'basic';
-    }
-  };
 
-  const renderItemName = (item: RouterListItem) => {
-    return (
-      <Layout style={styles.containerName}>
-        <Icon name="pin-outline" width={23} height={23} style={{  }}></Icon> 
 
-        <Text category="h6" style={styles.cardName}>
-          {`${item?.client_name}`}
-        </Text>
-      </Layout>
-    );
-  };
 
-  const renderItem = ({
-    item,
-    index,
-  }: {
-    item: RouterListItem;
-    index: number;
-  }): React.ReactElement => (
-    <View style={{padding: 10}}>
-      <Card
-        style={{}}
-        status={getCardStatus(item)}
-        header={() => renderItemName(item)}
-        onPress={e => props.navigation.navigate('TaskScreen', { ...item })}
-        style={styles.card}>
-        <Text> {renderCardText(item)}</Text>
-      </Card>
-    </View>
-  );
 
-  const renderCardText = item => {
-    return (
-      <Layout style={styles.containerCard}>
-        {renderItemLeft(item)}
-
-        <View style={styles.containerCardText}>
-          <Text>
-            Объем: {item?.volume}, м3
-          </Text>
-          <Text>
-            Вес: {item?.weight}, кг
-          </Text>
-          <Text>
-            Загрузка: {item?.loading}, %
-          </Text>
-        </View>
-      </Layout>
-    );
-  }; 
 
   const getToggleStatus = (item, index) => {
     return item.status !== 0;
   };
 
-  const renderItemLeft = (item: RouterListItem) => {
-    return (
-      <Layout>
-        <Layout>
-          <Text category="s1" style={{textAlign: 'center'}}>
-            {item?.time}
-          </Text>
-        </Layout>
-        <Layout>
-          <Text category="c2" style={{textAlign: 'center'}}>
-            {item?.date}
-          </Text>
-        </Layout>
-      </Layout>
-    );
-  };
 
   const getThisRoute = async () => {
 
@@ -159,68 +76,207 @@ const RouteScreen = (props: Props) => {
 
     const user = postRoute(uid, jsonData);
 
-    console.log({user});
+    console.log({ user });
 
   };
 
   // Табы
   const {Navigator, Screen} = createMaterialTopTabNavigator();
 
-  const RouteScreen = () => (
-    <SafeAreaView style={{flex: 1}}>
+
+
+
+  const renderMainCard = () => {
+    return (
+      <View>
+        <Card
+          status='warning'
+          header={renderMainCardHeader(routeItem)}
+          footer={renderMainCardFooter()}
+          style={{ margin: 5 }}
+        >
+          <Text category="c2">
+            Объем: {routeItem?.volume}, м3
+          </Text>
+          <Text category="c2">
+            Вес: {routeItem?.weight}, кг
+          </Text>
+          <Text category="c2">
+            Загрузка: {routeItem?.loading}%
+          </Text>
+        </Card>
+
+        <View>
+          <Text category="h6" style={styles.title}>
+            Точки Доставки
+          </Text>
+        </View>
+      </View>
+    )
+  }
+
+  const renderMainCardHeader = () => {
+    return (
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+        <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Icon name="car-outline" width={23} height={23} style={{ marginRight: 5 }}></Icon>
+          <Text category="h6">{routeItem?.name}</Text>
+      
+          {renderMainCardReturnToWarehouse()}
+        </Layout>
+      </View>
+    )
+  }
+
+  const renderMainCardFooter = () => {
+    if (routeItem.status === 0) {
+      return (
+        <View>
+          <Button
+            onPress={getThisRoute}
+            disabled={pending}
+            accessoryLeft={pending ? Loader : false}
+            style={{}}
+          >
+            Начать Маршрут
+          </Button>
+        </View>
+      )
+    } 
+  }
+
+  const renderMainCardReturnToWarehouse = () => {
+    if (routeItem.returnToWarehouse) {
+      return (
+        <View style={{}}>
+          <Icon name="swap" width={23} height={23} style={{ marginRight: 5 }} onPress={() => { Alert.alert("Требуется возврат на склад!") }}  ></Icon>
+        </View>
+      )
+    } else {
+      return (
+        <View style={{}}>
+          <Icon name="arrow-forward" width={23} height={23} style={{ marginRight: 5 }} onPress={() => { Alert.alert("Возврат на склад не требуется!") }}  ></Icon>
+        </View>
+      )
+    }
+  }
+
+  // ---------- Карточки точек доставки ----------
+
+  const renderCardPoint = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => (
+    <View style={{ padding: 10 }}>
+      <Card
+        style={{}}
+        status={getCardStatus(item.status)}
+        header={() => renderCardPointName(item)}
+        onPress={e => props.navigation.navigate('TaskScreen', { ...item })}
+        style={styles.card}>
+        <Text> {renderCardPointText(item)}</Text>
+      </Card>
+    </View>
+  );
+
+  const renderCardPointText = (item: RouterListItem) => {
+    if (item.type === 1) {
+      return (
+        <Layout style={styles.containerCard}>
+          {renderCardPointTextLeft(item)}
+
+          <View style={styles.containerCardText}>
+            <Text category="c2">
+              Точка погрузки машины
+            </Text>
+          </View>
+        </Layout>
+      );
+    } else {
+      return (
+        <Layout style={styles.containerCard}>
+          {renderCardPointTextLeft(item)}
+
+          <View style={styles.containerCardText}>
+            <Text category="c2">
+              Объем: {item?.volume}, м3
+            </Text>
+            <Text category="c2">
+              Вес: {item?.weight}, кг
+            </Text>
+            <Text category="c2">
+              Загрузка: {item?.loading}, %
+            </Text>
+          </View>
+        </Layout>
+      );
+    }
+  };
+
+  const renderCardPointTextLeft = (item: RouterListItem) => {
+    return (
+      <Layout style={{ flex: 1, justifyContent: 'center' }}>
+        <View>
+          <Text category="s1" style={{ textAlign: 'center' }}>
+            {item?.time}
+          </Text>
+        </View>
+        <View>
+          <Text category="c2" style={{ textAlign: 'center' }}>
+            {item?.date}
+          </Text>
+        </View>
+      </Layout>
+    );
+  };
+
+  const renderCardPointName = (item: RouterListItem) => {
+    return (
+      <Layout style={styles.containerName}>
+        {renderCardPointNameIcon()}
+
+        <Text category="h6" style={styles.cardName}>
+          {`${item?.client_name}`}
+        </Text>
+      </Layout>
+    );
+  };
+
+  const renderCardPointNameIcon = () => {
+    //-- заделка под разные иконки в зависимости от точки доставки
+
+    return(
+      <Icon name="pin-outline" width={23} height={23} style={{ margin: 10 }}></Icon>
+    )
+  }
+
+  // ---------- Таб Точки ----------
+
+  const PointsScreen = () => (
+    <SafeAreaView style={{ flex: 1 }}>
       <List
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={styles.list}
         data={routeItem?.points}
-        renderItem={renderItem}
+        renderItem={renderCardPoint}
         ItemSeparatorComponent={Divider}
-        ListHeaderComponent={
-          <View>
-            <Card
-              status='warning'
-              style = {{margin: 5}}
-            >
-              <Text category="h6" style={{ flex: 1, marginBottom: 10 }}>
-                {routeItem?.name}
-              </Text>
-              <Text>
-                Возврат на склад: {routeItem?.returnToWarehouse}
-              </Text>
-              <Text>
-                Объем: {routeItem?.volume}, м3
-              </Text>
-              <Text>
-                Вес: {routeItem?.weight}, кг
-              </Text>
-              <Text>
-                Загрузка: {routeItem?.loading}%
-              </Text>
-              <Text category="s1" style={{ flex: 1 }}>
-                {routeItem?.description_full}
-              </Text>
-            </Card>
-            <View>
-              <Text category="h5" style={styles.title}>
-                Точки Доставки
-              </Text>
-            </View>
-          </View>
-        }
+        ListHeaderComponent={renderMainCard}
       />
-      <View>
-        <Button
-          onPress={getThisRoute}
-          disabled={pending}
-          accessoryLeft={pending ? Loader : false}>
-          Начать Маршрут
-        </Button>
-      </View>
     </SafeAreaView>
   );
 
-  jsInit = (lat, lon, routeItem) => {
+
+  // ---------- Таб Карты ----------
+
+  const MapOSRMScreen = () => (
+    <SafeAreaView style={styles.Container}>
+      <WebView
+        ref={Map_Ref}
+        source={{ html: map_scripts }}
+        style={styles.Webview}
+        onLoad={() => this.jsMapInit(lat, lon, routeItem)}
+      />
+    </SafeAreaView>
+  );
+
+  jsMapInit = (lat, lon, routeItem) => {
     if (Map_Ref.current) {
       Map_Ref.current.injectJavaScript(`init(${lat}, ${lon});`);
       Map_Ref.current.injectJavaScript(
@@ -229,31 +285,24 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const MapScreen = () => (
-    <SafeAreaView style={styles.Container}>
-      <WebView
-        ref={Map_Ref}
-        source={{html: map_scripts}}
-        style={styles.Webview}
-        onLoad={() => this.jsInit(lat, lon, routeItem)}
-      />
-    </SafeAreaView>
-  );
-
-  const TopTabBar = ({navigation, state}) => (
-    <TabBar
-      selectedIndex={state.index}
-      onSelect={index => navigation.navigate(state.routeNames[index])}>
-      <Tab title="Маршрут" />
-      <Tab title="Карта" />
-    </TabBar>
-  );
+  // ---------- Табы ----------
 
   const TabNavigator = () => (
-    <Navigator tabBar={props => <TopTabBar {...props} />}>
-      <Screen name="Route" component={RouteScreen} />
-      <Screen name="Map" component={MapScreen} />
+    <Navigator tabBar={props => <BottomTabBar {...props} />}>
+      <Screen name='Точки' component={PointsScreen} />
+      <Screen name='Карта' component={MapOSRMScreen} />
     </Navigator>
+  );
+
+  const BottomTabBar = ({ navigation, state }) => (
+    <BottomNavigation
+      selectedIndex={state.index}
+      onSelect={index => navigation.navigate(state.routeNames[index])}>
+
+      <BottomNavigationTab title='Точки' icon={<Icon {...props} name='pin' />} />
+      <BottomNavigationTab title='Карта' icon={<Icon {...props} name='globe' />} />
+
+    </BottomNavigation>
   );
 
   return (
@@ -285,6 +334,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     paddingLeft: 20,
+    justifyContent: 'center'
   },
   containerName: {
     flex: 1,

@@ -172,6 +172,7 @@ const LoginScreen = ({navigation}: Props) => {
               style={{marginBottom: 10}}
               placeholder="User"
               value={usersList?.[selectedIndex?.row]?.user}
+              label="Пользователь"
               selectedIndex={selectedIndex}
               onSelect={index => {
                 setSelectedIndex(index);

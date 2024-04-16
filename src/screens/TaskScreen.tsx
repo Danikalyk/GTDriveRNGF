@@ -19,6 +19,7 @@ import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { openAddressOnMap } from '../utils/openAddressOnMap';
 import { RouterListItem } from '../types';
 import { postRoute } from '../api/routes';
+import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
 
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -38,11 +39,12 @@ const RouteScreen = (props: Props) => {
     }, 2000);
   }, []);
 
-  console.log(JSON.stringify(props.route));
-
   const params = props?.route?.params;
   const orders = props?.route?.params.orders;
   const uid = props?.route?.params.uid;
+
+
+  // ---------- Открытие навигатора ----------
 
   const handleOpenNavigator = async () => {
     const url = `yandexnavi://build_route_on_map?lat_to=${params.lat}&lon_to=${params.lon}`;
@@ -71,52 +73,193 @@ const RouteScreen = (props: Props) => {
     // Alert.alert('Ошибка', 'Пожалуйста, установите Яндекс Навигатор или ');
   };
 
-
-  const putTimeToServer = item => {
-    const currentDate = new Date();
-
-    const data = {
-      screen: item.screen,
-      order: item.uid,
-      type: item.type,
-      date: currentDate.toJSON()
-    };
-
-    const jsonData = JSON.stringify(data);
-
-    const user = postRoute(uid, jsonData);
-
-    setVisible(false);
-  }
-
   const onSelect = index => {
     setSelectedIndex(index);
   };
 
-  const getCardStatus = (item: RouterListItem, index) => {
-    if (item.status === 1) {
-      return 'warning';
-    } else {
-      return 'basic';
+
+  // ---------- Верхняя карточка ----------
+
+  const renderMainCard = (params) => {
+    return (
+      <View>
+        <Card
+          status='warning'
+          header={renderMainCardHeader(params)}
+          footer={renderMainCardFooter(params)}
+          style={{ margin: 5 }}
+        >
+          {renderMainCardButtons(params)}
+        </Card>
+
+        <View>
+          <Text category="h6" style={styles.title}>
+            Действия
+          </Text>
+        </View>
+      </View>
+    )
+  }
+
+  const renderMainCardHeader = item => {
+    return (
+      <Text category="h6" style={{}}>
+        <Icon name="pin-outline" width={23} height={23}></Icon> {item?.address}
+      </Text>
+    )
+  }
+
+  const renderMainCardButtons = item => {
+    return (
+      <ButtonGroup
+        selectedIndex={selectedIndex}
+        onSelect={onSelect}
+        style={styles.buttonGroup}
+        size="medium">
+        <Button
+          key={1}
+          onPress={() => openPhoneWithNumber('79222965859')}
+          accessoryLeft={<Icon name="phone" />}
+        />
+        <Button
+          key={2}
+          onPress={() => openTelegramWithNumber('79222965859')}
+          accessoryLeft={<Icon name="message-square" />}
+        />
+        <Button
+          key={3}
+          onPress={() => openTelegramWithNumber('79222965859')}
+          accessoryLeft={<Icon name="alert-circle" />}
+        />
+        <Button
+          key={4}
+          onPress={() => openTelegramWithNumber('79222965859')}
+          accessoryLeft={<Icon name="camera" />}
+        />
+      </ButtonGroup>
+    )
+  }
+
+  const openTelegramWithNumber = phoneNumber => {
+    Linking.openURL(`https://t.me/${phoneNumber}`);
+  };
+
+  const openPhoneWithNumber = phoneNumber => {
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+
+  // ---------- Кнопки ----------
+
+  const renderButtonStartPoint = () => {
+    return (
+      <View>
+        <Button
+          style={{}}
+          onPress={startCurrentPoint}   
+        >
+          Начать следование
+        </Button>
+      </View>
+    );
+  }
+
+  const renderButtonOpenNavigator = () => {
+    return (
+      <View>
+        <Button
+          style={{}}
+          onPress={handleOpenNavigator}
+        >
+          Открыть в навигаторе
+        </Button>
+      </View>
+    );
+  }
+
+  const renderButtonFinishPoint = () => {
+    return (
+      <View>
+        <Button
+          style={{}}
+          onPress={handleOpenNavigator}
+        >
+          Завершить точку
+        </Button>
+      </View>
+    );
+  }
+
+  const renderMainCardFooter = params => {
+    if (params.point === 0) {
+      if (params.status === 0) {
+        return (
+          renderButtonStartPoint()
+        );
+      } else if (params.status === 1) {
+        return (
+          renderButtonOpenNavigator()
+        );
+      } else if (params.status === 3) {
+        return (
+          renderButtonOpenNavigator()
+        );
+      }
+    } else if (params.point === 1) {
+
     }
-  };
 
-  const getToggleStatus = item => {
-    let date1c = new Date(item.date).getTime();
-    let dateEmpty = new Date("0001-01-01T00:00:00+00:00").getTime();
+    return;
 
-    return date1c !== dateEmpty;
-  };
+    let allCardsShipped = true;
 
-  const onPressCard = (item) => {
+    for (const order of orders) {
+      if (order.status !== 3) {
+        allCardsShipped = false;
+      }
+    }
+
+    if (allCardsShipped) {
+      return (
+        <Button
+          onPress={finishCurrentPoint()
+          }>
+          Завершить точку
+        </Button>
+      )
+    } else {
+      if (orders[0].status === 0) {
+      return (
+        <Button
+          onPress={handleOpenNavigator
+          }>
+          Открыть в навигаторе
+        </Button>
+      )
+      }
+    }
+  }
+
+
+  // ---------- Карточки заказов ----------
+
+  const onPressCardOrder = item => {
+    toggleStatus = getToggleCardStatus(item);
+
+    if (toggleStatus) {
+      Alert.alert("Время уже зафиксировано!");
+
+      return;
+    }
+
     if (item.tasks.length === 0) {
       setModalContent(
         <Card disabled={true}>
-          <Text>
-            Необходимо зафиксировать время 
+          <Text category="c2">
+            Необходимо зафиксировать время
           </Text>
 
-          <Text>
+          <Text >
             {item.name}
           </Text>
 
@@ -124,18 +267,17 @@ const RouteScreen = (props: Props) => {
             style={styles.container}
             level='1'
           >
-            <Button 
-              style={styles.buttonModal}  
+            <Button
+              style={styles.buttonModal}
               status='basic'
               onPress={() => setVisible(false)}
             >
               Отмена
             </Button>
-            <Button 
+            <Button
               style={styles.buttonModal}
               status='success'
-              onPress={() => putTimeToServer(item)}
-              //onPress={() => setVisible(false)}
+              onPress={() => putTimeCardToServer(item)}
             >
               Зафиксировать
             </Button>
@@ -149,71 +291,56 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const renderItem = ({
-    item,
-    index,
-  }: {
-    item: RouterListItem;
-    index: number;
-  }): React.ReactElement => (
+  const renderCardOrder = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => (
     <Card
       style={styles.item}
-      status={getCardStatus(item)}
-      header={() => renderItemName(item)}
-      onPress={() => onPressCard(item)}
+      status={getCardStatus(item.status)}
+      header={() => renderCardOrderName(item)}
+      onPress={() => onPressCardOrder(item)}
       style={styles.card}>
-      <Text> {renderCardText(item)}</Text>
+      <Text> {renderCardOrderText(item)}</Text>
     </Card>
   );
 
-  const renderCardText = item => {
+  const renderCardOrderText = item => {
     if (item.type !== 4) {
-      if(getToggleStatus(item)){
+      if (getToggleCardStatus(item)) {
         return (
           <Layout style={styles.containerCard}>
-            <Toggle checked={getToggleStatus(item)}></Toggle>
-  
+            <Toggle checked={getToggleCardStatus(item)}></Toggle>
+
             <View style={styles.containerCardText}>
-              <Text>Дата Прибытия: {item.date}</Text>
+              <Text category="c2">Дата Прибытия: {item.date}</Text>
             </View>
           </Layout>
         );
-      }else{
+      } else {
         return (
           <Layout style={styles.containerCard}>
-            <Toggle checked={getToggleStatus(item)}></Toggle>
-  
+            <Toggle checked={getToggleCardStatus(item)}></Toggle>
+
             <View style={styles.containerCardText}>
-              <Text>Необходимо зафиксировать время</Text>
+              <Text category="c2">Необходимо зафиксировать время</Text>
             </View>
           </Layout>
         );
-      }    
+      }
     } else {
       return (
         <Layout style={styles.containerCard}>
-          <Toggle checked={getToggleStatus(item)}></Toggle>
+          <Toggle checked={getToggleCardStatus(item)}></Toggle>
 
           <View style={styles.containerCardText}>
-            <Text>Объем = {`${item.weight}`}</Text>
-            <Text>Вес = {`${item.volume}`}</Text>
+            <Text category="c2">Объем = {`${item.weight}`}</Text>
+            <Text category="c2">Вес = {`${item.volume}`}</Text>
           </View>
         </Layout>
       );
     }
 
-
-
-
-
-    if (item.name === 'Прибытие на точку') {
-     
-    } else {
-      
-    }
   };
 
-  const renderItemName = (item: RouterListItem, index) => {
+  const renderCardOrderName = item => {
     const hasTasks = item.tasks.length !== 0;
 
     return (
@@ -227,84 +354,70 @@ const RouteScreen = (props: Props) => {
     );
   };
 
-  const openTelegramWithNumber = phoneNumber => {
-    Linking.openURL(`https://t.me/${phoneNumber}`);
-  };
+  // ---------- Запросы к серверу ----------
 
-  const openPhoneWithNumber = phoneNumber => {
-    Linking.openURL(`tel:${phoneNumber}`);
-  };
+  const startCurrentPoint = () => {
+    let data = getDataPostRoute();
+    data.screen = 2;
+    data.type = 5;
+    data.uidPoint = params.uidPoint;
 
-  const renderBottomButtons = () => {
-    const allShipped = orders?.find(item => item.status === 0);
+    data = JSON.stringify(data);
 
-    if (!allShipped) {
-      return (
-        <Button onPress={handleOpenNavigator}>
-          <Text>Завершить отгрузку</Text>
-        </Button>
-      )
-    } else {
-      return (
-        <Button onPress={handleOpenNavigator}>
-          <Text>Открыть в навигаторе</Text>
-        </Button>
-      )
-    }
+    postRoute(uid, data);
   }
 
+  const finishCurrentPoint = () => {
+    let data = getDataPostRoute();
+    /*data.screen = item.screen;
+    data.order = item.uid;
+    data.type = item.type;*/
+
+    data = JSON.stringify(data);
+
+    //postRoute(uid, data);
+  }
+
+  const putTimeCardToServer = item => {
+    let data = getDataPostRoute();
+    data.screen = item.screen;
+    data.order = item.uid;
+    data.type = item.type;
+
+    data = JSON.stringify(data);
+
+    postRoute(uid, data);
+
+    setVisible(false);
+  }
+
+  // ---------- Модальное окно ----------
+
+  const renderModalWindow = () => {
+    return (
+      <Modal
+        visible={visible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setVisible(false)}
+      >
+        {modalContent}
+      </Modal>
+    );
+  }
+
+  // ---------- Отрисовка ----------
+
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <Layout style={{flex: 1, padding: 10}}>
-        <Text category="h6" style={{marginBottom: 10}}>
-          {params?.client_name}
-        </Text>
-
-        <Text category="s1" style={{marginBottom: 20}}>
-          {params?.address}
-        </Text>
-
-        <Layout style={styles.container} level="1">
-          <ButtonGroup
-            selectedIndex={selectedIndex}
-            onSelect={onSelect}
-            style={styles.buttonGroup}
-            size="small">
-            <Button
-              key={1}
-              onPress={() => openPhoneWithNumber('79222965859')}
-              accessoryLeft={<Icon name="phone" />}
-            />
-            <Button
-              key={2}
-              onPress={() => openTelegramWithNumber('79222965859')}
-              accessoryLeft={<Icon name="message-square" />}
-            />
-            <Button
-              key={3}
-              onPress={() => openTelegramWithNumber('79222965859')}
-              accessoryLeft={<Icon name="alert-circle" />}
-            />
-            <Button
-              key={4}
-              onPress={() => openTelegramWithNumber('79222965859')}
-              accessoryLeft={<Icon name="camera" />}
-            />
-          </ButtonGroup>
-        </Layout>
-
-        <List style={styles.list} data={orders} renderItem={renderItem} />
-
-        <Modal
-          visible={visible}
-          backdropStyle={styles.backdrop}
-          onBackdropPress={() => setVisible(false)}
-        >
-          {modalContent}
-        </Modal>
-
-        {renderBottomButtons()}
-      </Layout>
+    <SafeAreaView style={{ flex: 1 }}>
+      <List
+        //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        style={{}}
+        data={orders}
+        renderItem={renderCardOrder}
+        ItemSeparatorComponent={Divider}
+        ListHeaderComponent={renderMainCard(params)}
+      />
+      {renderModalWindow()}
     </SafeAreaView>
   );
 };
@@ -341,7 +454,7 @@ const styles = StyleSheet.create({
   containerCardText: {
     flex: 1,
     flexDirection: 'column',
-    paddingLeft: 20,
+    paddingLeft: 20
   },
   containerName: {
     flex: 1,
