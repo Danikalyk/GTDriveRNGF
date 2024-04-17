@@ -221,7 +221,7 @@ const RouteScreen = (props: Props) => {
   const PointsScreen = () => (
     <SafeAreaView style={{ flex: 1 }}>
       <List
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={styles.list}
         data={routeItem?.points}
         renderItem={renderCardPoint}

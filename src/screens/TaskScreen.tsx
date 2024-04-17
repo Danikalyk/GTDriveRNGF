@@ -22,6 +22,7 @@ import { RouterListItem } from '../types';
 import { postRoute } from '../api/routes';
 import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
 import { ScrollView } from 'react-native-gesture-handler';
+import AccidentScreen from './AccidentScreen';
 
 type Props = {};
 
@@ -41,6 +42,14 @@ const RouteScreen = (props: Props) => {
   const params = props?.route?.params;
   const orders = props?.route?.params.orders;
   const uid = props?.route?.params.uid;
+
+  // ---------- Открытие модального окна происшествия ----------
+
+  const [ visibleAccident, setVisibleAccident ] = React.useState(false);
+
+  const handleCloseAccidentModal = () => {
+    setVisibleAccident(false); 
+  }
 
 
   // ---------- Открытие навигатора ----------
@@ -127,7 +136,8 @@ const RouteScreen = (props: Props) => {
         />
         <Button
           key={3}
-          onPress={() => props.navigation.navigate('AccidentScreen', {...item})}
+          //onPress={() => props.navigation.navigate('AccidentScreen', {...item})}
+          onPress={() => setVisibleAccident(true)}
           accessoryLeft={<Icon name="alert-circle" />}
         />
         <Button
@@ -301,7 +311,7 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const renderCardOrder = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => (
+  const renderCardOrder = ({ item, index } : { item: RouterListItem; index: number; }): React.ReactElement => (
     <Card
       style={{}}
       status={getCardStatus(item.status)}
@@ -347,7 +357,6 @@ const RouteScreen = (props: Props) => {
         </Layout>
       );
     }
-
   };
 
   const renderCardOrderName = item => {
@@ -419,6 +428,8 @@ const RouteScreen = (props: Props) => {
     );
   }
 
+  
+
   // ---------- Отрисовка ----------
 
   return (
@@ -431,7 +442,14 @@ const RouteScreen = (props: Props) => {
         ItemSeparatorComponent={Divider}
         ListHeaderComponent={renderMainCard(params)}
       />
+
       {renderModalWindow()}
+      
+      <AccidentScreen 
+        visibleAccident={visibleAccident}
+        data={orders} 
+        onClose={handleCloseAccidentModal}
+      />
     </SafeAreaView>
   );
 };
@@ -464,7 +482,6 @@ const styles = StyleSheet.create({
   containerCard: {
     flex: 1,
     flexDirection: 'row',
-
   },
   containerCardText: {
     flex: 1,
@@ -483,6 +500,7 @@ const styles = StyleSheet.create({
   buttonModal: {
     margin: 2,
   },
+  
 });
 
 export default RouteScreen;

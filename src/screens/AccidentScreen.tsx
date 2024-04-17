@@ -1,46 +1,16 @@
-import {
-  Button,
-  Layout,
-  Text,
-  ButtonGroup,
-  Icon,
-  List,
-  ListItem,
-  Divider,
-  CheckBox,
-  IndexPath,
-  SelectItem,
-  Select,
-  Input,
-} from '@ui-kitten/components';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {Alert, Linking, StyleSheet, View} from 'react-native';
-import {openAddressOnMap} from '../utils/openAddressOnMap';
-import {RouterListItem} from '../types';
-
-import AddPhoto from '../components/AddPhoto/AddPhoto';
-import {ScrollView} from 'react-native-gesture-handler';
+import { Button, Layout, Text, Input, RadioGroup, Radio, Card, Modal } from '@ui-kitten/components';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet } from 'react-native';
 import { pingServer } from '../api/request';
 
 type Props = {};
 
-const RouteScreen = (props: Props) => {
-  const [refreshing, setRefreshing] = React.useState(false);
-  const [text, setText] = React.useState('');
+const AccidentScreen = ({ visibleAccident, onClose }) => {
+  const [ text, setText ] = React.useState('');
+  const [ selectedIndex, setSelectedIndex ] = React.useState(0);
+  //const [ visibleAccident, setVisibleAccident ] = React.useState();
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
-
-  const [selectedIndex, setSelectedIndex] = React.useState<
-    IndexPath | IndexPath[]
-  >();
-
-  console.log({selectedIndex});
   const options = [
     'Неоплата по прибытии',
     'Техническая неисправность ТС в пути следования',
@@ -51,7 +21,7 @@ const RouteScreen = (props: Props) => {
     'Другое',
   ];
 
-  const displayValue = options[selectedIndex?.row];
+  const displayValue = options[selectedIndex];
 
   const handleSubmit = async () => {
     const payload = displayValue === 'Другое' ? text : displayValue;
@@ -59,20 +29,51 @@ const RouteScreen = (props: Props) => {
     await pingServer(); // TODO ручку отправки что случилось
   };
 
+  const renderCardHeader = () => {
+    return (
+      <Text category='h4' >Сообщить о происшествии</Text>
+    )
+  }
+
+  const renderCardFooter = () => {
+    return (
+      <Layout style={{}} level="1">
+        <Button
+          appearance="filled"
+          onPress={handleSubmit}
+          style={{}}>
+          Ok
+        </Button>
+        <Button
+          appearance="outline"
+          onPress={onClose}
+          style={{}}>
+          Отмена
+        </Button>
+      </Layout>
+    )
+  }
+
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <Layout style={{flex: 1, padding: 10}}>
-        <Select
-          style={{marginBottom: 10}}
-          placeholder="Тип проишестивя"
-          onSelect={index => setSelectedIndex(index)}
-          label="Тип проишестивя"
+    <Modal
+      visible={visibleAccident}
+      backdropStyle={styles.backdrop}     
+    >
+      <Card
+        status='warning'
+        header={renderCardHeader}
+        footer={renderCardFooter}
+      >
+        <RadioGroup
           selectedIndex={selectedIndex}
-          value={displayValue}>
+          onChange={index => setSelectedIndex(index)}
+        >
           {options.map((option, index) => (
-            <SelectItem key={option} title={option} />
+            <Radio key={index}>
+              {`${option}`}
+            </Radio>
           ))}
-        </Select>
+        </RadioGroup>
 
         {displayValue === 'Другое' && (
           <Input
@@ -81,26 +82,11 @@ const RouteScreen = (props: Props) => {
             label="Другое"
             value={text}
             onChangeText={nextValue => setText(nextValue)}
-            textStyle={{minHeight: 64, marginTop: 0, padding: 0}}
+            textStyle={{ minHeight: 64 }}
           />
         )}
-
-        <Layout style={styles.buttonGroup} level="1">
-          <Button
-            appearance="filled"
-            onPress={handleSubmit}
-            style={styles.button}>
-            Ok
-          </Button>
-          <Button
-            appearance="outline"
-            onPress={() => props.navigation.goBack()}
-            style={styles.button}>
-            Отмена
-          </Button>
-        </Layout>
-      </Layout>
-    </SafeAreaView>
+      </Card>  
+    </Modal>
   );
 };
 
@@ -125,6 +111,9 @@ const styles = StyleSheet.create({
   button: {
     margin: 2,
   },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
 });
 
-export default RouteScreen;
+export default AccidentScreen;
