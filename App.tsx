@@ -9,12 +9,13 @@ import CombinedContextProviders from './src/store/CombinedContextProviders';
 
 import {AppState} from 'react-native';
 import {SWRConfig} from 'swr';
+import localStorageProvider from './src/store/localStorageProvider';
 
 function App(): JSX.Element {
   return (
     <SWRConfig
       value={{
-        provider: () => new Map(),
+        provider: localStorageProvider,
         isVisible: () => {
           return true;
         },
