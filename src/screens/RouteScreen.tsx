@@ -43,7 +43,6 @@ const RouteScreen = (props: Props) => {
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
   const routeItem = route;
-
   if (error || !routeItem) {
     return null;
   }
