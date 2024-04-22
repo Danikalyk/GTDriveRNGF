@@ -1,6 +1,6 @@
-import { SafeAreaView, List, Card, Divider, BottomNavigation, BottomNavigationTab, Layout, Text, Toggle } from '@ui-kitten/components';
+import { List, Card, Divider, BottomNavigationTab, Layout, Text, Toggle } from '@ui-kitten/components';
 import React from 'react';
-import { Alert, Linking, View } from 'react-native';
+import { View } from 'react-native';
 import { RouterListItem } from '../types';
 import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
 import { styles } from '../styles';
@@ -12,23 +12,36 @@ const TaskOrderScreen = (props: Props) => {
     const order = props.route?.params;
     const tasks = props.route?.params?.tasks;
 
-    console.log(JSON.stringify(tasks));
+    console.log(JSON.stringify(order));
 
-    const renderCardHeader = () => {
+    const renderListHeader = () => {
         return(
-            <Text>Задачи по заказу </Text>
+            <View>
+                <Text category="h5">Задачи по заказу {`${order.name}`}</Text>
+            </View>
+        )
+    }
+
+    const renderCardHeader = item => {
+        return(
+            <View>
+                <Text category="h6">Задачи по заказу </Text>
+            </View>
         )
     }
 
     const renderCardOrder = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => (
         <Card
-            style={styles.containerCard}
-            header={renderCardHeader}
-            status={getCardStatus(item.status)}>
-            <Layout style={{}}>
-                <Toggle checked={getToggleCardStatus(item)}></Toggle>
-
-                <View style={styles.containerCardText}>
+            style={styles.containerCards}
+            header={renderCardHeader(item)}
+            status={getCardStatus(item.status)}
+        >
+            <Layout style={styles.containerCard}>
+                <View>
+                    <Toggle checked={getToggleCardStatus(item)}></Toggle>
+                </View>
+            
+                <View style={styles.containerCardBody}>
                     <Text category="c2">{item.description}</Text>
                 </View>
             </Layout>
@@ -41,7 +54,7 @@ const TaskOrderScreen = (props: Props) => {
             data={tasks}
             renderItem={renderCardOrder}
             ItemSeparatorComponent={Divider}
-            ListHeaderComponent={renderCardHeader}
+            ListHeaderComponent={renderListHeader()}
         />
     ) 
 }
