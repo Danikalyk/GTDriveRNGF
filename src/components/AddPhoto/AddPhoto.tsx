@@ -5,36 +5,38 @@ import {
   Button,
   Modal,
   Card,
+  Text
 } from '@ui-kitten/components';
 import React, {useCallback, useEffect, useState} from 'react';
-import {ImageBackground, StyleSheet, Text, View} from 'react-native';
+import {ImageBackground, StyleSheet, View} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {Image} from 'react-native-svg';
 import {acceptImages} from '../../api/photo';
 
 type Props = {};
 
-const CameraIcon = (props): IconElement => (
-  <Icon {...props} name="camera-outline" />
-);
-const ImageIcon = (props): IconElement => (
-  <Icon {...props} name="image-outline" />
-);
 
-const TrashIcon = (props): IconElement => (
-  <Icon {...props} name="trash-2-outline" />
-);
 
 function AddPhoto(props: Props) {
   const [images, setImages] = useState([]);
   const [pickerResponse, setPickerResponse] = useState<any>(null);
-
   const params = props?.route?.params;
-
   const uid_destination = props?.route?.params?.uid;
   const uid_route = props?.route?.params?.uid_route;
 
   console.log('@AddPhoto params', params);
+
+  const CameraIcon = (props): IconElement => (
+    <Icon {...props} name="camera-outline" />
+  );
+  
+  const ImageIcon = (props): IconElement => (
+    <Icon {...props} name="image-outline" />
+  );
+  
+  const TrashIcon = (props): IconElement => (
+    <Icon {...props} name="trash-2-outline" />
+  );
 
   useEffect(() => {
     if (pickerResponse) {
@@ -48,6 +50,7 @@ function AddPhoto(props: Props) {
       mediaType: 'photo',
       includeBase64: true,
     };
+
     launchImageLibrary(options, setPickerResponse);
   }, []);
 
@@ -60,6 +63,7 @@ function AddPhoto(props: Props) {
       maxWidth: 2560, // TODO: fix width
       maxHeight: 1440, // TODO: fix height
     };
+
     launchCamera(options, setPickerResponse);
   }, []);
 
@@ -69,13 +73,14 @@ function AddPhoto(props: Props) {
       uid_destination: uid_destination,
       images: images.map(image => image.assets[0].base64),
     };
+
     const result = await acceptImages(payload); // TODO: check images api
 
     console.log('@onSubmitPhoto result', result);
   };
 
-  return (
-    <View style={styles.container}>
+  const renderCardHeader = () => {
+    return (
       <ButtonGroup style={styles.buttonGroup}>
         <Button accessoryLeft={CameraIcon} onPress={onCameraPress}>
           Камера
@@ -84,7 +89,27 @@ function AddPhoto(props: Props) {
           Галерея
         </Button>
       </ButtonGroup>
-      <Card>
+    )
+  }
+
+  const renderCardFooter = images => {
+    if(images.length > 0) {
+      return (
+        <ButtonGroup style={styles.buttonGroup}>
+          <Button accessoryLeft={CameraIcon} onPress={onSubmitPhoto}>
+            Загрузить фотографии
+          </Button>
+        </ButtonGroup> 
+      )
+    }
+  }
+
+  return (
+    <View style={styles.container}>     
+      <Card
+        header={renderCardHeader}
+        footer={renderCardFooter(images)}
+        >
         <View
           style={{
             flexDirection: 'row',
@@ -111,19 +136,15 @@ function AddPhoto(props: Props) {
                   accessoryLeft={TrashIcon}
                   onPress={() =>
                     setImages(images.filter((_, i) => i !== index))
-                  }></Button>
+                  }>
+                </Button>
               </View>
             );
           })}
         </View>
       </Card>
-      {images.length > 0 && (
-        <ButtonGroup style={styles.buttonGroup}>
-          <Button accessoryLeft={CameraIcon} onPress={onSubmitPhoto}>
-            Загрузить фотографии
-          </Button>
-        </ButtonGroup>
-      )}
+      
+      
     </View>
   );
 }

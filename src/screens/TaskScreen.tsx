@@ -4,38 +4,29 @@ import {
   Text,
   ButtonGroup,
   Icon,
-  IconElement,
   List,
-  ListItem,
   Divider,
-  CheckBox,
   Card,
   Toggle,
   Modal,
 } from '@ui-kitten/components';
-import React from 'react';
-import AddPhoto from '../components/AddPhoto/AddPhoto';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {Alert, Linking, StyleSheet, View} from 'react-native';
-import {openAddressOnMap} from '../utils/openAddressOnMap';
-import {RouterListItem} from '../types';
-import {postRoute} from '../api/routes';
 import {
   getCardStatus,
   getToggleCardStatus,
   getDataPostRoute,
 } from '../components/functions.js';
+import React from 'react';
+import AddPhoto from '../components/AddPhoto/AddPhoto';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {Alert, Linking, View} from 'react-native';
+import {openAddressOnMap} from '../utils/openAddressOnMap';
+import {RouterListItem} from '../types';
+import {postRoute} from '../api/routes';
 import {ScrollView} from 'react-native-gesture-handler';
 import useSWR from 'swr';
 import find from 'lodash/find';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Alert, Linking, StyleSheet, View } from 'react-native';
-import { openAddressOnMap } from '../utils/openAddressOnMap';
-import { RouterListItem } from '../types';
-import { postRoute } from '../api/routes';
-import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
-import { ScrollView } from 'react-native-gesture-handler';
 import AccidentScreen from './AccidentScreen';
+import { styles } from '../styles';
 
 type Props = {};
 
@@ -115,7 +106,7 @@ const RouteScreen = (props: Props) => {
     return (
       <View>
         <Card
-          status="warning"
+          status="danger"
           header={renderMainCardHeader(params)}
           footer={renderMainCardFooter(params)}
           style={{margin: 5}}>
@@ -123,7 +114,7 @@ const RouteScreen = (props: Props) => {
         </Card>
 
         <View>
-          <Text category="h6" style={styles.title}>
+          <Text category="h6" style={styles.titleList}>
             Действия
           </Text>
         </View>
@@ -133,9 +124,12 @@ const RouteScreen = (props: Props) => {
 
   const renderMainCardHeader = item => {
     return (
-      <Text category="h6" style={{}}>
-        <Icon name="pin-outline" width={23} height={23}></Icon> {item?.address}
-      </Text>
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+        <Layout style={styles.textHeaderCard}>
+          <Icon name="pin-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon> 
+          <Text category="h6">{item?.address}</Text>
+        </Layout>
+      </View>
     );
   };
 
@@ -305,12 +299,12 @@ const RouteScreen = (props: Props) => {
     index: number;
   }): React.ReactElement => (
     <Card
-      style={{}}
+      style={styles.containerCards}
       status={getCardStatus(item.status)}
       header={() => renderCardOrderName(item)}
       onPress={() => onPressCardOrder(item)}
-      style={styles.card}>
-      <Text> {renderCardOrderText(item)}</Text>
+    >
+      {renderCardOrderText(item)}
     </Card>
   );
 
@@ -318,7 +312,7 @@ const RouteScreen = (props: Props) => {
     if (item.type !== 4) {
       if (getToggleCardStatus(item)) {
         return (
-          <Layout style={styles.containerCard}>
+          <Layout style={styles.textBodyCardWithLeftView}>
             <Toggle checked={getToggleCardStatus(item)}></Toggle>
 
             <View style={styles.containerCardText}>
@@ -328,7 +322,7 @@ const RouteScreen = (props: Props) => {
         );
       } else {
         return (
-          <Layout style={styles.containerCard}>
+          <Layout style={styles.textBodyCardWithLeftView}>
             <Toggle checked={getToggleCardStatus(item)}></Toggle>
 
             <View style={styles.containerCardText}>
@@ -339,7 +333,7 @@ const RouteScreen = (props: Props) => {
       }
     } else {
       return (
-        <Layout style={styles.containerCard}>
+        <Layout style={styles.textBodyCardWithLeftView}>
           <Toggle checked={getToggleCardStatus(item)}></Toggle>
 
           <View style={styles.containerCardText}>
@@ -355,8 +349,8 @@ const RouteScreen = (props: Props) => {
     const hasTasks = item.tasks.length !== 0;
 
     return (
-      <Layout style={styles.containerName}>
-        <Text category="h6" style={styles.name}>
+      <Layout style={styles.textHeaderCard}>
+        <Text category="h6" style={styles.cardName}>
           {`${item.name}`}
         </Text>
 
@@ -437,7 +431,6 @@ const RouteScreen = (props: Props) => {
         style={{}}
         data={orders}
         renderItem={renderCardOrder}
-        ItemSeparatorComponent={Divider}
         ListHeaderComponent={renderMainCard(params)}
       />
 
@@ -451,54 +444,5 @@ const RouteScreen = (props: Props) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  list: {
-    flex: 1,
-    minHeight: 180,
-  },
-  wrap: {
-    paddingVertical: 10,
-  },
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  title: {
-    margin: 10,
-  },
-  buttonGroup: {
-    margin: 2,
-  },
-  card: {
-    margin: 5,
-  },
-  name: {
-    padding: 7,
-  },
-  containerCard: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  containerCardText: {
-    flex: 1,
-    flexDirection: 'column',
-    paddingLeft: 20,
-  },
-  containerName: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backdrop: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  buttonModal: {
-    margin: 2,
-  },
-  
-});
 
 export default RouteScreen;

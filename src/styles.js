@@ -14,8 +14,6 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         marginLeft: 25
     },
-    
-
     containerCardText: {
         flex: 1,
         flexDirection: 'column',
@@ -24,5 +22,29 @@ export const styles = StyleSheet.create({
     backdrop: { 
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
+
+
+    textHeaderCard: {
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        flexWrap: 'wrap' 
+    },
+    textHeaderCardIcon: {
+        marginRight: 10, 
+    },
+    textTimeLeft: {
+        marginRight: 7,
+    },
+    textBodyCardWithLeftView: {
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        justifyContent: 'flex-start'
+    },
+
+    titleList: {
+        margin: 10,    
+    }
   }
 );
