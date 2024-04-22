@@ -15,6 +15,19 @@ import {
 } from '@ui-kitten/components';
 import React from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {Alert, Linking, StyleSheet, View} from 'react-native';
+import {openAddressOnMap} from '../utils/openAddressOnMap';
+import {RouterListItem} from '../types';
+import {postRoute} from '../api/routes';
+import {
+  getCardStatus,
+  getToggleCardStatus,
+  getDataPostRoute,
+} from '../components/functions.js';
+import {ScrollView} from 'react-native-gesture-handler';
+import useSWR from 'swr';
+import find from 'lodash/find';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { openAddressOnMap } from '../utils/openAddressOnMap';
@@ -40,8 +53,19 @@ const RouteScreen = (props: Props) => {
   }, []);
 
   const params = props?.route?.params;
-  const orders = props?.route?.params.orders;
+  // const orders = props?.route?.params.orders;
   const uid = props?.route?.params.uid;
+  const uidPoint = props?.route?.params.uidPoint;
+
+  const {
+    data: route,
+    isLoading,
+    mutate,
+    error,
+  } = useSWR(`/route/${uid}`, () => getRoute(uid));
+
+  const point = find(route?.points, {uidPoint: uidPoint});
+  const orders = point?.orders;
 
   // ---------- Открытие модального окна происшествия ----------
 
@@ -85,18 +109,16 @@ const RouteScreen = (props: Props) => {
     setSelectedIndex(index);
   };
 
-
   // ---------- Верхняя карточка ----------
 
-  const renderMainCard = (params) => {
+  const renderMainCard = params => {
     return (
       <View>
         <Card
-          status='warning'
+          status="warning"
           header={renderMainCardHeader(params)}
           footer={renderMainCardFooter(params)}
-          style={{ margin: 5 }}
-        >
+          style={{margin: 5}}>
           {renderMainCardButtons(params)}
         </Card>
 
@@ -106,16 +128,16 @@ const RouteScreen = (props: Props) => {
           </Text>
         </View>
       </View>
-    )
-  }
+    );
+  };
 
   const renderMainCardHeader = item => {
     return (
       <Text category="h6" style={{}}>
         <Icon name="pin-outline" width={23} height={23}></Icon> {item?.address}
       </Text>
-    )
-  }
+    );
+  };
 
   const renderMainCardButtons = item => {
     return (
@@ -142,12 +164,14 @@ const RouteScreen = (props: Props) => {
         />
         <Button
           key={4}
-          onPress={() => props.navigation.navigate('TaskPhotoScreen', { ...item })}
+          onPress={() =>
+            props.navigation.navigate('TaskPhotoScreen', {...item})
+          }
           accessoryLeft={<Icon name="camera" />}
         />
       </ButtonGroup>
-    )
-  }
+    );
+  };
 
   const openTelegramWithNumber = phoneNumber => {
     Linking.openURL(`https://t.me/${phoneNumber}`);
@@ -157,75 +181,57 @@ const RouteScreen = (props: Props) => {
     Linking.openURL(`tel:${phoneNumber}`);
   };
 
-
   // ---------- Кнопки ----------
 
   const renderButtonStartPoint = () => {
     return (
       <View>
-        <Button
-          style={{}}
-          onPress={startCurrentPoint}   
-        >
+        <Button style={{}} onPress={startCurrentPoint}>
           Начать следование
         </Button>
       </View>
     );
-  }
+  };
 
   const renderButtonOpenNavigator = () => {
     return (
       <View>
-        <Button
-          style={{}}
-          onPress={handleOpenNavigator}
-        >
+        <Button style={{}} onPress={handleOpenNavigator}>
           Открыть в навигаторе
         </Button>
       </View>
     );
-  }
+  };
 
   const renderButtonFinishPoint = () => {
     return (
       <View>
-        <Button
-          style={{}}
-          onPress={finishCurrentPoint}
-        >
+        <Button style={{}} onPress={finishCurrentPoint}>
           Завершить точку
         </Button>
       </View>
     );
-  }
+  };
 
   const renderMainCardFooter = params => {
     allOrderFinished = params.orders.every(order => order.status === 3);
     console.log(JSON.stringify(params));
 
-    if (params.point === 0) { //-- ЭтоТочка
+    if (params.point === 0) {
+      //-- ЭтоТочка
       if (params.status === 0) {
-        return (
-          renderButtonStartPoint()
-        );
+        return renderButtonStartPoint();
       } else if (params.status === 1) {
-        return (
-          renderButtonOpenNavigator()
-        );
+        return renderButtonOpenNavigator();
       } else if (params.status === 2 && allOrderFinished) {
-        return (
-          renderButtonFinishPoint()
-        );
+        return renderButtonFinishPoint();
       }
-    } else if (params.point === 1) { //-- ЭтоСклад 
+    } else if (params.point === 1) {
+      //-- ЭтоСклад
       if (params.status === 1) {
-        return (
-          renderButtonOpenNavigator()
-        ); 
+        return renderButtonOpenNavigator();
       } else if (params.status === 2 && allOrderFinished) {
-        return (
-          renderButtonFinishPoint()
-        ); 
+        return renderButtonFinishPoint();
       }
     }
 
@@ -240,26 +246,15 @@ const RouteScreen = (props: Props) => {
     }
 
     if (allCardsShipped) {
-      return (
-        <Button
-          onPress={finishCurrentPoint()
-          }>
-          Завершить точку
-        </Button>
-      )
+      return <Button onPress={finishCurrentPoint()}>Завершить точку</Button>;
     } else {
       if (orders[0].status === 0) {
-      return (
-        <Button
-          onPress={handleOpenNavigator
-          }>
-          Открыть в навигаторе
-        </Button>
-      )
+        return (
+          <Button onPress={handleOpenNavigator}>Открыть в навигаторе</Button>
+        );
       }
     }
-  }
-
+  };
 
   // ---------- Карточки заказов ----------
 
@@ -267,7 +262,7 @@ const RouteScreen = (props: Props) => {
     toggleStatus = getToggleCardStatus(item);
 
     if (toggleStatus) {
-      Alert.alert("Время уже зафиксировано!");
+      Alert.alert('Время уже зафиксировано!');
 
       return;
     }
@@ -275,43 +270,40 @@ const RouteScreen = (props: Props) => {
     if (item.tasks.length === 0) {
       setModalContent(
         <Card disabled={true}>
-          <Text category="c2">
-            Необходимо зафиксировать время
-          </Text>
+          <Text category="c2">Необходимо зафиксировать время</Text>
 
-          <Text >
-            {item.name}
-          </Text>
+          <Text>{item.name}</Text>
 
-          <Layout
-            style={styles.container}
-            level='1'
-          >
+          <Layout style={styles.container} level="1">
             <Button
               style={styles.buttonModal}
-              status='basic'
-              onPress={() => setVisible(false)}
-            >
+              status="basic"
+              onPress={() => setVisible(false)}>
               Отмена
             </Button>
             <Button
               style={styles.buttonModal}
-              status='success'
-              onPress={() => putTimeCardToServer(item)}
-            >
+              status="success"
+              onPress={() => putTimeCardToServer(item)}>
               Зафиксировать
             </Button>
           </Layout>
-        </Card>
+        </Card>,
       );
 
       setVisible(true);
     } else {
-      props.navigation.navigate('TaskOrderScreen', { ...item });
+      props.navigation.navigate('TaskOrderScreen', {...item});
     }
   };
 
-  const renderCardOrder = ({ item, index } : { item: RouterListItem; index: number; }): React.ReactElement => (
+  const renderCardOrder = ({
+    item,
+    index,
+  } : {
+    item: RouterListItem;
+    index: number;
+  }): React.ReactElement => (
     <Card
       style={{}}
       status={getCardStatus(item.status)}
@@ -368,7 +360,14 @@ const RouteScreen = (props: Props) => {
           {`${item.name}`}
         </Text>
 
-        {hasTasks && <Icon name="alert-circle-outline" width={24} height={24} style={{ padding: 7, marginRight: 10 }} />}
+        {hasTasks && (
+          <Icon
+            name="alert-circle-outline"
+            width={24}
+            height={24}
+            style={{padding: 7, marginRight: 10}}
+          />
+        )}
       </Layout>
     );
   };
@@ -385,7 +384,7 @@ const RouteScreen = (props: Props) => {
     data = JSON.stringify(data);
 
     postRoute(uid, data);
-  }
+  };
 
   const finishCurrentPoint = () => {
     let data = getDataPostRoute();
@@ -397,7 +396,7 @@ const RouteScreen = (props: Props) => {
     data = JSON.stringify(data);
 
     postRoute(uid, data);
-  }
+  };
 
   const putTimeCardToServer = item => {
     let data = getDataPostRoute();
@@ -405,14 +404,16 @@ const RouteScreen = (props: Props) => {
     data.type = item.type;
     data.point = params.point;
     data.uidPoint = params.uidPoint;
-    data.uidOrder = item.uidOrder; 
+    data.uidOrder = item.uidOrder;
 
     data = JSON.stringify(data);
 
     postRoute(uid, data);
 
     setVisible(false);
-  }
+
+    mutate();
+  };
 
   // ---------- Модальное окно ----------
 
@@ -421,19 +422,16 @@ const RouteScreen = (props: Props) => {
       <Modal
         visible={visible}
         backdropStyle={styles.backdrop}
-        onBackdropPress={() => setVisible(false)}
-      >
+        onBackdropPress={() => setVisible(false)}>
         {modalContent}
       </Modal>
     );
-  }
-
-  
+  };
 
   // ---------- Отрисовка ----------
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{flex: 1}}>
       <List
         //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={{}}
@@ -486,13 +484,13 @@ const styles = StyleSheet.create({
   containerCardText: {
     flex: 1,
     flexDirection: 'column',
-    paddingLeft: 20
+    paddingLeft: 20,
   },
   containerName: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
