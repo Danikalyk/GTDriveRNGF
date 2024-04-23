@@ -5,31 +5,36 @@ import {
   Button,
   Modal,
   Card,
-  Text
+  Text,
+  Layout
 } from '@ui-kitten/components';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ImageBackground, StyleSheet, View} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {Image} from 'react-native-svg';
 import {acceptImages} from '../../api/photo';
+import { styles } from '../../styles';
+import { getDataPostRoute } from '../functions.js';
 
 type Props = {};
-
-
 
 function AddPhoto(props: Props) {
   const [images, setImages] = useState([]);
   const [pickerResponse, setPickerResponse] = useState<any>(null);
   const params = props?.route?.params;
-  const uid_destination = props?.route?.params?.uid;
-  const uid_route = props?.route?.params?.uid_route;
+  const uid = params?.uid;
+  const uidOrder = params?.uidOrder;
 
   console.log('@AddPhoto params', params);
 
   const CameraIcon = (props): IconElement => (
     <Icon {...props} name="camera-outline" />
   );
-  
+
+  const SyncIcon = (props): IconElement => (
+    <Icon {...props} name="sync-outline" />
+  );
+ 
   const ImageIcon = (props): IconElement => (
     <Icon {...props} name="image-outline" />
   );
@@ -68,53 +73,64 @@ function AddPhoto(props: Props) {
   }, []);
 
   const onSubmitPhoto = async () => {
-    const payload = {
-      uid_route: uid_route,
-      uid_destination: uid_destination,
-      images: images.map(image => image.assets[0].base64),
-    };
+    let data = getDataPostRoute();
+    data.screen = 3;
+    data.uid = uid;
+    data.order = uidOrder;
+    data.images = images.map(image => image.assets[0].base64);
+    data = JSON.stringify(data);
 
-    const result = await acceptImages(payload); // TODO: check images api
+    const result = await acceptImages(data); // TODO: check images api
 
-    console.log('@onSubmitPhoto result', result);
+    //console.log('@onSubmitPhoto result', result);
   };
 
   const renderCardHeader = () => {
     return (
-      <ButtonGroup style={styles.buttonGroup}>
-        <Button accessoryLeft={CameraIcon} onPress={onCameraPress}>
-          Камера
-        </Button>
-        <Button accessoryLeft={ImageIcon} onPress={onImageLibraryPress}>
+      <Layout style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between'}}>  
+        <Button 
+          accessoryLeft={ImageIcon} 
+          onPress={onImageLibraryPress} 
+          status='primary' 
+          style={{ flex: 1, margin: 4 }}
+          >
           Галерея
         </Button>
-      </ButtonGroup>
+        <Button 
+          accessoryLeft={CameraIcon} 
+          onPress={onCameraPress}  
+          status='success'
+          style={{ flex: 1, margin: 4 }}
+          >
+          Камера
+        </Button>
+      </Layout>  
     )
   }
 
   const renderCardFooter = images => {
     if(images.length > 0) {
       return (
-        <ButtonGroup style={styles.buttonGroup}>
-          <Button accessoryLeft={CameraIcon} onPress={onSubmitPhoto}>
+        <Layout style={{position: 'absolute', bottom: 0}}>
+          <Button accessoryLeft={SyncIcon} onPress={onSubmitPhoto}>
             Загрузить фотографии
           </Button>
-        </ButtonGroup> 
+        </Layout> 
       )
     }
   }
 
-  return (
-    <View style={styles.container}>     
+  return (   
       <Card
+        style={{flex: 1, justifyContent: 'space-between'}}
         header={renderCardHeader}
         footer={renderCardFooter(images)}
-        >
+      >
         <View
           style={{
             flexDirection: 'row',
             flexWrap: 'wrap',
-            justifyContent: 'flex-start',
+            justifyContent: 'space-between',
             padding: 5,
           }}>
           {images.map((image, index) => {
@@ -123,10 +139,10 @@ function AddPhoto(props: Props) {
               <View style={{margin: 2}} key={index}>
                 <ImageBackground
                   style={{
-                    height: 100,
-                    width: 100,
+                    height: 150,
+                    width: 150,
                     overflow: 'hidden',
-                    borderColor: '#000',
+                    borderColor: 'rgba(0, 0, 0, 0)',
                     borderWidth: 1,
                   }}
                   source={uri ? {uri} : ''}
@@ -143,21 +159,7 @@ function AddPhoto(props: Props) {
           })}
         </View>
       </Card>
-      
-      
-    </View>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  buttonGroup: {
-    margin: 2,
-  },
-  backdrop: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-});
 export default AddPhoto;

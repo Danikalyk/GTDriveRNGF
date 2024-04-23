@@ -21,7 +21,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {Alert, Linking, View} from 'react-native';
 import {openAddressOnMap} from '../utils/openAddressOnMap';
 import {RouterListItem} from '../types';
-import {postRoute} from '../api/routes';
+import { postRoute } from '../api/routes';
 import {ScrollView} from 'react-native-gesture-handler';
 import useSWR from 'swr';
 import find from 'lodash/find';
@@ -99,17 +99,19 @@ const RouteScreen = (props: Props) => {
   const onSelect = index => {
     setSelectedIndex(index);
   };
+  
 
   // ---------- Верхняя карточка ----------
 
   const renderMainCard = params => {
     return (
-      <View>
+      <Layout>
         <Card
           status="danger"
           header={renderMainCardHeader(params)}
           footer={renderMainCardFooter(params)}
-          style={{margin: 5}}>
+          style={styles.containerCards}>
+            
           {renderMainCardButtons(params)}
         </Card>
 
@@ -118,18 +120,18 @@ const RouteScreen = (props: Props) => {
             Действия
           </Text>
         </View>
-      </View>
+      </Layout>
     );
   };
 
   const renderMainCardHeader = item => {
     return (
-      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        <Layout style={styles.textHeaderCard}>
+      <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+        <View style={styles.textHeaderCard}>
           <Icon name="pin-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon> 
-          <Text category="h6">{item?.address}</Text>
-        </Layout>
-      </View>
+          <Text category="h6" style={styles.textHeaderCard}>{item?.address}</Text>
+        </View>
+      </Layout>
     );
   };
 
@@ -228,40 +230,35 @@ const RouteScreen = (props: Props) => {
         return renderButtonFinishPoint();
       }
     }
-
-    return;
-
-    let allCardsShipped = true;
-
-    for (const order of orders) {
-      if (order.status !== 3) {
-        allCardsShipped = false;
-      }
-    }
-
-    if (allCardsShipped) {
-      return <Button onPress={finishCurrentPoint()}>Завершить точку</Button>;
-    } else {
-      if (orders[0].status === 0) {
-        return (
-          <Button onPress={handleOpenNavigator}>Открыть в навигаторе</Button>
-        );
-      }
-    }
   };
 
   // ---------- Карточки заказов ----------
 
   const onPressCardOrder = item => {
-    toggleStatus = getToggleCardStatus(item);
+    if (params.status === 0) {
+      Alert.alert('Необходимо начать следование');
 
+      return;  
+    }
+
+    console.log(params.orders[0].status);
+
+    if (item.status !== 1 && params.orders[0].status !== 3 ) {
+      Alert.alert('Необходимо зафиксировать прибытие');
+
+      return;
+    }
+
+    toggleStatus = getToggleCardStatus(item);
     if (toggleStatus) {
       Alert.alert('Время уже зафиксировано!');
 
       return;
     }
 
-    if (item.tasks.length === 0) {
+    const canFinishOrder = item.tasks.every(task => task.status === 3) || item.tasks.length === 0;
+
+    if (canFinishOrder) {
       setModalContent(
         <Card disabled={true}>
           <Text category="c2">Необходимо зафиксировать время</Text>
@@ -291,13 +288,7 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const renderCardOrder = ({
-    item,
-    index,
-  } : {
-    item: RouterListItem;
-    index: number;
-  }): React.ReactElement => (
+  const renderCardOrder = ({item,index,} : {item: RouterListItem; index: number;}): React.ReactElement => (
     <Card
       style={styles.containerCards}
       status={getCardStatus(item.status)}
@@ -345,26 +336,51 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const renderCardOrderName = item => {
+  const renderCardOrderName = (item: RouterListItem) => {
     const hasTasks = item.tasks.length !== 0;
 
     return (
-      <Layout style={styles.textHeaderCard}>
-        <Text category="h6" style={styles.cardName}>
-          {`${item.name}`}
-        </Text>
+      <View style={styles.textHeaderCardOrder}>
+        <View style={styles.textHeaderCard}>
+          {renderCardOrderIcon(item.type)}
+          
+          <Text category="h6" style={styles.cardName}>
+            {item.name}
+          </Text>
+        </View>
 
         {hasTasks && (
           <Icon
             name="alert-circle-outline"
             width={24}
             height={24}
-            style={{padding: 7, marginRight: 10}}
+            style={{color: 'red'}}
           />
         )}
-      </Layout>
+      </View>
     );
   };
+
+  const renderCardOrderIcon = type => {
+    const iconNames = {
+      1: "compass-outline",
+      2: "download-outline",
+      3: "file-text-outline",
+      4: "bookmark-outline"
+    };
+  
+    const iconName = iconNames[type] || "file-outline";
+  
+    return (
+      <Icon
+        name={iconName}
+        width={23}
+        height={23}
+        style={styles.textHeaderCardIcon}
+      />
+    );
+  };
+
 
   // ---------- Запросы к серверу ----------
 
@@ -378,6 +394,8 @@ const RouteScreen = (props: Props) => {
     data = JSON.stringify(data);
 
     postRoute(uid, data);
+
+    mutate();
   };
 
   const finishCurrentPoint = () => {
@@ -390,6 +408,8 @@ const RouteScreen = (props: Props) => {
     data = JSON.stringify(data);
 
     postRoute(uid, data);
+
+    mutate();
   };
 
   const putTimeCardToServer = item => {
@@ -430,8 +450,8 @@ const RouteScreen = (props: Props) => {
         //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={{}}
         data={orders}
-        renderItem={renderCardOrder}
         ListHeaderComponent={renderMainCard(params)}
+        renderItem={renderCardOrder} 
       />
 
       {renderModalWindow()}

@@ -43,11 +43,15 @@ const RouteScreen = (props: Props) => {
     isLoading,
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
+  
   const routeItem = route;
 
   if (error || !routeItem) {
     return null;
   }
+
+  let points = routeItem?.points;
+  points = [...points].sort((a, b) => a.sort - b.sort); //-- тормозит из-за этого? 
 
   // Табы
   const { Navigator, Screen } = createBottomTabNavigator();
@@ -70,7 +74,7 @@ const RouteScreen = (props: Props) => {
             Вес: {routeItem?.weight}, кг
           </Text>
           <Text category="c2">
-            Загрузка: {routeItem?.loading}%
+            Загрузка: {routeItem?.loading} %
           </Text>
         </Card>
 
@@ -85,8 +89,8 @@ const RouteScreen = (props: Props) => {
 
   const renderMainCardHeader = () => {
     return (
-      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        <Layout style={styles.textHeaderCard}>
+      <View>
+        <Layout style={styles.textHeaderCardRoute}>
           <Icon name="car-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
           <Text category="h6">{routeItem?.name}</Text>
 
@@ -153,9 +157,11 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderWarehouseText = (item: RouterListItem) => (
-    <Text category="c2">
-      Точка погрузки машины
-    </Text>
+    <View style={styles.containerCardText}>
+      <Text category="c2">
+        Точка погрузки машины на складе
+      </Text>
+    </View>
   );
 
   const renderPointText = (item: RouterListItem) => (
@@ -216,7 +222,7 @@ const RouteScreen = (props: Props) => {
       <List
         //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={{}}
-        data={routeItem?.points}
+        data={points}
         renderItem={renderCardsPoint}
         ListHeaderComponent={renderMainCard}
       />

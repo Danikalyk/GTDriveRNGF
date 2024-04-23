@@ -30,6 +30,7 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         flexWrap: 'wrap' 
     },
+
     textHeaderCardIcon: {
         marginRight: 10, 
     },
@@ -41,6 +42,21 @@ export const styles = StyleSheet.create({
         flexDirection: 'row', 
         alignItems: 'center',
         justifyContent: 'flex-start'
+    },
+    textHeaderCardOrder: {
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        flexWrap: 'wrap', 
+        padding: 10,
+        justifyContent: 'space-between'
+    },
+    textHeaderCardRoute: {
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        flexWrap: 'wrap', 
+        justifyContent: 'space-between'
     },
 
     titleList: {

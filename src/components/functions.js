@@ -29,14 +29,18 @@ export const getToggleCardStatus = item => {
 
 export const getDataPostRoute = () => {
     let currentDate = new Date();
+    let images = [];
 
     const data = {
         screen: -1,                                         // Экран
         point: -1,                                          // 
-        order: "00000000-0000-0000-0000-000000000000",      // Это обрабатываемый заказ
-        uid: "00000000-0000-0000-0000-000000000000",        // Это текщий МаршрутДоставки
+        uidOrder: "00000000-0000-0000-0000-000000000000",      // Это обрабатываемый заказ
+        uid: "00000000-0000-0000-0000-000000000000",        // Это текущий МаршрутДоставки
+        uidTask: "00000000-0000-0000-0000-000000000000",       // Задача
+        uidPoint: "00000000-0000-0000-0000-000000000000",       // ТочкаДоставки
         type: -1,                                           // Тип 
-        date: currentDate.toJSON()                          // Дата
+        date: currentDate.toJSON(),                         // Дата
+        images: images                                      // Изображения
     };
 
     return data;
