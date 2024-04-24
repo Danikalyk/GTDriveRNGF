@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
+    "@react-navigation/bottom-tabs": "^6.5.20",
     "@react-navigation/devtools": "^6.0.18",
     "@react-navigation/drawer": "^6.6.2",
     "@react-navigation/material-top-tabs": "^6.6.13",
