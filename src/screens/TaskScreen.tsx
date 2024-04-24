@@ -384,7 +384,7 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Запросы к серверу ----------
 
-  const startCurrentPoint = () => {
+  const startCurrentPoint = async () => {
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 5;
@@ -393,12 +393,12 @@ const RouteScreen = (props: Props) => {
 
     data = JSON.stringify(data);
 
-    postRoute(uid, data);
+    await postRoute(uid, data);
 
     mutate();
   };
 
-  const finishCurrentPoint = () => {
+  const finishCurrentPoint = async () => {
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 6;
@@ -407,12 +407,12 @@ const RouteScreen = (props: Props) => {
 
     data = JSON.stringify(data);
 
-    postRoute(uid, data);
+    await postRoute(uid, data);
 
     mutate();
   };
 
-  const putTimeCardToServer = item => {
+  const putTimeCardToServer = async (item) => {
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = item.type;
@@ -422,7 +422,7 @@ const RouteScreen = (props: Props) => {
 
     data = JSON.stringify(data);
 
-    postRoute(uid, data);
+    await postRoute(uid, data);
 
     setVisible(false);
 
