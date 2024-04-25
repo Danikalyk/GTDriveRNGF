@@ -43,10 +43,13 @@ const RouteScreen = (props: Props) => {
     }, 2000);
   }, []);
 
-  const params = props?.route?.params;
+
+  
+  const propsParams = props?.route?.params;
+  
   // const orders = props?.route?.params.orders;
-  const uid = props?.route?.params.uid;
-  const uidPoint = props?.route?.params.uidPoint;
+  const uid = propsParams.uid;
+  const uidPoint = propsParams.uidPoint;
 
   const {
     data: route,
@@ -55,8 +58,16 @@ const RouteScreen = (props: Props) => {
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
 
+  
   const point = find(route?.points, {uidPoint: uidPoint});
   const orders = point?.orders;
+  
+
+  const params = {
+    ...route,
+    orders,
+    uidPoint
+  }
 
   // ---------- Открытие модального окна происшествия ----------
 
@@ -210,8 +221,9 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderMainCardFooter = params => {
-    allOrderFinished = params.orders.every(order => order.status === 3);
-    console.log(JSON.stringify(params));
+
+    allOrderFinished = !!params.orders && params.orders.every(order => order.status === 3);
+    console.log('@renderMainCardFooter', JSON.stringify(params));
 
     if (params.point === 0) {
       //-- ЭтоТочка
@@ -396,7 +408,7 @@ const RouteScreen = (props: Props) => {
 
     data = JSON.stringify(data);
 
-    await postRoute(uid, data);
+    const res = await postRoute(uid, data);
 
     mutate();
   };
@@ -446,7 +458,7 @@ const RouteScreen = (props: Props) => {
   };
 
   // ---------- Отрисовка ----------
-
+  console.log('AAAA', { params })
   return (
     <SafeAreaView style={{flex: 1}}>
       <List
