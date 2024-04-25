@@ -41,6 +41,7 @@ const RouteScreen = (props: Props) => {
   const {
     data: route,
     isLoading,
+    mutate,
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
   
@@ -51,7 +52,7 @@ const RouteScreen = (props: Props) => {
   }
 
   let points = routeItem?.points;
-  points = [...points].sort((a, b) => a.sort - b.sort); //-- тормозит из-за этого? 
+  //points = [...points].sort((a, b) => a.sort - b.sort); //-- тормозит из-за этого? 
 
   // Табы
   const { Navigator, Screen } = createBottomTabNavigator();
@@ -259,7 +260,9 @@ const RouteScreen = (props: Props) => {
 
     data = JSON.stringify(data);
 
-    postRoute(uid, data);
+    await postRoute(uid, data);
+
+    mutate();
   };
 
   // ---------- Табы ----------

@@ -50,14 +50,14 @@ const TaskOrderScreen = (props: Props) => {
         )
     }
 
-    const putTimeCardToServer = item => {
+    const putTimeCardToServer = async(item) => {
         let data = getDataPostRoute();
         data.screen = 3;
         data.uidOrder = order.uidOrder;
         data.uidTask = item.uidTask;
         data = JSON.stringify(data);
     
-        postRoute(uid, data);
+        await postRoute(uid, data);
     
         setVisible(false);
     
