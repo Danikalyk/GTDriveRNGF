@@ -243,11 +243,12 @@ const RouteScreen = (props: Props) => {
 
     console.log(params.orders[0].status);
 
-    if (item.status !== 1 && params.orders[0].status !== 3 ) {
-      Alert.alert('Необходимо зафиксировать прибытие');
+    //if (item.status !== 1 && params.orders[0].status !== 3 ) {
+    //if (item.status !== 1) {
+    //  Alert.alert('Необходимо зафиксировать прибытие');
 
-      return;
-    }
+    //  return;
+    //}
 
     toggleStatus = getToggleCardStatus(item);
     if (toggleStatus) {
@@ -256,7 +257,9 @@ const RouteScreen = (props: Props) => {
       return;
     }
 
-    const canFinishOrder = item.tasks.every(task => task.status === 3) || item.tasks.length === 0;
+    //const canFinishOrder = item.tasks.every(task => task.status === 3) || item.tasks.length === 0;
+
+    const canFinishOrder = item.tasks.length === 0;
 
     if (canFinishOrder) {
       setModalContent(
