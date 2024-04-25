@@ -12,7 +12,7 @@ import {TouchableWithoutFeedback} from '@ui-kitten/components/devsupport';
 import dayjs from 'dayjs';
 import findIndex from 'lodash/findIndex';
 import React, {useContext, useEffect} from 'react';
-import {View} from 'react-native';
+import {View, Image} from 'react-native';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import DeviceInfo from 'react-native-device-info';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -152,6 +152,12 @@ const LoginScreen = ({navigation}: Props) => {
         }}>
         <>
           <View></View>
+          <View>
+            <Image
+                source={require('../logo.png')}
+                style={{ }}
+            />
+          </View>
           <View>
             {pending && (
               <View
