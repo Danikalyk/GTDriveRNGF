@@ -41,7 +41,8 @@ export const styles = StyleSheet.create({
         flex: 1, 
         flexDirection: 'row', 
         alignItems: 'center',
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
+        backgroundColor: 'rgba(255, 255, 255, 0)'
     },
     textHeaderCardOrder: {
         flex: 1, 

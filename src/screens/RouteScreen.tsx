@@ -7,7 +7,7 @@ import React, { useEffect, useContext, useRef } from 'react';
 import { View, Alert } from 'react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getRoute, postRoute } from '../api/routes';
+import { getRoute, postRoute, getOSRM } from '../api/routes';
 import { RouterListItem } from '../types';
 import { NavigationContainer } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
@@ -44,7 +44,7 @@ const RouteScreen = (props: Props) => {
     mutate,
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
-  
+
   const routeItem = route;
 
   if (error || !routeItem) {
@@ -52,7 +52,7 @@ const RouteScreen = (props: Props) => {
   }
 
   let points = routeItem?.points;
-  //points = [...points].sort((a, b) => a.sort - b.sort); //-- тормозит из-за этого? 
+  points = [...points].sort((a, b) => a.sort - b.sort);
 
   // Табы
   const { Navigator, Screen } = createBottomTabNavigator();
@@ -74,14 +74,14 @@ const RouteScreen = (props: Props) => {
           <Text category="c2">
             Вес: {routeItem?.weight}, кг
           </Text>
-          <Text category="c2">
+          {/*<Text category="c2">
             Загрузка: {routeItem?.loading} %
-          </Text>
+          </Text>*/}
         </Card>
 
         <View>
           <Text category="h6" style={styles.titleList}>
-            Точки Доставки
+            Точки Маршрута
           </Text>
         </View>
       </Layout>
@@ -174,8 +174,11 @@ const RouteScreen = (props: Props) => {
         Вес: {item?.weight}, кг
       </Text>
       <Text category="c2">
-        Загрузка: {item?.loading}, %
+        Количество заказов: {item?.countOrders}
       </Text>
+      {/*<Text category="c2">
+        Загрузка: {item?.loading}, %
+  </Text>*/}
     </View>
   );
 
@@ -183,12 +186,12 @@ const RouteScreen = (props: Props) => {
     return (
       <View style={styles.textTimeLeft}>
         <Layout>
-          <Text category="s1" style={{ textAlign: 'center' }}>
+          <Text category="s1" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
             {item?.time}
           </Text>
         </Layout>
         <Layout>
-          <Text category="c2" style={{ textAlign: 'center' }}>
+          <Text category="c2" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
             {item?.date}
           </Text>
         </Layout>
@@ -199,7 +202,7 @@ const RouteScreen = (props: Props) => {
   const renderCardPointName = (item: RouterListItem) => {
     return (
       <Layout style={styles.textHeaderCard}>
-        {renderCardPointNameIcon()}
+        {renderCardPointNameIcon(item)}
 
         <Text category="h6" style={styles.cardName}>
           {`${item?.client_name}`}
@@ -208,13 +211,14 @@ const RouteScreen = (props: Props) => {
     );
   };
 
-  const renderCardPointNameIcon = () => {
-    //-- заделка под разные иконки в зависимости от точки доставки
-
-    return (
-      <Icon name="pin-outline" width={23} height={23} style={{ margin: 10 }}></Icon>
-    )
-  }
+  const renderCardPointNameIcon = item => (
+    <Icon
+      name={item.point === 1 ? "download-outline" : "pin-outline"}
+      width={23}
+      height={23}
+      style={{ margin: 10 }}
+    />
+  );
 
   // ---------- Таб Точки ----------
 
@@ -232,20 +236,75 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Таб Карты ----------
 
+  const calculateMapData = async () => {
+    let mapData = [];
+    let pointNumber = 0;
+    let coordinates = [];
+  
+    points.forEach(point => {
+      let color = 'grey';
+      pointNumber++;
+  
+      switch (point.status) {
+        case 0:
+          color = 'blue';
+          break;
+        case 1:
+          color = 'green';
+          break;
+        case 2:
+          color = 'red';
+          break;
+        default:
+          color = 'grey';
+          break;
+      }
+  
+      const dataPoint = {
+        lat: point.lat,
+        lon: point.lon,
+        color: color,
+        number: pointNumber,
+        bindText: point.address 
+      };
+  
+      if (point.status === 3) {
+        mapData.unshift(dataPoint);
+      } else {
+        mapData.push(dataPoint);
+      }
+    });
+  
+    const validPoints = points.filter(point => point.status !== 3);
+    coordinates = validPoints.map(point => `${point.lat},${point.lon}`);
+    coordinates.unshift(`${lat},${lon}`);
+    
+    const osrmData = await getOSRM(coordinates);
+
+    const mapDataWithCoordinates = {
+      points: mapData,
+      coordinates: osrmData    
+    };
+  
+    return mapDataWithCoordinates;
+  };
+
   const MapOSRMScreen = () => (
     <WebView
       ref={Map_Ref}
       source={{ html: map_scripts }}
       style={styles.Webview}
-      onLoad={() => this.jsMapInit(lat, lon, routeItem)}
+      onLoad={() => this.jsMapInit(lat, lon)}
     />
   );
 
-  jsMapInit = (lat, lon, routeItem) => {
+  jsMapInit = async (lat, lon) => {
+    const dataPoints = await calculateMapData();
+
     if (Map_Ref.current) {
       Map_Ref.current.injectJavaScript(`init(${lat}, ${lon});`);
       Map_Ref.current.injectJavaScript(
-        `renderPoints(${JSON.stringify(routeItem)})`,
+        `renderPoints(${JSON.stringify(dataPoints)})`,
       );
     }
   };

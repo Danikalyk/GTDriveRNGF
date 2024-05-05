@@ -45,3 +45,18 @@ export const getDataPostRoute = () => {
 
     return data;
 }
+
+export const getDateFromJSON = dateString => {
+    const date = new Date(dateString);
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');;
+    const day = date.getDate();
+    const month = monthNames[date.getMonth()]; // Месяцы в JavaScript начинаются с 0, поэтому добавляем 1
+
+    const formattedDate = `${day} ${month} ${hours}:${minutes} `;
+
+    return formattedDate;
+}
+

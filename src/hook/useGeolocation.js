@@ -89,7 +89,7 @@ function useGeolocation(enabledGeo) {
         // Geolocation Config
         enabled: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-        distanceFilter: 1,
+        distanceFilter: 50, //-- Расстояние при котором идет отсылка координат между точками A и B
         // Activity Recognition
         stopTimeout: 5,
         // Application config

@@ -1,7 +1,8 @@
 import {getRequest, putRequest, postRequest, postRequestJwt} from './request';
+import {getRequestOSRM} from './requestOSRM';
 
 export async function uploadLocation(params) {
-  console.log('uploadLocation', params);
+  //console.log('uploadLocation', params);
   return putRequest('/geo_info_users', params);
 }
 
@@ -15,6 +16,13 @@ export async function getRoute(uid) {
 
 export async function postRoute(uid, payload) {
   return postRequest(`/route/${uid}`, payload);
+}
+
+
+//-- osrm
+
+export async function getOSRM(coordinates) {
+  return getRequestOSRM(coordinates);
 }
 
 

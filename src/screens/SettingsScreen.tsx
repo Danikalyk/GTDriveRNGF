@@ -124,7 +124,7 @@ const SettingsScreen = ({navigation}: Props) => {
         <View>
           <>
             <Input
-              label="Серевер"
+              label="Сервер"
               style={{
                 ...styles.input,
                 flex: 0,

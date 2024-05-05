@@ -1,4 +1,4 @@
-import { List, Card, Divider, Layout, Text, Toggle, BottomNavigation, BottomNavigationTab, Icon, Modal,Button } from '@ui-kitten/components';
+import { List, Card, Divider, Layout, Text, Toggle, BottomNavigation, BottomNavigationTab, Icon, Modal, Button } from '@ui-kitten/components';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
@@ -27,7 +27,7 @@ const TaskOrderScreen = (props: Props) => {
         isLoading,
         mutate,
         error,
-      } = useSWR(`/route/${uid}`, () => getRoute(uid));
+    } = useSWR(`/route/${uid}`, () => getRoute(uid));
 
     // ---------- Задачи ----------
 
@@ -50,19 +50,31 @@ const TaskOrderScreen = (props: Props) => {
         )
     }
 
-    const putTimeCardToServer = async(item) => {
+    const putTimeCardToServer = async (item) => {
         let data = getDataPostRoute();
         data.screen = 3;
         data.uidOrder = order.uidOrder;
         data.uidTask = item.uidTask;
         data = JSON.stringify(data);
-    
+
         await postRoute(uid, data);
-    
+
         setVisible(false);
-    
+
         mutate();
-      };
+    };
+
+    const footerModal = item => (
+        <Layout style={{}} level="1">
+            <Button
+                style={styles.buttonModal}
+                status="primary"
+                accessoryLeft={<Icon name='checkmark-square-outline'/>}
+                onPress={() => putTimeCardToServer(item)}>
+                Зафиксировать
+            </Button>
+        </Layout>
+    );
 
     const onPressCardOrder = item => {
         toggleStatus = getToggleCardStatus(item);
@@ -73,26 +85,19 @@ const TaskOrderScreen = (props: Props) => {
         }
 
         setModalContent(
-            <Card disabled={true}>
-                <Text category="c2">Необходимо зафиксировать время</Text>
-
-                <Text>{item.name}</Text>
-
-                <Layout style={styles.container} level="1">
-                    <Button
-                        style={styles.buttonModal}
-                        status="basic"
-                        onPress={() => setVisible(false)}>
-                        Отмена
-                    </Button>
-                    <Button
-                        style={styles.buttonModal}
-                        status="success"
-                        onPress={() => putTimeCardToServer(item)}>
-                        Зафиксировать
-                    </Button>
-                </Layout>
-            </Card>,
+            <Card
+                style={{padding: 5}}
+                disabled={true}
+                status='danger'
+                footer={footerModal(item)}
+            >
+                <Text category='s1'>
+                    Необходимо зафиксировать время для
+                </Text>
+                <Text category='h6'>
+                    {item.name}
+                </Text>       
+            </Card>
         );
 
         setVisible(true);
@@ -138,12 +143,12 @@ const TaskOrderScreen = (props: Props) => {
 
     const renderModalWindow = () => {
         return (
-        <Modal
-            visible={visible}
-            backdropStyle={styles.backdrop}
-            onBackdropPress={() => setVisible(false)}>
-            {modalContent}
-        </Modal>
+            <Modal
+                visible={visible}
+                backdropStyle={styles.backdrop}
+                onBackdropPress={() => setVisible(false)}>
+                {modalContent}
+            </Modal>
         );
     };
 

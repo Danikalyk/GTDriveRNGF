@@ -9,20 +9,25 @@ import {
   Card,
   Toggle,
   Modal,
+  BottomNavigation, 
+  BottomNavigationTab
 } from '@ui-kitten/components';
 import {
   getCardStatus,
   getToggleCardStatus,
   getDataPostRoute,
+  getDateFromJSON,
 } from '../components/functions.js';
+import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {Alert, Linking, View} from 'react-native';
-import {openAddressOnMap} from '../utils/openAddressOnMap';
-import {RouterListItem} from '../types';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Alert, Linking, View } from 'react-native';
+import { openAddressOnMap } from '../utils/openAddressOnMap';
+import { RouterListItem } from '../types';
 import { postRoute } from '../api/routes';
-import {ScrollView} from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import useSWR from 'swr';
 import find from 'lodash/find';
 import AccidentScreen from './AccidentScreen';
@@ -35,6 +40,7 @@ const RouteScreen = (props: Props) => {
   const [visible, setVisible] = React.useState(false);
   const [modalContent, setModalContent] = React.useState(null);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const { Navigator, Screen } = createBottomTabNavigator();
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -44,9 +50,9 @@ const RouteScreen = (props: Props) => {
   }, []);
 
 
-  
+
   const propsParams = props?.route?.params;
-  
+
   // const orders = props?.route?.params.orders;
   const uid = propsParams.uid;
   const uidPoint = propsParams.uidPoint;
@@ -58,10 +64,10 @@ const RouteScreen = (props: Props) => {
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
 
-  
-  const point = find(route?.points, {uidPoint: uidPoint});
+
+  const point = find(route?.points, { uidPoint: uidPoint });
   const orders = point?.orders;
-  
+
 
   const params = {
     ...route,
@@ -71,10 +77,10 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Открытие модального окна происшествия ----------
 
-  const [ visibleAccident, setVisibleAccident ] = React.useState(false);
+  const [visibleAccident, setVisibleAccident] = React.useState(false);
 
   const handleCloseAccidentModal = () => {
-    setVisibleAccident(false); 
+    setVisibleAccident(false);
   }
 
 
@@ -110,7 +116,7 @@ const RouteScreen = (props: Props) => {
   const onSelect = index => {
     setSelectedIndex(index);
   };
-  
+
 
   // ---------- Верхняя карточка ----------
 
@@ -122,7 +128,7 @@ const RouteScreen = (props: Props) => {
           header={renderMainCardHeader(params)}
           footer={renderMainCardFooter(params)}
           style={styles.containerCards}>
-            
+
           {renderMainCardButtons(params)}
         </Card>
 
@@ -139,7 +145,7 @@ const RouteScreen = (props: Props) => {
     return (
       <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
         <View style={styles.textHeaderCard}>
-          <Icon name="pin-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon> 
+          <Icon name="pin-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
           <Text category="h6" style={styles.textHeaderCard}>{item?.address}</Text>
         </View>
       </Layout>
@@ -172,7 +178,7 @@ const RouteScreen = (props: Props) => {
         <Button
           key={4}
           onPress={() =>
-            props.navigation.navigate('TaskPhotoScreen', {...item})
+            props.navigation.navigate('TaskPhotoScreen', { ...item })
           }
           accessoryLeft={<Icon name="camera" />}
         />
@@ -221,11 +227,11 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderMainCardFooter = params => {
-
     allOrderFinished = !!params.orders && params.orders.every(order => order.status === 3);
-    console.log('@renderMainCardFooter', JSON.stringify(params));
 
     if (params.point === 0) {
+
+      renderButtonFinishPoint();
       //-- ЭтоТочка
       if (params.status === 0) {
         return renderButtonStartPoint();
@@ -246,64 +252,50 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Карточки заказов ----------
 
+  const footerModal = item => (
+    <Layout style={{}} level="1">
+      <Button
+        style={styles.buttonModal}
+        status="primary"
+        accessoryLeft={<Icon name='checkmark-square-outline' />}
+        onPress={() => putTimeCardToServer(item)}>
+        Зафиксировать
+      </Button>
+    </Layout>
+  );
+
   const onPressCardOrder = item => {
-    if (params.status === 0) {
-      Alert.alert('Необходимо начать следование');
-
-      return;  
-    }
-
-    console.log(params.orders[0].status);
-
-    //if (item.status !== 1 && params.orders[0].status !== 3 ) {
-    //if (item.status !== 1) {
-    //  Alert.alert('Необходимо зафиксировать прибытие');
-
-    //  return;
-    //}
-
-    toggleStatus = getToggleCardStatus(item);
-    if (toggleStatus) {
-      Alert.alert('Время уже зафиксировано!');
-
+    if (params.status === 0 || (item.status !== 1 && params.orders[0].status !== 3)) {
+      Alert.alert('Необходимо начать следование или зафиксировать прибытие');
       return;
     }
 
-    //const canFinishOrder = item.tasks.every(task => task.status === 3) || item.tasks.length === 0;
+    toggleStatus = getToggleCardStatus(item);
 
-    const canFinishOrder = item.tasks.length === 0;
-
-    if (canFinishOrder) {
+    if (toggleStatus || item.tasks.length === 0 || item.tasks.every(task => task.status === 3)) {
       setModalContent(
-        <Card disabled={true}>
-          <Text category="c2">Необходимо зафиксировать время</Text>
-
-          <Text>{item.name}</Text>
-
-          <Layout style={styles.container} level="1">
-            <Button
-              style={styles.buttonModal}
-              status="basic"
-              onPress={() => setVisible(false)}>
-              Отмена
-            </Button>
-            <Button
-              style={styles.buttonModal}
-              status="success"
-              onPress={() => putTimeCardToServer(item)}>
-              Зафиксировать
-            </Button>
-          </Layout>
-        </Card>,
+        <Card
+          style={{ padding: 5 }}
+          disabled={true}
+          status='danger'
+          footer={footerModal(item)}
+        >
+          <Text category='s1'>
+            Необходимо зафиксировать время отгрузки заказа
+          </Text>
+          <Text category='h6'>
+            {item.name}
+          </Text>
+        </Card>
       );
 
       setVisible(true);
     } else {
-      props.navigation.navigate('TaskOrderScreen', {...item});
+      props.navigation.navigate('TaskOrderScreen', { ...item });
     }
   };
 
-  const renderCardOrder = ({item,index,} : {item: RouterListItem; index: number;}): React.ReactElement => (
+  const renderCardOrder = ({ item, index, }: { item: RouterListItem; index: number; }): React.ReactElement => (
     <Card
       style={styles.containerCards}
       status={getCardStatus(item.status)}
@@ -315,40 +307,37 @@ const RouteScreen = (props: Props) => {
   );
 
   const renderCardOrderText = item => {
-    if (item.type !== 4) {
-      if (getToggleCardStatus(item)) {
-        return (
-          <Layout style={styles.textBodyCardWithLeftView}>
-            <Toggle checked={getToggleCardStatus(item)}></Toggle>
+    const typeName = item.type !== 1 ? "Время прибытия:" : "Время фиксации:";
+    const formattedDate = item.type !== 4 && getToggleCardStatus(item) ? getDateFromJSON(item.date) : null;
 
-            <View style={styles.containerCardText}>
-              <Text category="c2">Дата Прибытия: {item.date}</Text>
-            </View>
-          </Layout>
+    let content;
+    if (item.type !== 4) {
+      if (formattedDate) {
+        content = (
+          <Text category="c2">{typeName} {formattedDate}</Text>
         );
       } else {
-        return (
-          <Layout style={styles.textBodyCardWithLeftView}>
-            <Toggle checked={getToggleCardStatus(item)}></Toggle>
-
-            <View style={styles.containerCardText}>
-              <Text category="c2">Необходимо зафиксировать время</Text>
-            </View>
-          </Layout>
+        content = (
+          <Text category="c2">Необходимо зафиксировать время</Text>
         );
       }
     } else {
-      return (
-        <Layout style={styles.textBodyCardWithLeftView}>
-          <Toggle checked={getToggleCardStatus(item)}></Toggle>
-
-          <View style={styles.containerCardText}>
-            <Text category="c2">Объем = {`${item.weight}`}</Text>
-            <Text category="c2">Вес = {`${item.volume}`}</Text>
-          </View>
-        </Layout>
+      content = (
+        <>
+          <Text category="c2">Объем = {`${item.weight}`}</Text>
+          <Text category="c2">Вес = {`${item.volume}`}</Text>
+        </>
       );
     }
+
+    return (
+      <Layout style={styles.textBodyCardWithLeftView}>
+        <Toggle checked={getToggleCardStatus(item)}></Toggle>
+        <View style={styles.containerCardText}>
+          {content}
+        </View>
+      </Layout>
+    );
   };
 
   const renderCardOrderName = (item: RouterListItem) => {
@@ -358,7 +347,7 @@ const RouteScreen = (props: Props) => {
       <View style={styles.textHeaderCardOrder}>
         <View style={styles.textHeaderCard}>
           {renderCardOrderIcon(item.type)}
-          
+
           <Text category="h6" style={styles.cardName}>
             {item.name}
           </Text>
@@ -369,7 +358,7 @@ const RouteScreen = (props: Props) => {
             name="alert-circle-outline"
             width={24}
             height={24}
-            style={{color: 'red'}}
+            style={{ color: 'red' }}
           />
         )}
       </View>
@@ -383,9 +372,9 @@ const RouteScreen = (props: Props) => {
       3: "file-text-outline",
       4: "bookmark-outline"
     };
-  
+
     const iconName = iconNames[type] || "file-outline";
-  
+
     return (
       <Icon
         name={iconName}
@@ -403,8 +392,8 @@ const RouteScreen = (props: Props) => {
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 5;
-    data.point = params.point;
-    data.uidPoint = params.uidPoint;
+    data.point = point.point;
+    data.uidPoint = point.uidPoint;
 
     data = JSON.stringify(data);
 
@@ -417,8 +406,8 @@ const RouteScreen = (props: Props) => {
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 6;
-    data.point = params.point;
-    data.uidPoint = params.uidPoint;
+    data.point = point.point;
+    data.uidPoint = point.uidPoint;
 
     data = JSON.stringify(data);
 
@@ -431,8 +420,8 @@ const RouteScreen = (props: Props) => {
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = item.type;
-    data.point = params.point;
-    data.uidPoint = params.uidPoint;
+    data.point = point.point;
+    data.uidPoint = point.uidPoint;
     data.uidOrder = item.uidOrder;
 
     data = JSON.stringify(data);
@@ -457,26 +446,77 @@ const RouteScreen = (props: Props) => {
     );
   };
 
-  // ---------- Отрисовка ----------
-  console.log('AAAA', { params })
-  return (
-    <SafeAreaView style={{flex: 1}}>
+    const TasksScreen = () => (
+      <SafeAreaView style={{ flex: 1 }}>
       <List
-        //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={{}}
         data={orders}
-        ListHeaderComponent={renderMainCard(params)}
-        renderItem={renderCardOrder} 
+        ListHeaderComponent={renderMainCard(point)}
+        renderItem={renderCardOrder}
       />
 
       {renderModalWindow()}
-      
-      <AccidentScreen 
+
+      <AccidentScreen
         visibleAccident={visibleAccident}
-        data={orders} 
+        data={orders}
         onClose={handleCloseAccidentModal}
       />
     </SafeAreaView>
+  );
+
+  const PhotoScreen = () => (
+    /*<SafeAreaView style={{ flex: 1 }}>
+        <Layout>
+            <ScrollView contentContainerStyle={styles.wrap}>
+                <Text category="h6" style={styles.titleList}>
+                    Добавить фото
+                </Text>
+
+                <AddPhoto {...props} />
+            </ScrollView>
+        </Layout>
+    </SafeAreaView>*/
+    <View>
+      <Text>123</Text>
+    </View>
+  );
+
+   const TabNavigator = () => (
+        <Navigator tabBar={props => <BottomTabBar {...props} />}>
+            <Screen
+                name='Действия'
+                component={TasksScreen}
+                options={{ headerShown: false }}
+            />
+            <Screen
+                name='Фото'
+                component={PhotoScreen}
+                options={{ headerShown: false }}
+            />
+        </Navigator>
+    );
+
+  const BottomTabBar = ({ navigation, state }) => (
+    <BottomNavigation
+        selectedIndex={state.index}
+        onSelect={index => navigation.navigate(state.routeNames[index])}>
+        <BottomNavigationTab
+            title='Задачи'
+            icon={<Icon {...props} name='bookmark-outline' />}
+        />
+        <BottomNavigationTab
+            title='Фото'
+            icon={<Icon {...props} name='camera-outline' />}
+        />
+    </BottomNavigation>
+);
+
+  // ---------- Отрисовка ----------
+  return (
+    <NavigationContainer independent={true}>
+      <TabNavigator />
+    </NavigationContainer>
   );
 };
 
