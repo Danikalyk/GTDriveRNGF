@@ -1,8 +1,9 @@
 import React from 'react';
-import { Button, Layout, Text, Input, RadioGroup, Radio, Card, Modal } from '@ui-kitten/components';
+import { Button, Layout, Text, Input, RadioGroup, Radio, Card, Modal, Icon } from '@ui-kitten/components';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { pingServer } from '../api/request';
+import { styles } from '../styles';
 
 type Props = {};
 
@@ -31,7 +32,12 @@ const AccidentScreen = ({ visibleAccident, onClose }) => {
 
   const renderCardHeader = () => {
     return (
-      <Text category='h4' >Сообщить о происшествии</Text>
+      <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+        <View style={styles.containerCardText}>
+          <Icon name="alert-triangle-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
+          <Text category="h6" style={styles.textHeaderCard}>Сообщить о происшествии</Text>
+        </View>
+      </Layout>
     )
   }
 
@@ -42,14 +48,14 @@ const AccidentScreen = ({ visibleAccident, onClose }) => {
           appearance="filled"
           onPress={handleSubmit}
           style={{}}>
-          Ok
+          Подтвердить
         </Button>
-        <Button
+        {/*<Button
           appearance="outline"
           onPress={onClose}
           style={{}}>
           Отмена
-        </Button>
+        </Button>*/}
       </Layout>
     )
   }
@@ -60,6 +66,7 @@ const AccidentScreen = ({ visibleAccident, onClose }) => {
       backdropStyle={styles.backdrop}     
     >
       <Card
+        style={{margin: 20}}
         status='warning'
         header={renderCardHeader}
         footer={renderCardFooter}
@@ -90,7 +97,7 @@ const AccidentScreen = ({ visibleAccident, onClose }) => {
   );
 };
 
-const styles = StyleSheet.create({
+/*const styles = StyleSheet.create({
   list: {
     flex: 1,
 
@@ -114,6 +121,6 @@ const styles = StyleSheet.create({
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-});
+});*/
 
 export default AccidentScreen;
