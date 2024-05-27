@@ -20,6 +20,8 @@ import {
 } from '../components/functions.js';
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
+//import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+//import { faTwitter } from '@fortawesome/free-brands-svg-icons';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -133,7 +135,7 @@ const RouteScreen = (props: Props) => {
         </Card>
 
         <View>
-          <Text category="h6" style={styles.titleList}>
+          <Text category="label" style={styles.titleList}>
             Действия
           </Text>
         </View>
@@ -157,30 +159,33 @@ const RouteScreen = (props: Props) => {
       <ButtonGroup
         selectedIndex={selectedIndex}
         onSelect={onSelect}
-        style={styles.buttonGroup}
+        style={{flex: 1, justifyContent: 'space-between', flexDirection: 'row'}}
+        appearance='outline'
+        status='control'
         size="medium">
         <Button
           key={1}
           onPress={() => openPhoneWithNumber('79222965859')}
           accessoryLeft={<Icon name="phone" />}
+          style={{backgroundColor: "#0088cc", marginRight: 0, flex: 1}}
         />
         <Button
           key={2}
           onPress={() => openTelegramWithNumber('79222965859')}
-          accessoryLeft={<Icon name="message-square" />}
+          //accessoryLeft={`Telegram`}
+          style={{backgroundColor: "#0088cc", marginRight: 0, flex: 1}}
         />
         <Button
           key={3}
-          //onPress={() => props.navigation.navigate('AccidentScreen', {...item})}
-          onPress={() => setVisibleAccident(true)}
-          accessoryLeft={<Icon name="alert-circle" />}
+          onPress={() => openWhatsAppWithNumber('79222965859')}
+          //accessoryLeft="WA"
+          style={{backgroundColor: "#43d854", marginRight: 0, flex: 1}}
         />
         <Button
           key={4}
-          onPress={() =>
-            props.navigation.navigate('TaskPhotoScreen', { ...item })
-          }
-          accessoryLeft={<Icon name="camera" />}
+          onPress={() => setVisibleAccident(true)}
+          accessoryLeft={<Icon name="alert-circle" />}
+          style={{backgroundColor: "#B00000", marginRight: 0, flex: 1}}
         />
       </ButtonGroup>
     );
@@ -188,6 +193,10 @@ const RouteScreen = (props: Props) => {
 
   const openTelegramWithNumber = phoneNumber => {
     Linking.openURL(`https://t.me/${phoneNumber}`);
+  };
+
+  const openWhatsAppWithNumber = phoneNumber => {
+    Linking.openURL(`https://wa.me/${phoneNumber}`);
   };
 
   const openPhoneWithNumber = phoneNumber => {
@@ -267,6 +276,7 @@ const RouteScreen = (props: Props) => {
   const onPressCardOrder = item => {
     if (params.status === 0 || (item.status !== 1 && params.orders[0].status !== 3)) {
       Alert.alert('Необходимо начать следование или зафиксировать прибытие');
+      
       return;
     }
 
@@ -281,8 +291,9 @@ const RouteScreen = (props: Props) => {
           footer={footerModal(item)}
         >
           <Text category='s1'>
-            Необходимо зафиксировать время отгрузки заказа
+            Необходимо зафиксировать время
           </Text>
+
           <Text category='h6'>
             {item.name}
           </Text>
@@ -348,7 +359,7 @@ const RouteScreen = (props: Props) => {
         <View style={styles.textHeaderCard}>
           {renderCardOrderIcon(item.type)}
 
-          <Text category="h6" style={styles.cardName}>
+          <Text category='label' style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}>
             {item.name}
           </Text>
         </View>
@@ -459,27 +470,27 @@ const RouteScreen = (props: Props) => {
 
       <AccidentScreen
         visibleAccident={visibleAccident}
-        data={orders}
-        onClose={handleCloseAccidentModal}
+        onClose={handleCloseAccidentModal} 
+        uidPoint={uidPoint}
+        uid={uid}
       />
     </SafeAreaView>
   );
 
+// ---------- Фотографии ----------
+
   const PhotoScreen = () => (
-    /*<SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
         <Layout>
             <ScrollView contentContainerStyle={styles.wrap}>
-                <Text category="h6" style={styles.titleList}>
+                <Text category="label" style={styles.titleList}>
                     Добавить фото
                 </Text>
 
                 <AddPhoto {...props} />
             </ScrollView>
         </Layout>
-    </SafeAreaView>*/
-    <View>
-      <Text>123</Text>
-    </View>
+    </SafeAreaView>
   );
 
    const TabNavigator = () => (

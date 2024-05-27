@@ -7,11 +7,9 @@ import {UserContext} from '../store/user/UserProvider';
 
 function useGeolocation(enabledGeo) {
   const context = React.useContext(GlobalState);
-
   const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
-
-  const {currentUser} = useContext(UserContext);
+  const {currentUser, currentRoute} = useContext(UserContext);
 
   useEffect(() => {
     setEnabled(enabledGeo);
@@ -20,7 +18,7 @@ function useGeolocation(enabledGeo) {
   let Logger = BackgroundGeolocation.logger;
 
   React.useEffect(() => {
-    if (!currentUser?.uid) {
+    if (!currentUser && !currentRoute) {
       return;
     }
 
@@ -76,6 +74,7 @@ function useGeolocation(enabledGeo) {
     );
 
     const init = async () => {
+
       const baseUrl = await getBaseUrl();
       const {token} = await getTokens();
 
@@ -89,7 +88,7 @@ function useGeolocation(enabledGeo) {
         // Geolocation Config
         enabled: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-        distanceFilter: 50, //-- Расстояние при котором идет отсылка координат между точками A и B
+        distanceFilter: 1, //-- Расстояние при котором идет отсылка координат между точками A и B
         // Activity Recognition
         stopTimeout: 5,
         // Application config
@@ -113,7 +112,8 @@ function useGeolocation(enabledGeo) {
         params: {
           // <-- Optional HTTP params
           user: {
-            uid: currentUser?.uid,
+            uid: currentUser,
+            uidRoute: currentRoute
           },
           provider: {gps: providerState?.gps, network: providerState?.network},
         },

@@ -7,6 +7,7 @@ export async function uploadLocation(params) {
 }
 
 export async function getRoutes(userId) {
+  console.log("getRoutes", {userId});
   return getRequest(`/routes?user=${userId}`);
 }
 

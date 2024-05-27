@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
     containerCards: {
-        margin: 10
+        margin: 5
     },
     containerCard: {
         flex: 1,
@@ -28,21 +28,22 @@ export const styles = StyleSheet.create({
         flex: 1, 
         flexDirection: 'row', 
         alignItems: 'center',
-        flexWrap: 'wrap' 
+        flexWrap: 'wrap', 
+        //justifyContent: 'space-between'
     },
 
     textHeaderCardIcon: {
         marginRight: 10, 
     },
     textTimeLeft: {
-        marginRight: 7,
+        marginRight: 10,
     },
     textBodyCardWithLeftView: {
         flex: 1, 
         flexDirection: 'row', 
         alignItems: 'center',
         justifyContent: 'flex-start',
-        backgroundColor: 'rgba(255, 255, 255, 0)'
+        backgroundColor: 'rgba(255, 255, 255, 0)',
     },
     textHeaderCardOrder: {
         flex: 1, 
@@ -52,6 +53,7 @@ export const styles = StyleSheet.create({
         padding: 10,
         justifyContent: 'space-between'
     },
+
     textHeaderCardRoute: {
         flex: 1, 
         flexDirection: 'row', 

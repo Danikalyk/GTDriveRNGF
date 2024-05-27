@@ -34,7 +34,7 @@ const TaskOrderScreen = (props: Props) => {
     const renderListHeader = () => {
         return (
             <View>
-                <Text category="h6" style={styles.titleList}>Задачи по заказу {order.name}</Text>
+                <Text category="label" style={styles.titleList}>Задачи по заказу {order.name}</Text>
             </View>
         )
     }
@@ -44,7 +44,12 @@ const TaskOrderScreen = (props: Props) => {
             <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                 <View style={styles.textHeaderCardRoute}>
                     <Icon name="info-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
-                    <Text category="h6" style={styles.textHeaderCardRoute}>{item?.name}</Text>
+                    <Text 
+                        category='label' 
+                        style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}
+                    >
+                        {item?.name}
+                    </Text>
                 </View>
             </Layout>
         )
@@ -158,7 +163,7 @@ const TaskOrderScreen = (props: Props) => {
         <SafeAreaView style={{ flex: 1 }}>
             <Layout>
                 <ScrollView contentContainerStyle={styles.wrap}>
-                    <Text category="h6" style={styles.titleList}>
+                    <Text category="label" style={styles.titleList}>
                         Добавить фото
                     </Text>
 

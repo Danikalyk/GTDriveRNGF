@@ -34,7 +34,7 @@ const RoutesNavigation = () => (
       component={HomeScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
-        title: 'Маршруты',
+        title: 'Маршрутные документы',
       }}
     />
     <Stack.Screen
@@ -66,7 +66,7 @@ const RoutesNavigation = () => (
       component={TaskOrderScreen}
       options={{
         header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Задачи',
+        title: 'Задачи по заказу',
       }}
     />
     <Stack.Screen

@@ -25,10 +25,6 @@ export async function saveTokens({login, password, ...rest}) {
   }
 }
 
-export async function fetchUsers() {
-  return getRequest('/users', {}, true);
-}
-
 export async function userAuth(params) {
   return putRequest('/auth', params);
 }

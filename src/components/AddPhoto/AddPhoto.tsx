@@ -1,31 +1,124 @@
-import {
-  ButtonGroup,
-  Icon,
-  IconElement,
-  Button,
-  Modal,
-  Card,
-  Text,
-  Layout
-} from '@ui-kitten/components';
-import React, {useCallback, useEffect, useState} from 'react';
-import {ImageBackground, StyleSheet, View} from 'react-native';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-import {Image} from 'react-native-svg';
-import {acceptImages} from '../../api/photo';
-import { styles } from '../../styles';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Card, Icon, Layout } from '@ui-kitten/components';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ImageBackground, View } from 'react-native';
+import { acceptImages } from '../../api/photo';
 import { getDataPostRoute } from '../functions.js';
 
-type Props = {};
+// Отдельный блок стилей
+const styles = {
+  imageContainer: {
+    margin: 2,
+  },
+  imageBackground: {
+    height: 150,
+    width: 150,
+    overflow: 'hidden',
+    borderColor: 'rgba(0, 0, 0, 0)',
+    borderWidth: 1,
+  },
+  cardLayout: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  headerLayout: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerLayout: {
+    bottom: 0,
+    margin: 5
+  },
+};
 
-function AddPhoto(props: Props) {
+const AddPhoto = (props) => {
   const [images, setImages] = useState([]);
-  const [pickerResponse, setPickerResponse] = useState<any>(null);
   const params = props?.route?.params;
   const uid = params?.uid;
   const uidOrder = params?.uidOrder;
+  const uidPoint = params?.uidPoint;
+  const uidPointOrder = uidOrder ? uidOrder : uidPoint;
+ 
+  useEffect(() => {
+    getSavedPhotos();
+  }, []);
 
-  console.log('@AddPhoto params', params);
+  const getSavedPhotos = async () => {
+    try {
+      const savedPhotos = await AsyncStorage.getItem('savedPhotos_' + uidPointOrder);
+      
+      savedPhotos && setImages(JSON.parse(savedPhotos));
+    } catch (error) {
+      console.error('Error getting saved photos:', error);
+    }
+  };
+
+  const savePhotos = async (photosToSave) => {
+    try {
+      await AsyncStorage.setItem('savedPhotos_' + uidPointOrder, JSON.stringify(photosToSave));
+    } catch (error) {
+      console.error('Error saving photos:', error);
+    }
+  };
+
+  const onImagePress = (response) => {
+    if (!response.didCancel) {
+      const newImages = [...images, { ...response, uploaded: false }];
+      
+      setImages(newImages);
+      savePhotos(newImages);
+    }
+  };
+
+  const launchImagePicker = useCallback((options) => {
+    launchImageLibrary(options, onImagePress);
+  }, [images]);
+
+  const launchCameraPicker = useCallback(() => {
+    const options = {
+      saveToPhotos: true,
+      mediaType: 'photo',
+      includeBase64: true,
+      selectionLimit: 10,
+      maxWidth: 2560,
+      maxHeight: 1440,
+    };
+
+    launchCamera(options, onImagePress);
+  }, [images]);
+
+  const removeNewImage = (index) => {
+    const updatedImages = [...images];
+    updatedImages.splice(index, 1);
+    setImages(updatedImages);
+  };
+
+  const onSubmitPhoto = async () => {
+    let data = getDataPostRoute();
+    data.screen = 3;
+    data.uid = uid;
+    data.order = uidOrder;
+    data.uidPoint = uidPoint;
+
+    // Отправляем только новые фотографии на сервер
+    const newImages = images.filter(image => !image.uploaded); 
+    // Предположим, что у новых фотографий свойство "uploaded" равно false
+    data.images = newImages.map(image => image.assets[0].base64);
+    data = JSON.stringify(data);
+
+    const result = await acceptImages(data);
+
+    // Пометить отправленные фотографии как загруженные
+    const updatedImages = images.map(image => {
+      if (newImages.includes(image)) {
+        return { ...image, uploaded: true };
+      }
+      return image;
+    });
+
+    setImages(updatedImages);
+  };
 
   const CameraIcon = (props): IconElement => (
     <Icon {...props} name="camera-outline" />
@@ -43,122 +136,59 @@ function AddPhoto(props: Props) {
     <Icon {...props} name="trash-2-outline" />
   );
 
-  useEffect(() => {
-    if (pickerResponse) {
-      setImages([...images, pickerResponse]);
-    }
-  }, [pickerResponse]);
+  const renderCardHeader = () => (
+    <Layout style={styles.headerLayout}>
+      <Button 
+        accessoryLeft={ImageIcon} 
+        onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })} 
+        status='primary' 
+        style={{ flex: 1, margin: 4 }}>
+          Галерея
+      </Button>
+      <Button 
+        accessoryLeft={CameraIcon}
+        onPress={launchCameraPicker} 
+        status='success' style={{ flex: 1, margin: 4 }}>
+          Камера
+      </Button>
+    </Layout>
+  );
 
-  const onImageLibraryPress = useCallback(() => {
-    const options: any = {
-      selectionLimit: 1,
-      mediaType: 'photo',
-      includeBase64: true,
-    };
-
-    launchImageLibrary(options, setPickerResponse);
-  }, []);
-
-  const onCameraPress = useCallback(() => {
-    const options = {
-      saveToPhotos: true,
-      mediaType: 'photo',
-      includeBase64: true,
-      selectionLimit: 10,
-      maxWidth: 2560, // TODO: fix width
-      maxHeight: 1440, // TODO: fix height
-    };
-
-    launchCamera(options, setPickerResponse);
-  }, []);
-
-  const onSubmitPhoto = async () => {
-    let data = getDataPostRoute();
-    data.screen = 3;
-    data.uid = uid;
-    data.order = uidOrder;
-    data.images = images.map(image => image.assets[0].base64);
-    data = JSON.stringify(data);
-
-    const result = await acceptImages(data); // TODO: check images api
-
-    //console.log('@onSubmitPhoto result', result);
+  const renderCardFooter = () => {
+    const hasUnuploadedPhotos = images.some(image => !image.uploaded);
+  
+    return hasUnuploadedPhotos ? (
+      <Layout style={styles.footerLayout}>
+        <Button 
+          accessoryLeft={SyncIcon} 
+          onPress={onSubmitPhoto}>
+            Отправить фото
+        </Button>
+      </Layout>
+    ) : null;
   };
 
-  const renderCardHeader = () => {
-    return (
-      <Layout style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between'}}>  
-        <Button 
-          accessoryLeft={ImageIcon} 
-          onPress={onImageLibraryPress} 
-          status='primary' 
-          style={{ flex: 1, margin: 4 }}
+  return (
+    <Card 
+      style={styles.cardLayout} 
+      header={renderCardHeader} 
+      footer={renderCardFooter}
+    >
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        {images.map((image, index) => (
+          <View 
+            style={styles.imageContainer} 
+            key={index}
           >
-          Галерея
-        </Button>
-        <Button 
-          accessoryLeft={CameraIcon} 
-          onPress={onCameraPress}  
-          status='success'
-          style={{ flex: 1, margin: 4 }}
-          >
-          Камера
-        </Button>
-      </Layout>  
-    )
-  }
-
-  const renderCardFooter = images => {
-    if(images.length > 0) {
-      return (
-        <Layout style={{position: 'absolute', bottom: 0}}>
-          <Button accessoryLeft={SyncIcon} onPress={onSubmitPhoto}>
-            Загрузить фотографии
-          </Button>
-        </Layout> 
-      )
-    }
-  }
-
-  return (   
-      <Card
-        style={{flex: 1, justifyContent: 'space-between'}}
-        header={renderCardHeader}
-        footer={renderCardFooter(images)}
-      >
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            padding: 5,
-          }}>
-          {images.map((image, index) => {
-            const uri = !!image?.assets && image.assets[0].uri;
-            return (
-              <View style={{margin: 2}} key={index}>
-                <ImageBackground
-                  style={{
-                    height: 150,
-                    width: 150,
-                    overflow: 'hidden',
-                    borderColor: 'rgba(0, 0, 0, 0)',
-                    borderWidth: 1,
-                  }}
-                  source={uri ? {uri} : ''}
-                />
-
-                <Button
-                  accessoryLeft={TrashIcon}
-                  onPress={() =>
-                    setImages(images.filter((_, i) => i !== index))
-                  }>
-                </Button>
-              </View>
-            );
-          })}
-        </View>
-      </Card>
+            <ImageBackground 
+              style={styles.imageBackground} 
+              source={{ uri: image.assets[0].uri }} />
+            
+             {!image.uploaded && <Button accessoryLeft={TrashIcon} onPress={() => removeNewImage(index)}>Удалить</Button>}
+          </View>
+        ))}
+      </View>
+  </Card>
   );
 };
 

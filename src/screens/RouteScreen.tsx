@@ -1,3 +1,5 @@
+// ---------- Страница Текущий маршрут ----------
+
 /* eslint-disable react/no-unstable-nested-components */
 import map_scripts from '../map_scripts';
 import useSWR from 'swr';
@@ -15,12 +17,15 @@ import { GlobalState } from '../store/global/global.state';
 import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { styles } from '../styles';
+import { UserContext } from '../store/user/UserProvider';
 
 type Props = {};
 
 const RouteScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [pending, setPending] = React.useState(true);
+  const context = useContext(GlobalState);
+  const { currentRoute } = useContext(UserContext);
   const { location } = useContext(GlobalState);
   const Map_Ref = useRef(null);
   const lat = location?.coords?.latitude;
@@ -80,7 +85,7 @@ const RouteScreen = (props: Props) => {
         </Card>
 
         <View>
-          <Text category="h6" style={styles.titleList}>
+          <Text category="label" style={styles.titleList}>
             Точки Маршрута
           </Text>
         </View>
@@ -90,33 +95,57 @@ const RouteScreen = (props: Props) => {
 
   const renderMainCardHeader = () => {
     return (
-      <View>
-        <Layout style={styles.textHeaderCardRoute}>
+      <Layout>
+        <View style={styles.textHeaderCardRoute}>
           <Icon name="car-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
           <Text category="h6">{routeItem?.name}</Text>
 
           {renderMainCardReturnToWarehouse()}
-        </Layout>
-      </View>
+        </View>
+      </Layout>
     )
   }
 
+  const icon = (props, iconName) => (
+    <Icon {...props} name={iconName} />
+  );
+  
   const renderMainCardFooter = () => {
     if (!routeItem.check) {
+      //const otherRoute = (currentRoute !== uid);
+      const otherRoute = false;
+      const buttonText = otherRoute ? 'В работе другой маршрут' : 'Начать Маршрут';
+      const buttonIcon = otherRoute ? 'stop-circle' : 'flag';
+      const buttonDisabled = pending || otherRoute;
+  
       return (
         <View>
           <Button
             onPress={getThisRoute}
-            disabled={pending}
-            accessoryLeft={pending ? Loader : false}
+            disabled={buttonDisabled}
+            //accessoryLeft={pending ? Loader : () => <Icon {...props} name={buttonIcon} />}
             style={{}}
           >
-            Начать Маршрут
+            {buttonText}
           </Button>
         </View>
-      )
+      );
+    } else {
+      return (
+        <View>
+          <Button
+            disabled={false} 
+            style={{}}
+            //accessoryLeft={() => <Icon {...props} name='activityIcon' />}
+            appearance='outline'
+            status='danger'
+          >
+            Текущий маршрут 
+          </Button>
+        </View>
+      );
     }
-  }
+  };
 
   const renderMainCardReturnToWarehouse = () => {
     if (routeItem.returnToWarehouse) {
@@ -141,11 +170,19 @@ const RouteScreen = (props: Props) => {
       style={styles.containerCards}
       status={getCardStatus(item.status)}
       header={() => renderCardPointName(item)}
-      onPress={e => props.navigation.navigate('TaskScreen', { ...item })}
+      onPress={() => handleOpenTaskScreen(item)}
     >
       {renderCardPointText(item)}
     </Card>
   );
+
+  const handleOpenTaskScreen = item => {
+    if (!routeItem.check) {
+      Alert.alert("Необходимо принять маршрут");
+    } else {
+      props.navigation.navigate('TaskScreen', { ...item })
+    }
+  }
 
   const renderCardPointText = (item: RouterListItem) => {
     return (
@@ -204,8 +241,8 @@ const RouteScreen = (props: Props) => {
       <Layout style={styles.textHeaderCard}>
         {renderCardPointNameIcon(item)}
 
-        <Text category="h6" style={styles.cardName}>
-          {`${item?.client_name}`}
+        <Text category='label' style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}>
+          {item?.client_name}
         </Text>
       </Layout>
     );
@@ -240,11 +277,10 @@ const RouteScreen = (props: Props) => {
     let mapData = [];
     let pointNumber = 0;
     let coordinates = [];
-  
+
     points.forEach(point => {
       let color = 'grey';
-      pointNumber++;
-  
+    
       switch (point.status) {
         case 0:
           color = 'blue';
@@ -258,34 +294,44 @@ const RouteScreen = (props: Props) => {
         default:
           color = 'grey';
           break;
-      }
-  
+      };
+    
       const dataPoint = {
         lat: point.lat,
         lon: point.lon,
         color: color,
-        number: pointNumber,
-        bindText: point.address 
+        bindText: point.address
       };
-  
+    
+      if (point.status !== 3) {
+        pointNumber++;
+        dataPoint.number = pointNumber;
+      } else {
+        dataPoint.number = "";
+      }
+    
       if (point.status === 3) {
         mapData.unshift(dataPoint);
       } else {
         mapData.push(dataPoint);
       }
     });
+
+    coordinates = points
+      .filter(point => point.status !== 3 && point.lat && point.lon)
+      .map(point => `${point.lon},${point.lat}`);
+
+    if (lon && lat) {
+      coordinates.unshift(`${lon},${lat}`);
+    }
   
-    const validPoints = points.filter(point => point.status !== 3);
-    coordinates = validPoints.map(point => `${point.lat},${point.lon}`);
-    coordinates.unshift(`${lat},${lon}`);
-    
     const osrmData = await getOSRM(coordinates);
 
     const mapDataWithCoordinates = {
       points: mapData,
-      coordinates: osrmData    
+      coordinates: osrmData
     };
-  
+
     return mapDataWithCoordinates;
   };
 
@@ -312,10 +358,28 @@ const RouteScreen = (props: Props) => {
   // ---------- Запросы к серверу ----------
 
   const getThisRoute = async () => {
+    context.enableGeo();
+
     let data = getDataPostRoute();
     data.screen = 0;
     data.type = 5;
     data.uid = uid;
+
+    data = JSON.stringify(data);
+
+    await postRoute(uid, data);
+
+    mutate();
+  };
+
+  const finishThisRoute = async () => {
+    //-- stopGeo
+
+    let data = getDataPostRoute();
+    data.screen = 0;
+    data.type = 5;
+    data.uid = uid;
+    data.finish = true;
 
     data = JSON.stringify(data);
 
