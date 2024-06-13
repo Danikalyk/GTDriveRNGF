@@ -1,7 +1,7 @@
 import { List, Card, Divider, Layout, Text, Toggle, BottomNavigation, BottomNavigationTab, Icon, Modal, Button } from '@ui-kitten/components';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
 import { RouterListItem } from '../types';
 import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
@@ -9,32 +9,57 @@ import { styles } from '../styles';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { postRoute } from '../api/routes';
+import { postRoute, getRoute } from '../api/routes';
 import useSWR from 'swr';
+import find from 'lodash/find';
 
 type Props = {};
 
 const TaskOrderScreen = (props: Props) => {
     const { Navigator, Screen } = createBottomTabNavigator();
     const [modalContent, setModalContent] = React.useState(null);
+    const [pending, setPending] = React.useState(true);
     const [visible, setVisible] = React.useState(false);
-    const order = props.route?.params;
-    const tasks = props.route?.params?.tasks;
-    const uid = props.route?.params.uid;
+    const propsParams = props?.route?.params;
+    const uid = propsParams.uid;
+    const order = propsParams;
+    const uidOrder = propsParams.uidOrder;
+    const { uidPoint } = props?.route?.params;
 
+    useEffect(() => {
+        setPending(false);
+    }, []);
+ 
     const {
         data: route,
         isLoading,
         mutate,
         error,
-    } = useSWR(`/route/${uid}`, () => getRoute(uid));
+    } = useSWR(`/route/${uid}`, () => getRoute(uid)); 
+
+
+
+    let points = route?.points;
+    let point = find(points, { uidPoint: uidPoint });
+    let orders = find(point, { uidOrder: uidOrder })
+    let tasks = order?.tasks;
+
+    const params = {
+        ...route,
+        tasks
+    }
+
+    console.log("@@@2", JSON.stringify(params.tasks));
+
+
+ 
 
     // ---------- Задачи ----------
 
     const renderListHeader = () => {
         return (
             <View>
-                <Text category="label" style={styles.titleList}>Задачи по заказу {order.name}</Text>
+                <Text category="label" style={styles.titleList}><Icon name="info-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon> Задачи по заказу {order.name}</Text>
             </View>
         )
     }
@@ -43,7 +68,7 @@ const TaskOrderScreen = (props: Props) => {
         return (
             <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                 <View style={styles.textHeaderCardRoute}>
-                    <Icon name="info-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
+                    <Icon name="bulb-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
                     <Text 
                         category='label' 
                         style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}

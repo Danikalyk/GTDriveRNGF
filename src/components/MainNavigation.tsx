@@ -34,7 +34,7 @@ const RoutesNavigation = () => (
       component={HomeScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
-        title: 'Маршрутные документы',
+        title: 'Список документов',
       }}
     />
     <Stack.Screen
@@ -42,7 +42,7 @@ const RoutesNavigation = () => (
       component={RouteScreen}
       options={{
         header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Текущий маршрут',
+        title: 'Маршрутный документ',
       }}
     />
     <Stack.Screen
@@ -121,13 +121,13 @@ export const DrawerNavigator = () => (
       }}
     />
 
-    <Screen
+    {/*<Screen
       name="ChatsNavigation"
       component={ChatsNavigation}
       options={{
         headerShown: false,
       }}
-    />
+    />*/}
 
     <Screen
       name="SettingsScreen"
@@ -137,13 +137,13 @@ export const DrawerNavigator = () => (
       }}
     />
 
-    <Screen
+    {/*<Screen
       name="MapScreen"
       component={MapScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
       }}
-    />
+    />*/}
   </Navigator>
 );
 

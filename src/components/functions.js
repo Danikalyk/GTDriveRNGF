@@ -1,3 +1,6 @@
+import { appVersion } from '../version';
+import { getUpdate } from '../api/routes';
+
 // status - Статусы
 //
 // Параметры:
@@ -60,5 +63,11 @@ export const getDateFromJSON = dateString => {
     const formattedDate = `${day} ${month} ${hours}:${minutes} `;
 
     return formattedDate;
+}
+
+export const getNewAppVersion = () => {
+    const versionUpdate = getUpdate();
+
+    console.log(versionUpdate);
 }
 

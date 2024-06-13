@@ -56,7 +56,8 @@ function useGeolocation(enabledGeo) {
           params: {
             // <-- Optional HTTP params
             user: {
-              uid: currentUser?.uid,
+              uid: currentUser,
+              uidRoute: currentRoute
             },
             provider: {gps: event?.gps, network: event?.network},
           },
@@ -143,7 +144,7 @@ function useGeolocation(enabledGeo) {
       onProviderChange.remove();
       onAuthorization.remove();
     };
-  }, [currentUser?.uid]);
+  }, [currentUser, currentRoute]);
 
   /// 3. start / stop BackgroundGeolocation
   React.useEffect(() => {

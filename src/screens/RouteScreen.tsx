@@ -5,8 +5,8 @@ import map_scripts from '../map_scripts';
 import useSWR from 'swr';
 import Loader from '../components/Icons/Loader';
 import { Layout, List, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
-import React, { useEffect, useContext, useRef } from 'react';
-import { View, Alert } from 'react-native';
+import React, { useEffect, useContext, useRef, useState } from 'react';
+import { View, Alert, ActivityIndicator } from 'react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getRoute, postRoute, getOSRM } from '../api/routes';
@@ -65,8 +65,17 @@ const RouteScreen = (props: Props) => {
   // ---------- Карточки шапки ----------
 
   const renderMainCard = () => {
+    const currenRoute = routeItem.status === 1 && routeItem.check;
+
     return (
       <Layout>
+        {currenRoute &&
+          <Text category="label" style={styles.titleList}>
+            <Icon name="corner-right-down-outline" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>
+            Текущий маршрут
+          </Text>
+        }
+
         <Card
           status='danger'
           header={renderMainCardHeader()}
@@ -83,12 +92,6 @@ const RouteScreen = (props: Props) => {
             Загрузка: {routeItem?.loading} %
           </Text>*/}
         </Card>
-
-        <View>
-          <Text category="label" style={styles.titleList}>
-            Точки Маршрута
-          </Text>
-        </View>
       </Layout>
     )
   }
@@ -109,7 +112,7 @@ const RouteScreen = (props: Props) => {
   const icon = (props, iconName) => (
     <Icon {...props} name={iconName} />
   );
-  
+
   const renderMainCardFooter = () => {
     if (!routeItem.check) {
       //const otherRoute = (currentRoute !== uid);
@@ -117,7 +120,7 @@ const RouteScreen = (props: Props) => {
       const buttonText = otherRoute ? 'В работе другой маршрут' : 'Начать Маршрут';
       const buttonIcon = otherRoute ? 'stop-circle' : 'flag';
       const buttonDisabled = pending || otherRoute;
-  
+
       return (
         <View>
           <Button
@@ -127,20 +130,6 @@ const RouteScreen = (props: Props) => {
             style={{}}
           >
             {buttonText}
-          </Button>
-        </View>
-      );
-    } else {
-      return (
-        <View>
-          <Button
-            disabled={false} 
-            style={{}}
-            //accessoryLeft={() => <Icon {...props} name='activityIcon' />}
-            appearance='outline'
-            status='danger'
-          >
-            Текущий маршрут 
           </Button>
         </View>
       );
@@ -165,45 +154,76 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Карточки точек доставки ----------
 
-  const renderCardsPoint = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => (
-    <Card
-      style={styles.containerCards}
-      status={getCardStatus(item.status)}
-      header={() => renderCardPointName(item)}
-      onPress={() => handleOpenTaskScreen(item)}
-    >
-      {renderCardPointText(item)}
-    </Card>
-  );
-
-  const handleOpenTaskScreen = item => {
-    if (!routeItem.check) {
-      Alert.alert("Необходимо принять маршрут");
-    } else {
-      props.navigation.navigate('TaskScreen', { ...item })
-    }
-  }
-
-  const renderCardPointText = (item: RouterListItem) => {
+  const renderCardsPoint = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => { 
+    const statusFirstPoint = points[0].status === 0;
+    const isCurrentPoint = (item.status === 1 || item.status === 2) && routeItem.check;
+    const isRoutePoint = !isCurrentPoint && ((index === 1 && !statusFirstPoint) || (index === 0 && statusFirstPoint));
+  
     return (
-      <View style={styles.textBodyCardWithLeftView}>
-        {renderCardPointTextLeft(item)}
-
-        {item.type === 1 ? renderWarehouseText(item) : renderPointText(item)}
-      </View>
+      <Layout>
+        {isCurrentPoint && (
+          <Text category="label" style={styles.titleList}>
+            <Icon name="navigation" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>
+            Текущая точка следования
+          </Text>
+        )}
+  
+        {isRoutePoint && (
+          <Text category="label" style={styles.titleList}>
+            <Icon name="navigation-2" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>
+            Точки Маршрута
+          </Text>
+        )}
+  
+        <Card
+          style={styles.containerCards}
+          status={getCardStatus(item.status)}
+          header={() => renderCardPointName(item)}
+          onPress={() => handleOpenTaskScreen(item)}
+        >
+          {renderCardPointText(item)}
+        </Card>
+      </Layout>
     );
   };
 
-  const renderWarehouseText = (item: RouterListItem) => (
-    <View style={styles.containerCardText}>
-      <Text category="c2">
-        Точка погрузки машины на складе
-      </Text>
+
+const handleOpenTaskScreen = item => {
+  if (!routeItem.check) {
+    Alert.alert("Необходимо принять маршрут");
+  } else {
+    props.navigation.navigate('TaskScreen', { ...item, ...points })
+  }
+}
+
+const renderCardPointText = (item: RouterListItem) => {
+  return (
+    <View style={styles.textBodyCardWithLeftView}>
+      {renderCardPointTextLeft(item)}
+
+      {item.type === 1 || item.type === 7 ? renderWarehouseText(item) : renderPointText(item)}
     </View>
   );
+};
 
-  const renderPointText = (item: RouterListItem) => (
+const renderWarehouseText = (item: RouterListItem) => (
+  <View style={styles.containerCardText}>
+    <Text category="c2">
+      {item.type === 1 ? "Точка погрузки машины на складе" : "Точка завершения маршрута"}
+    </Text>
+  </View>
+);
+
+const renderPointText = (item: RouterListItem) => {
+  const showAddress = item.address !== item.client_name;
+
+  return (
     <View style={styles.containerCardText}>
+      {showAddress &&
+        <Text category="c2">
+          Адрес: {item?.address}
+        </Text>
+      }
       <Text category="c2">
         Объем: {item?.volume}, м3
       </Text>
@@ -212,224 +232,233 @@ const RouteScreen = (props: Props) => {
       </Text>
       <Text category="c2">
         Количество заказов: {item?.countOrders}
-      </Text>
+      </Text>  
       {/*<Text category="c2">
-        Загрузка: {item?.loading}, %
-  </Text>*/}
+          Загрузка: {item?.loading}, %
+    </Text>*/}
     </View>
-  );
+  )
+};
 
-  const renderCardPointTextLeft = (item: RouterListItem) => {
-    return (
-      <View style={styles.textTimeLeft}>
-        <Layout>
-          <Text category="s1" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
-            {item?.time}
-          </Text>
-        </Layout>
-        <Layout>
-          <Text category="c2" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
-            {item?.date}
-          </Text>
-        </Layout>
-      </View>
-    );
-  };
-
-  const renderCardPointName = (item: RouterListItem) => {
-    return (
-      <Layout style={styles.textHeaderCard}>
-        {renderCardPointNameIcon(item)}
-
-        <Text category='label' style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}>
-          {item?.client_name}
+const renderCardPointTextLeft = (item: RouterListItem) => {
+  return (
+    <View style={styles.textTimeLeft}>
+      <Layout>
+        <Text category="s1" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
+          {item?.time}
         </Text>
       </Layout>
-    );
-  };
+      <Layout>
+        <Text category="c2" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
+          {item?.date}
+        </Text>
+      </Layout>
+    </View>
+  );
+};
 
-  const renderCardPointNameIcon = item => (
-    <Icon
-      name={item.point === 1 ? "download-outline" : "pin-outline"}
-      width={23}
-      height={23}
-      style={{ margin: 10 }}
+const renderCardPointName = (item: RouterListItem) => {
+  return (
+    <Layout style={styles.textHeaderCard}>
+      {renderCardPointNameIcon(item)}
+
+      <Text category='label' style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}>
+        {item?.client_name}
+      </Text>
+    </Layout>
+  );
+};
+
+const renderCardPointNameIcon = item => (
+  <Icon
+    name={item.point === 1 ? "download-outline" : "pin-outline"}
+    width={23}
+    height={23}
+    style={{ margin: 10 }}
+  />
+);
+
+// ---------- Таб Точки ----------
+
+const PointsScreen = () => (
+  <SafeAreaView>
+    <List
+      //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      style={{}}
+      data={points}
+      renderItem={renderCardsPoint}
+      ListHeaderComponent={renderMainCard}
     />
-  );
+  </SafeAreaView>
+);
 
-  // ---------- Таб Точки ----------
+// ---------- Таб Карты ----------
 
-  const PointsScreen = () => (
-    <SafeAreaView>
-      <List
-        //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        style={{}}
-        data={points}
-        renderItem={renderCardsPoint}
-        ListHeaderComponent={renderMainCard}
-      />
-    </SafeAreaView>
-  );
+const calculateMapData = async () => {
+  let mapData = [];
+  let pointNumber = 0;
+  let coordinates = [];
 
-  // ---------- Таб Карты ----------
+  points.forEach(point => {
+    let color = 'grey';
 
-  const calculateMapData = async () => {
-    let mapData = [];
-    let pointNumber = 0;
-    let coordinates = [];
-
-    points.forEach(point => {
-      let color = 'grey';
-    
-      switch (point.status) {
-        case 0:
-          color = 'blue';
-          break;
-        case 1:
-          color = 'green';
-          break;
-        case 2:
-          color = 'red';
-          break;
-        default:
-          color = 'grey';
-          break;
-      };
-    
-      const dataPoint = {
-        lat: point.lat,
-        lon: point.lon,
-        color: color,
-        bindText: point.address
-      };
-    
-      if (point.status !== 3) {
-        pointNumber++;
-        dataPoint.number = pointNumber;
-      } else {
-        dataPoint.number = "";
-      }
-    
-      if (point.status === 3) {
-        mapData.unshift(dataPoint);
-      } else {
-        mapData.push(dataPoint);
-      }
-    });
-
-    coordinates = points
-      .filter(point => point.status !== 3 && point.lat && point.lon)
-      .map(point => `${point.lon},${point.lat}`);
-
-    if (lon && lat) {
-      coordinates.unshift(`${lon},${lat}`);
-    }
-  
-    const osrmData = await getOSRM(coordinates);
-
-    const mapDataWithCoordinates = {
-      points: mapData,
-      coordinates: osrmData
+    switch (point.status) {
+      case 0:
+        color = 'blue';
+        break;
+      case 1:
+        color = 'green';
+        break;
+      case 2:
+        color = 'red';
+        break;
+      default:
+        color = 'grey';
+        break;
     };
 
-    return mapDataWithCoordinates;
-  };
-
-  const MapOSRMScreen = () => (
-    <WebView
-      ref={Map_Ref}
-      source={{ html: map_scripts }}
-      style={styles.Webview}
-      onLoad={() => this.jsMapInit(lat, lon)}
-    />
-  );
-
-  jsMapInit = async (lat, lon) => {
-    const dataPoints = await calculateMapData();
-
-    if (Map_Ref.current) {
-      Map_Ref.current.injectJavaScript(`init(${lat}, ${lon});`);
-      Map_Ref.current.injectJavaScript(
-        `renderPoints(${JSON.stringify(dataPoints)})`,
-      );
+    const bindText = {
+      address: point.address,
+      name: point.client_name,
+      count: point.orders.length,
+      plan: point.time + " / " + point.date, 
+      fact: point.time_fact + " / " + point.date_fact
     }
+
+    const dataPoint = {
+      lat: point.lat,
+      lon: point.lon,
+      color: color,
+      bindText: point.address
+    };
+
+    if (point.status !== 3) {
+      pointNumber++;
+      dataPoint.number = pointNumber;
+    } else {
+      dataPoint.number = "";
+    }
+
+    if (point.status === 3) {
+      mapData.unshift(dataPoint);
+    } else {
+      mapData.push(dataPoint);
+    }
+  });
+
+  coordinates = points
+    .filter(point => point.status !== 3 && point.lat && point.lon)
+    .map(point => `${point.lon},${point.lat}`);
+
+  if (lon && lat) {
+    coordinates.unshift(`${lon},${lat}`);
+  }
+
+  const osrmData = await getOSRM(coordinates);
+
+  const mapDataWithCoordinates = {
+    points: mapData,
+    coordinates: osrmData
   };
 
-  // ---------- Запросы к серверу ----------
+  return mapDataWithCoordinates;
+};
 
-  const getThisRoute = async () => {
-    context.enableGeo();
+const MapOSRMScreen = () => (
+  <WebView
+    ref={Map_Ref}
+    source={{ html: map_scripts }}
+    style={styles.Webview}
+    onLoad={() => this.jsMapInit(lat, lon)}
+  />
+);
 
-    let data = getDataPostRoute();
-    data.screen = 0;
-    data.type = 5;
-    data.uid = uid;
+jsMapInit = async (lat, lon) => {
+  const dataPoints = await calculateMapData();
 
-    data = JSON.stringify(data);
+  if (Map_Ref.current) {
+    Map_Ref.current.injectJavaScript(`init(${lat}, ${lon});`);
+    Map_Ref.current.injectJavaScript(
+      `renderPoints(${JSON.stringify(dataPoints)})`,
+    );
+  }
+};
 
-    await postRoute(uid, data);
+// ---------- Запросы к серверу ----------
 
-    mutate();
-  };
+const getThisRoute = async () => {
+  context.enableGeo();
 
-  const finishThisRoute = async () => {
-    //-- stopGeo
+  let data = getDataPostRoute();
+  data.screen = 0;
+  data.type = 5;
+  data.uid = uid;
 
-    let data = getDataPostRoute();
-    data.screen = 0;
-    data.type = 5;
-    data.uid = uid;
-    data.finish = true;
+  data = JSON.stringify(data);
 
-    data = JSON.stringify(data);
+  await postRoute(uid, data);
 
-    await postRoute(uid, data);
+  mutate();
+};
 
-    mutate();
-  };
+const finishThisRoute = async () => {
+  //-- stopGeo
 
-  // ---------- Табы ----------
+  let data = getDataPostRoute();
+  data.screen = 0;
+  data.type = 5;
+  data.uid = uid;
+  data.finish = true;
 
-  const TabNavigator = () => (
-    <Navigator tabBar={props => <BottomTabBar {...props} />}>
-      <Screen
-        name='Точки'
-        component={PointsScreen}
-        options={{ headerShown: false }}
+  data = JSON.stringify(data);
+
+  await postRoute(uid, data);
+
+  mutate();
+};
+
+// ---------- Табы ----------
+
+const TabNavigator = () => (
+  <Navigator tabBar={props => <BottomTabBar {...props} />}>
+    <Screen
+      name='Точки'
+      component={PointsScreen}
+      options={{ headerShown: false }}
+    />
+    <Screen
+      name='Карта'
+      component={MapOSRMScreen}
+      options={{ headerShown: false }}
+    />
+  </Navigator>
+);
+
+const BottomTabBar = ({ navigation, state }) => (
+  <SafeAreaView>
+    <BottomNavigation
+      selectedIndex={state.index}
+      onSelect={index => navigation.navigate(state.routeNames[index])}>
+
+      <BottomNavigationTab
+        title='Точки'
+        icon={<Icon {...props} name='pin' />}
       />
-      <Screen
-        name='Карта'
-        component={MapOSRMScreen}
-        options={{ headerShown: false }}
+
+      <BottomNavigationTab
+        title='Карта'
+        icon={<Icon {...props} name='globe' />}
       />
-    </Navigator>
-  );
 
-  const BottomTabBar = ({ navigation, state }) => (
-    <SafeAreaView>
-      <BottomNavigation
-        selectedIndex={state.index}
-        onSelect={index => navigation.navigate(state.routeNames[index])}>
+    </BottomNavigation>
+  </SafeAreaView>
+);
 
-        <BottomNavigationTab
-          title='Точки'
-          icon={<Icon {...props} name='pin' />}
-        />
-
-        <BottomNavigationTab
-          title='Карта'
-          icon={<Icon {...props} name='globe' />}
-        />
-
-      </BottomNavigation>
-    </SafeAreaView>
-  );
-
-  return (
-    <NavigationContainer independent={true}>
-      <TabNavigator />
-    </NavigationContainer>
-  );
+return (
+  <NavigationContainer independent={true}>
+    <TabNavigator />
+  </NavigationContainer>
+);
 };
 
 export default RouteScreen;

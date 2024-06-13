@@ -39,7 +39,7 @@ const AddPhoto = (props) => {
   const uidOrder = params?.uidOrder;
   const uidPoint = params?.uidPoint;
   const uidPointOrder = uidOrder ? uidOrder : uidPoint;
- 
+
   useEffect(() => {
     getSavedPhotos();
   }, []);
@@ -47,7 +47,7 @@ const AddPhoto = (props) => {
   const getSavedPhotos = async () => {
     try {
       const savedPhotos = await AsyncStorage.getItem('savedPhotos_' + uidPointOrder);
-      
+
       savedPhotos && setImages(JSON.parse(savedPhotos));
     } catch (error) {
       console.error('Error getting saved photos:', error);
@@ -65,7 +65,7 @@ const AddPhoto = (props) => {
   const onImagePress = (response) => {
     if (!response.didCancel) {
       const newImages = [...images, { ...response, uploaded: false }];
-      
+
       setImages(newImages);
       savePhotos(newImages);
     }
@@ -98,16 +98,21 @@ const AddPhoto = (props) => {
     let data = getDataPostRoute();
     data.screen = 3;
     data.uid = uid;
-    data.order = uidOrder;
     data.uidPoint = uidPoint;
 
+    if (uidOrder !== "Undefined") {
+      data.uidOrder = uidOrder;
+    }
+
     // Отправляем только новые фотографии на сервер
-    const newImages = images.filter(image => !image.uploaded); 
+    //const newImages = images.filter(image => !image.uploaded);
     // Предположим, что у новых фотографий свойство "uploaded" равно false
-    data.images = newImages.map(image => image.assets[0].base64);
+    //data.images = newImages.map(image => image.assets[0].base64);
+
+    data.images = images;
     data = JSON.stringify(data);
 
-    const result = await acceptImages(data);
+    await acceptImages(data);
 
     // Пометить отправленные фотографии как загруженные
     const updatedImages = images.map(image => {
@@ -116,6 +121,8 @@ const AddPhoto = (props) => {
       }
       return image;
     });
+
+    savePhotos(updatedImages);
 
     setImages(updatedImages);
   };
@@ -127,68 +134,75 @@ const AddPhoto = (props) => {
   const SyncIcon = (props): IconElement => (
     <Icon {...props} name="sync-outline" />
   );
- 
+
   const ImageIcon = (props): IconElement => (
     <Icon {...props} name="image-outline" />
   );
-  
+
   const TrashIcon = (props): IconElement => (
     <Icon {...props} name="trash-2-outline" />
   );
 
   const renderCardHeader = () => (
     <Layout style={styles.headerLayout}>
-      <Button 
-        accessoryLeft={ImageIcon} 
-        onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })} 
-        status='primary' 
+      <Button
+        accessoryLeft={ImageIcon}
+        onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })}
+        status='primary'
         style={{ flex: 1, margin: 4 }}>
-          Галерея
+        Галерея
       </Button>
-      <Button 
+      <Button
         accessoryLeft={CameraIcon}
-        onPress={launchCameraPicker} 
+        onPress={launchCameraPicker}
         status='success' style={{ flex: 1, margin: 4 }}>
-          Камера
+        Камера
       </Button>
     </Layout>
   );
 
   const renderCardFooter = () => {
+
+    images.map((image, index) => (
+      console.log(image.uploaded)
+    ))
+
     const hasUnuploadedPhotos = images.some(image => !image.uploaded);
-  
+
     return hasUnuploadedPhotos ? (
       <Layout style={styles.footerLayout}>
-        <Button 
-          accessoryLeft={SyncIcon} 
+        <Button
+          accessoryLeft={SyncIcon}
           onPress={onSubmitPhoto}>
-            Отправить фото
+          Отправить фото
         </Button>
       </Layout>
     ) : null;
   };
 
+
+
   return (
-    <Card 
-      style={styles.cardLayout} 
-      header={renderCardHeader} 
+    <Card
+      style={styles.cardLayout}
+      header={renderCardHeader}
       footer={renderCardFooter}
     >
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
         {images.map((image, index) => (
-          <View 
-            style={styles.imageContainer} 
+          <View
+            style={styles.imageContainer}
             key={index}
           >
-            <ImageBackground 
-              style={styles.imageBackground} 
+            <ImageBackground
+              style={styles.imageBackground}
               source={{ uri: image.assets[0].uri }} />
-            
-             {!image.uploaded && <Button accessoryLeft={TrashIcon} onPress={() => removeNewImage(index)}>Удалить</Button>}
+
+            {!image.uploaded && <Button accessoryLeft={TrashIcon} onPress={() => removeNewImage(index)}>Удалить</Button>}
           </View>
         ))}
       </View>
-  </Card>
+    </Card>
   );
 };
 

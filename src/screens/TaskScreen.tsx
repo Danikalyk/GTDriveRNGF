@@ -9,7 +9,7 @@ import {
   Card,
   Toggle,
   Modal,
-  BottomNavigation, 
+  BottomNavigation,
   BottomNavigationTab
 } from '@ui-kitten/components';
 import {
@@ -34,8 +34,10 @@ import useSWR from 'swr';
 import find from 'lodash/find';
 import AccidentScreen from './AccidentScreen';
 import { styles } from '../styles';
+import { useNavigation } from '@react-navigation/native';
+import { navigate } from '../RootNavigation.js';
 
-type Props = {};
+//type Props = {};
 
 const RouteScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
@@ -43,6 +45,14 @@ const RouteScreen = (props: Props) => {
   const [modalContent, setModalContent] = React.useState(null);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const { Navigator, Screen } = createBottomTabNavigator();
+  const [nextPointDrive, setNextPointDrive] = React.useState(false);
+  const navigation = useNavigation();
+ 
+  const propsParams = props?.route?.params;
+  const uid = propsParams.uid;
+  const uidPoint = propsParams.uidPoint;
+  
+  
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -51,14 +61,6 @@ const RouteScreen = (props: Props) => {
     }, 2000);
   }, []);
 
-
-
-  const propsParams = props?.route?.params;
-
-  // const orders = props?.route?.params.orders;
-  const uid = propsParams.uid;
-  const uidPoint = propsParams.uidPoint;
-
   const {
     data: route,
     isLoading,
@@ -66,15 +68,14 @@ const RouteScreen = (props: Props) => {
     error,
   } = useSWR(`/route/${uid}`, () => getRoute(uid));
 
-
-  const point = find(route?.points, { uidPoint: uidPoint });
+  const points = route?.points;
+  const point = find(points, { uidPoint: uidPoint });
   const orders = point?.orders;
-
-
   const params = {
     ...route,
     orders,
-    uidPoint
+    uidPoint,
+    points
   }
 
   // ---------- Открытие модального окна происшествия ----------
@@ -84,7 +85,6 @@ const RouteScreen = (props: Props) => {
   const handleCloseAccidentModal = () => {
     setVisibleAccident(false);
   }
-
 
   // ---------- Открытие навигатора ----------
 
@@ -123,10 +123,19 @@ const RouteScreen = (props: Props) => {
   // ---------- Верхняя карточка ----------
 
   const renderMainCard = params => {
+    const currentPoint = params.status === 1 || params.status === 2;
+
     return (
       <Layout>
+        {currentPoint &&
+          <Text category="label" style={styles.titleList}>
+            <Icon name="corner-right-down-outline" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>
+            Текущая точка следования
+          </Text>
+        }
+
         <Card
-          status="danger"
+          status={currentPoint ? "danger" : "success"}
           header={renderMainCardHeader(params)}
           footer={renderMainCardFooter(params)}
           style={styles.containerCards}>
@@ -134,8 +143,11 @@ const RouteScreen = (props: Props) => {
           {renderMainCardButtons(params)}
         </Card>
 
+        {renderNextPointCard()}
+
         <View>
           <Text category="label" style={styles.titleList}>
+            <Icon name="flash-outline" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>
             Действия
           </Text>
         </View>
@@ -159,7 +171,7 @@ const RouteScreen = (props: Props) => {
       <ButtonGroup
         selectedIndex={selectedIndex}
         onSelect={onSelect}
-        style={{flex: 1, justifyContent: 'space-between', flexDirection: 'row'}}
+        style={{ flex: 1, justifyContent: 'space-between', flexDirection: 'row' }}
         appearance='outline'
         status='control'
         size="medium">
@@ -167,25 +179,25 @@ const RouteScreen = (props: Props) => {
           key={1}
           onPress={() => openPhoneWithNumber('79222965859')}
           accessoryLeft={<Icon name="phone" />}
-          style={{backgroundColor: "#0088cc", marginRight: 0, flex: 1}}
+          style={{ backgroundColor: "#0088cc", marginRight: 0, flex: 1 }}
         />
         <Button
           key={2}
           onPress={() => openTelegramWithNumber('79222965859')}
-          //accessoryLeft={`Telegram`}
-          style={{backgroundColor: "#0088cc", marginRight: 0, flex: 1}}
+          accessoryLeft={<Icon name="message-circle-outline" />}
+          style={{ backgroundColor: "#0088cc", marginRight: 0, flex: 1 }}
         />
         <Button
           key={3}
           onPress={() => openWhatsAppWithNumber('79222965859')}
-          //accessoryLeft="WA"
-          style={{backgroundColor: "#43d854", marginRight: 0, flex: 1}}
+          accessoryLeft={<Icon name="message-circle-outline" />}
+          style={{ backgroundColor: "#43d854", marginRight: 0, flex: 1 }}
         />
         <Button
           key={4}
           onPress={() => setVisibleAccident(true)}
           accessoryLeft={<Icon name="alert-circle" />}
-          style={{backgroundColor: "#B00000", marginRight: 0, flex: 1}}
+          style={{ backgroundColor: "#B00000", marginRight: 0, flex: 1 }}
         />
       </ButtonGroup>
     );
@@ -228,19 +240,41 @@ const RouteScreen = (props: Props) => {
   const renderButtonFinishPoint = () => {
     return (
       <View>
-        <Button style={{}} onPress={finishCurrentPoint}>
+        <Button
+          style={{}}
+          onPress={finishCurrentPoint}
+          accessoryLeft={<Icon name="flag" />}
+        >
           Завершить точку
         </Button>
       </View>
     );
   };
 
+  const renderButtonCompletePoint = () => {
+    return (
+      <View>
+        <Button
+          style={{}}
+          appearance='outline'
+          status='success'
+          accessoryLeft={<Icon name="checkmark-circle-2-outline" />}
+          onPress={() => Alert.alert("Точка завершена в " + point.time_fact + " / " + point.date_fact)}
+        >
+          Точка завершена
+        </Button>
+      </View>
+    )
+  }
+
   const renderMainCardFooter = params => {
+    if (params.status === 3) {
+      return renderButtonCompletePoint();
+    }
+
     allOrderFinished = !!params.orders && params.orders.every(order => order.status === 3);
 
     if (params.point === 0) {
-
-      renderButtonFinishPoint();
       //-- ЭтоТочка
       if (params.status === 0) {
         return renderButtonStartPoint();
@@ -259,6 +293,93 @@ const RouteScreen = (props: Props) => {
     }
   };
 
+  // ---------- Карточка следующая точка ----------
+
+  function findNextPoint() {
+    const sortedPoints = points.sort((a, b) => a.sort - b.sort);
+    const currentIndex = sortedPoints.findIndex(point => point.uidPoint === uidPoint);
+    const nextPoint = sortedPoints.find((point, index) => index > currentIndex);
+
+    return nextPoint;
+  }
+
+  const renderNextPointCard = () => {
+    const nextPoint = findNextPoint();
+    const showAddress = nextPoint && nextPoint.address !== nextPoint.client_name;
+
+    return ( 
+      (nextPoint && nextPointDrive &&
+        <Layout>
+          <Text category="label" style={styles.titleList}>
+            <Icon name="corner-up-right-outline" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>
+            Следующая точка
+          </Text>
+          <Card
+            status="primary"
+            style={styles.containerCards}
+            header={renderNextPointCardHeader(nextPoint)}
+            footer={renderNextPointCardFooter(nextPoint)}
+          >
+            <View style={styles.textBodyCardWithLeftView}>
+              <View style={styles.textTimeLeft}>
+                <Layout>
+                  <Text category="s1" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
+                    {nextPoint?.time}
+                  </Text>
+                </Layout>
+                <Layout>
+                  <Text category="c2" style={{ textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
+                    {nextPoint?.date}
+                  </Text>
+                </Layout>
+              </View>
+              <View style={styles.containerCardText}>
+                {showAddress &&
+                  <Text category="c2">
+                    Адрес: {nextPoint?.address}
+                  </Text>
+                }
+                <Text category="c2">
+                  Объем: {nextPoint?.volume}, м3
+                </Text>
+                <Text category="c2">
+                  Вес: {nextPoint?.weight}, кг
+                </Text>
+                <Text category="c2">
+                  Количество заказов: {nextPoint?.countOrders}
+                </Text>
+                {/*<Text category="c2">
+              Загрузка: {item?.loading}, %
+            </Text>*/}
+              </View>
+            </View>
+          </Card>
+        </Layout>
+      )
+    )
+  };
+
+  const renderNextPointCardHeader = nextPoint => (
+    <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+      <View style={styles.textHeaderCard}>
+        <Icon name="pin-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
+        <Text category="h6" style={styles.textHeaderCard}>{nextPoint?.address}</Text>
+      </View>
+    </Layout>
+  );
+
+  const renderNextPointCardFooter = nextPoint => (
+    <View>
+      <Button
+        style={{}}
+        accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
+        onPress={() => startNextPoint(nextPoint)}
+      >
+        Начать следование
+      </Button>
+    </View>
+  );
+
   // ---------- Карточки заказов ----------
 
   const footerModal = item => (
@@ -276,7 +397,7 @@ const RouteScreen = (props: Props) => {
   const onPressCardOrder = item => {
     if (params.status === 0 || (item.status !== 1 && params.orders[0].status !== 3)) {
       Alert.alert('Необходимо начать следование или зафиксировать прибытие');
-      
+
       return;
     }
 
@@ -302,7 +423,7 @@ const RouteScreen = (props: Props) => {
 
       setVisible(true);
     } else {
-      props.navigation.navigate('TaskOrderScreen', { ...item });
+      props.navigation.navigate('TaskOrderScreen', { ...item, uidPoint });
     }
   };
 
@@ -366,7 +487,7 @@ const RouteScreen = (props: Props) => {
 
         {hasTasks && (
           <Icon
-            name="alert-circle-outline"
+            name="bulb-outline"
             width={24}
             height={24}
             style={{ color: 'red' }}
@@ -399,6 +520,24 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Запросы к серверу ----------
 
+  const startNextPoint = async (item) => {
+    let data = getDataPostRoute();
+    data.screen = 2;
+    data.type = 5;
+    data.point = item.point;
+    data.uidPoint = item.uidPoint;
+
+    data = JSON.stringify(data);
+
+    const res = await postRoute(uid, data);
+
+    props.navigation.navigate('TaskScreen', { ...item });
+
+    setNextPointDrive(false);
+
+    mutate();
+  };
+
   const startCurrentPoint = async () => {
     let data = getDataPostRoute();
     data.screen = 2;
@@ -424,7 +563,9 @@ const RouteScreen = (props: Props) => {
 
     await postRoute(uid, data);
 
-    mutate();
+    setNextPointDrive(true);
+
+    //mutate();
   };
 
   const putTimeCardToServer = async (item) => {
@@ -457,8 +598,8 @@ const RouteScreen = (props: Props) => {
     );
   };
 
-    const TasksScreen = () => (
-      <SafeAreaView style={{ flex: 1 }}>
+  const TasksScreen = () => (
+    <SafeAreaView style={{ flex: 1 }}>
       <List
         style={{}}
         data={orders}
@@ -470,58 +611,77 @@ const RouteScreen = (props: Props) => {
 
       <AccidentScreen
         visibleAccident={visibleAccident}
-        onClose={handleCloseAccidentModal} 
+        onClose={handleCloseAccidentModal}
         uidPoint={uidPoint}
         uid={uid}
       />
     </SafeAreaView>
   );
 
-// ---------- Фотографии ----------
+  // ---------- Фотографии ----------
 
-  const PhotoScreen = () => (
-    <SafeAreaView style={{ flex: 1 }}>
-        <Layout>
+  const PhotoScreen = () => {
+    console.log("@@@point", point);
+
+    if (point.status === 1 || point.status === 2) {
+      return (
+        <SafeAreaView style={{ flex: 1 }}>
+          <Layout>
             <ScrollView contentContainerStyle={styles.wrap}>
-                <Text category="label" style={styles.titleList}>
-                    Добавить фото
-                </Text>
+              <Text category="label" style={styles.titleList}>
+                Добавить фото
+              </Text>
 
-                <AddPhoto {...props} />
+              <AddPhoto {...props} />
             </ScrollView>
-        </Layout>
-    </SafeAreaView>
-  );
+          </Layout>
+        </SafeAreaView>
+      );
+    } else {
+      return (
+        <SafeAreaView style={{ flex: 1 }}>
+          <Card
+            style={styles.containerCard}>
+            <Text category="label" style={styles.titleList}>
+              <Icon name="alert-circle-outline" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>
+              Фотографии можно сделать только на активном маршруте
+            </Text>
+          </Card>
+        </SafeAreaView>
+      )
+    }
 
-   const TabNavigator = () => (
-        <Navigator tabBar={props => <BottomTabBar {...props} />}>
-            <Screen
-                name='Действия'
-                component={TasksScreen}
-                options={{ headerShown: false }}
-            />
-            <Screen
-                name='Фото'
-                component={PhotoScreen}
-                options={{ headerShown: false }}
-            />
-        </Navigator>
-    );
+  };
+
+  const TabNavigator = () => (
+    <Navigator tabBar={props => <BottomTabBar {...props} />}>
+      <Screen
+        name='Действия'
+        component={TasksScreen}
+        options={{ headerShown: false }}
+      />
+      <Screen
+        name='Фото'
+        component={PhotoScreen}
+        options={{ headerShown: false }}
+      />
+    </Navigator>
+  );
 
   const BottomTabBar = ({ navigation, state }) => (
     <BottomNavigation
-        selectedIndex={state.index}
-        onSelect={index => navigation.navigate(state.routeNames[index])}>
-        <BottomNavigationTab
-            title='Задачи'
-            icon={<Icon {...props} name='bookmark-outline' />}
-        />
-        <BottomNavigationTab
-            title='Фото'
-            icon={<Icon {...props} name='camera-outline' />}
-        />
+      selectedIndex={state.index}
+      onSelect={index => navigation.navigate(state.routeNames[index])}>
+      <BottomNavigationTab
+        title='Задачи'
+        icon={<Icon {...props} name='bookmark-outline' />}
+      />
+      <BottomNavigationTab
+        title='Фото'
+        icon={<Icon {...props} name='camera-outline' />}
+      />
     </BottomNavigation>
-);
+  );
 
   // ---------- Отрисовка ----------
   return (

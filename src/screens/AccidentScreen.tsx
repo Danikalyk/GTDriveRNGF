@@ -22,7 +22,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
     'Техническая неисправность ТС в пути следования',
     'Задерживаюсь на погрузке/выгрузке',
     'Пробка на дороге/Движение затруднено',
-    'Контактное лицо на точке выгрузке не отвечает',
+    'Контактное лицо на точке выгрузки не отвечает',
     'При погрузке/выгрузке выявлен некондиционный товар',
     'Другое',
   ];
@@ -83,12 +83,6 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
         header={renderCardHeader}
         footer={renderCardFooter}
       >
-        <RadioGroup selectedIndex={selectedIndex} onChange={index => setSelectedIndex(index)}>
-          {options.map((option, index) => (
-            <Radio key={index}>{option}</Radio>
-          ))}
-        </RadioGroup>
-
         {displayValue === 'Другое' && (
           <KeyboardAwareScrollView>
             <Input
@@ -101,6 +95,12 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
             />
           </KeyboardAwareScrollView>
         )}
+
+        <RadioGroup selectedIndex={selectedIndex} onChange={index => setSelectedIndex(index)}>
+          {options.map((option, index) => (
+            <Radio key={index}>{option}</Radio>
+          ))}
+        </RadioGroup>   
       </Card>
     </Modal>
   );

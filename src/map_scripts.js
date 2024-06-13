@@ -108,6 +108,10 @@ const html_script = `
 					const lat = point.lat;
 					const lon = point.lon;
 					const numberPoint = point.number;
+					const bindName = 123;
+
+					alert(bindName);
+					
 					const bindText = point.bindText;
 
 					var iconMarker = L.divIcon({
