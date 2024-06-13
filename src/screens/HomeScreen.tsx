@@ -43,7 +43,7 @@ const HomeScreen = (props) => {
 
     //mutate();
     
-    console.log('Элемент успешно удален', routes);
+    //console.log('Элемент успешно удален', routes);
   }
 
   useEffect(() => {

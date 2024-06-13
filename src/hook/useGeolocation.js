@@ -89,7 +89,7 @@ function useGeolocation(enabledGeo) {
         // Geolocation Config
         enabled: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-        distanceFilter: 1, //-- Расстояние при котором идет отсылка координат между точками A и B
+        distanceFilter: 10, //-- Расстояние при котором идет отсылка координат между точками A и B
         // Activity Recognition
         stopTimeout: 5,
         // Application config
@@ -118,6 +118,9 @@ function useGeolocation(enabledGeo) {
           },
           provider: {gps: providerState?.gps, network: providerState?.network},
         },
+        desiredOdometerAccuracy: 10, //-- точность выброса, по умолчанию = 100 
+        elasticityMultiplier: 3, //--  величение elasticityMultiplierприведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
+        geofenceProximityRadius: 100 //-- радиус геозоны
       })
         .then(state => {
           setEnabled(state.enabled);
