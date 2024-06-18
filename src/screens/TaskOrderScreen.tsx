@@ -20,11 +20,10 @@ const TaskOrderScreen = (props: Props) => {
     const [modalContent, setModalContent] = React.useState(null);
     const [pending, setPending] = React.useState(true);
     const [visible, setVisible] = React.useState(false);
+    
     const propsParams = props?.route?.params;
     const uid = propsParams.uid;
-    const order = propsParams;
-    const uidOrder = propsParams.uidOrder;
-    const { uidPoint } = props?.route?.params;
+    
 
     useEffect(() => {
         setPending(false);
@@ -38,6 +37,13 @@ const TaskOrderScreen = (props: Props) => {
     } = useSWR(`/route/${uid}`, () => getRoute(uid)); 
 
 
+    
+
+    
+    
+    const order = route?.params;
+    const uidOrder = route?.params?.uidOrder;
+    const uidPoint = route?.params?.uidPoint;
 
     let points = route?.points;
     let point = find(points, { uidPoint: uidPoint });
@@ -59,7 +65,7 @@ const TaskOrderScreen = (props: Props) => {
     const renderListHeader = () => {
         return (
             <View>
-                <Text category="label" style={styles.titleList}><Icon name="info-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon> Задачи по заказу {order.name}</Text>
+                <Text category="label" style={styles.titleList}><Icon name="info-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon> Задачи по заказу {order?.name}</Text>
             </View>
         )
     }
