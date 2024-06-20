@@ -22,6 +22,9 @@ const TaskOrderScreen = (props: Props) => {
     const [visible, setVisible] = React.useState(false);
     
     const propsParams = props?.route?.params;
+    
+
+    
     const uid = propsParams.uid;
     
 
@@ -41,13 +44,21 @@ const TaskOrderScreen = (props: Props) => {
 
     
     
-    const order = route?.params;
-    const uidOrder = route?.params?.uidOrder;
-    const uidPoint = route?.params?.uidPoint;
+    
+
+    
+    const uidOrder = propsParams?.uidOrder;
+    const uidPoint = propsParams?.uidPoint;
 
     let points = route?.points;
     let point = find(points, { uidPoint: uidPoint });
-    let orders = find(point, { uidOrder: uidOrder })
+
+    
+    const orders = point?.orders || [];
+    let order = find(orders, { uidOrder: uidOrder })
+
+    
+
     let tasks = order?.tasks;
 
     const params = {
