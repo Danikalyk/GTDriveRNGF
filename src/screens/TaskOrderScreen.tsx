@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { postRoute, getRoute } from '../api/routes';
 import useSWR from 'swr';
 import find from 'lodash/find';
+import { getRequest } from '../api/request';
 
 type Props = {};
 
@@ -37,7 +38,7 @@ const TaskOrderScreen = (props: Props) => {
         isLoading,
         mutate,
         error,
-    } = useSWR(`/route/${uid}`, () => getRoute(uid)); 
+    } = useSWR(`/route/${uid}`, getRequest); 
 
 
     

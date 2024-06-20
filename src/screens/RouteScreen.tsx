@@ -18,6 +18,7 @@ import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../compone
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { styles } from '../styles';
 import { UserContext } from '../store/user/UserProvider';
+import { getRequest } from '../api/request';
 
 type Props = {};
 
@@ -31,13 +32,6 @@ const RouteScreen = (props: Props) => {
   const lat = location?.coords?.latitude;
   const lon = location?.coords?.longitude;
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
-
   useEffect(() => {
     setPending(false);
   }, []);
@@ -48,7 +42,7 @@ const RouteScreen = (props: Props) => {
     isLoading,
     mutate,
     error,
-  } = useSWR(`/route/${uid}`, () => getRoute(uid));
+  } = useSWR(`/route/${uid}`, getRequest);
 
   const routeItem = route;
 
@@ -58,6 +52,7 @@ const RouteScreen = (props: Props) => {
 
   let points = routeItem?.points;
   points = [...points].sort((a, b) => a.sort - b.sort);
+
 
   // Табы
   const { Navigator, Screen } = createBottomTabNavigator();
