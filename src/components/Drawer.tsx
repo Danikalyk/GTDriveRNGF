@@ -21,10 +21,9 @@ export const HomeDrawer = (props: any) => {
 
   return (
     <Drawer onSelect={onItemSelect}>
-      <DrawerItem key={1} title={'Home'} />
-      <DrawerItem key={2} title={'Chat'} />
-      <DrawerItem key={3} title={'Settings'} />
-      <DrawerItem key={4} title={'Map'} />
+      <DrawerItem key={1} title={'Список маршрутов'} />
+      <DrawerItem key={2} title={'Карта'} />
+      <DrawerItem key={3} title={'Настройки'} />
     </Drawer>
   );
 };

@@ -121,13 +121,13 @@ export const DrawerNavigator = () => (
       }}
     />
 
-    {/*<Screen
-      name="ChatsNavigation"
-      component={ChatsNavigation}
+    <Screen
+      name="MapScreen"
+      component={MapScreen}
       options={{
-        headerShown: false,
+        header: props => <TopNavigationHeader {...props} />,
       }}
-    />*/}
+    />
 
     <Screen
       name="SettingsScreen"
@@ -136,14 +136,6 @@ export const DrawerNavigator = () => (
         header: props => <TopNavigationHeader {...props} />,
       }}
     />
-
-    {/*<Screen
-      name="MapScreen"
-      component={MapScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} />,
-      }}
-    />*/}
   </Navigator>
 );
 

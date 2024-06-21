@@ -1,12 +1,11 @@
 import React, { useContext, useCallback, useEffect, useState } from 'react';
 import { RefreshControl, View, Alert, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Divider, Icon, Layout, List, Text, Button } from '@ui-kitten/components';
+import { Card, Icon, Layout, Text, Button } from '@ui-kitten/components';
 import { GlobalState } from '../store/global/global.state';
 import { UserContext } from '../store/user/UserProvider';
 import { getRoutes } from '../api/routes';
-import { RouterListItem } from '../types';
-import { getCardStatus, getNewAppVersion } from '../components/functions';
+import { getCardStatus } from '../components/functions';
 import { styles } from '../styles';
 import useSWR from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -124,18 +123,8 @@ const HomeScreen = (props) => {
 
   //deleteAllSavedPhotos();
 
-  async function checkNewVersion() {
-    const newversion = getNewAppVersion();
-
-    console.log(newversion);
-  }
-
   return (
     <SafeAreaView>
-      <Button onPress={() => checkNewVersion()}>
-        Проверка
-      </Button>
-
       {startRoute && 
       <Text category="label" style={styles.titleList}>
         <Icon name="corner-right-down-outline" width={20} height={20} style={styles.textHeaderCardIcon}></Icon>

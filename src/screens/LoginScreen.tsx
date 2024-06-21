@@ -3,9 +3,8 @@ import { View, Image, StyleSheet, Alert } from 'react-native';
 import { Button, Icon, Input, Layout, Spinner, Text } from '@ui-kitten/components';
 import { TouchableWithoutFeedback } from '@ui-kitten/components/devsupport';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { saveTokens, userAuth } from '../api/auth';
+import { saveTokens, userAuth, getDevTokens } from '../api/auth';
 import { navigate } from '../RootNavigation';
-import { getDevTokens } from '../api/auth';
 import { GlobalState } from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 import dayjs from 'dayjs';
@@ -14,6 +13,10 @@ import DeviceInfo from 'react-native-device-info';
 import localStorage from '../store/localStorage';
 import Loader from '../components/Icons/Loader';
 import { appVersion } from '../version';
+import { PermissionsAndroid } from 'react-native';
+import RNFS from 'react-native-fs';
+import { ReactNativeAndroidIntentLauncher } from 'react-native-android-intent-launcher';
+import { getUpdate } from '../api/routes';
 
 
 const LoginScreen = ({ navigation }: Props) => {
@@ -32,6 +35,7 @@ const LoginScreen = ({ navigation }: Props) => {
       setUserID(authInfo?.id || '');
       setPassword(authInfo?.password || '');
     };
+
     init();
   }, []);
 
@@ -47,6 +51,7 @@ const LoginScreen = ({ navigation }: Props) => {
 
   useEffect(() => {
     setPending(false);
+    getUpdate();
   });
 
   const onLogin = async () => {
@@ -101,6 +106,61 @@ const LoginScreen = ({ navigation }: Props) => {
     setUserID(formattedText);
   };
 
+  getUpdate().then(data => {
+    if (data.version !== appVersion) {
+      downloadAndInstallApk(data.link);
+    }
+  }).catch(error => {
+    console.error(error);
+  });
+
+  async function downloadAndInstallApk(url) {
+    try {
+      // Проверяем разрешение на запись во внешнее хранилище
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: 'Разрешение на запись во внешнее хранилище',
+          message: 'Для скачивания и установки APK-файла необходимо разрешение на запись во внешнее хранилище.',
+          buttonNeutral: 'Позже',
+          buttonNegative: 'Отмена',
+          buttonPositive: 'ОК',
+        },
+      );
+  
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        // Создаем папку для загрузки APK-файла
+        const downloadDir = `${RNFS.ExternalStorageDirectoryPath}/Download`;
+        await RNFS.mkdir(downloadDir);
+
+        console.log("123", url);
+  
+        // Определяем путь для сохранения APK-файла
+        const apkPath = `${downloadDir}/app.apk`;
+  
+        // Скачиваем APK-файл
+        const downloadResult = await RNFS.downloadFile({
+          fromUrl: url,
+          toFile: apkPath,
+        }).promise;
+  
+        if (downloadResult.statusCode === 200) {
+          // Успешно скачали APK-файл, теперь устанавливаем его
+          ReactNativeAndroidIntentLauncher.startActivityAsync(ReactNativeAndroidIntentLauncher.ACTION_VIEW, {
+            data: `file://${apkPath}`,
+            type: 'application/vnd.android.package-archive',
+          });
+        } else {
+          console.error('Ошибка при скачивании APK-файла');
+        }
+      } else {
+        console.error('Отказано в разрешении на запись во внешнее хранилище');
+      }
+    } catch (error) {
+      console.error('Произошла ошибка', error);
+    }
+  }
+  
   return (
     <SafeAreaView style={styles.container}>
       <Layout style={styles.layout}>

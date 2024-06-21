@@ -162,11 +162,6 @@ const AddPhoto = (props) => {
   );
 
   const renderCardFooter = () => {
-
-    images.map((image, index) => (
-      console.log(image.uploaded)
-    ))
-
     const hasUnuploadedPhotos = images.some(image => !image.uploaded);
 
     return hasUnuploadedPhotos ? (

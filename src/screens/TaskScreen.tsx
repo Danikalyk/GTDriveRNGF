@@ -688,17 +688,19 @@ const RouteScreen = (props: Props) => {
   // ---------- Фотографии ----------
 
   const PhotoScreen = () => {
-    console.log('@@@point', point);
-
     if (point.status === 1 || point.status === 2) {
       return (
         <SafeAreaView style={{flex: 1}}>
           <Layout>
             <ScrollView contentContainerStyle={styles.wrap}>
               <Text category="label" style={styles.titleList}>
+                <Icon
+                  name="camera-outline"
+                  width={20}
+                  height={20}
+                  style={styles.textHeaderCardIcon}></Icon>
                 Добавить фото
               </Text>
-
               <AddPhoto {...props} />
             </ScrollView>
           </Layout>

@@ -8,14 +8,17 @@ const axiosInstance = axios.create({
 export async function getRequestUpdate() {
     const req = axiosInstance.get('/_GTDrive/app.json')
 
-    console.log(axiosInstance);
-
     return req
-        .then(response => {
-            return req;
+        .then(response => { 
+            //console.log("newversion", response.data);
+
+            const json = response.data;
+
+            return json;
         })
         .catch(error => {
             console.error(error.toJSON());
+            
             return error.toJSON();
         });
 }
