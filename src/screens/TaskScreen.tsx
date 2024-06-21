@@ -40,6 +40,7 @@ import AccidentScreen from './AccidentScreen';
 import {styles} from '../styles';
 import {useNavigation} from '@react-navigation/native';
 import {navigate} from '../RootNavigation.js';
+import { getRequest } from '../api/request.js';
 
 //type Props = {};
 
@@ -79,7 +80,7 @@ const RouteScreen = (props: Props) => {
     isLoading,
     mutate,
     error,
-  } = useSWR(`/route/${uid}`, () => getRoute(uid));
+  } = useSWR(`/route/${uid}`, getRequest);
 
   const points = route?.points;
   const point = find(points, {uidPoint: uidPoint});

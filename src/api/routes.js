@@ -10,6 +10,8 @@ export async function getRoutes(userId) {
   return getRequest(`/routes?user=${userId}`);
 }
 
+
+
 export async function getRoute(uid) {
   return getRequest(`/route/${uid}`);
 }
