@@ -1,5 +1,5 @@
 import { List, Card, Divider, Layout, Text, Toggle, BottomNavigation, BottomNavigationTab, Icon, Modal, Button } from '@ui-kitten/components';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
@@ -14,52 +14,40 @@ import useSWR from 'swr';
 import find from 'lodash/find';
 import { getRequest } from '../api/request';
 
+
 type Props = {};
 
 const TaskOrderScreen = (props: Props) => {
+    const navigation = useNavigation();
     const { Navigator, Screen } = createBottomTabNavigator();
     const [modalContent, setModalContent] = React.useState(null);
     const [pending, setPending] = React.useState(true);
     const [visible, setVisible] = React.useState(false);
-    
     const propsParams = props?.route?.params;
-    
-
-    
     const uid = propsParams.uid;
-    
+    const goBack = () => {
+        navigation.goBack({ needRefresh: true});
+    };
 
     useEffect(() => {
         setPending(false);
     }, []);
- 
+
     const {
         data: route,
         isLoading,
         mutate,
         error,
-    } = useSWR(`/route/${uid}`, getRequest); 
+    } = useSWR(`/route/${uid}`, getRequest);
 
-
-    
-
-    
-    
-    
-
-    
     const uidOrder = propsParams?.uidOrder;
     const uidPoint = propsParams?.uidPoint;
 
     let points = route?.points;
     let point = find(points, { uidPoint: uidPoint });
 
-    
     const orders = point?.orders || [];
     let order = find(orders, { uidOrder: uidOrder })
-
-    
-
     let tasks = order?.tasks;
 
     const params = {
@@ -67,10 +55,8 @@ const TaskOrderScreen = (props: Props) => {
         tasks
     }
 
-    console.log("@@@2", JSON.stringify(params.tasks));
-
-
- 
+    const canFinishOrder = tasks.every(task => task.status === 3);
+    const taskFinished = order.status === 3;
 
     // ---------- Задачи ----------
 
@@ -87,8 +73,8 @@ const TaskOrderScreen = (props: Props) => {
             <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                 <View style={styles.textHeaderCardRoute}>
                     <Icon name="bulb-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon>
-                    <Text 
-                        category='label' 
+                    <Text
+                        category='label'
                         style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}
                     >
                         {item?.name}
@@ -96,6 +82,61 @@ const TaskOrderScreen = (props: Props) => {
                 </View>
             </Layout>
         )
+    }
+
+    const renderFinishOrderCard = () => {
+
+        return (
+
+            <Layout>
+                {canFinishOrder && !taskFinished && (<Text category="label" style={styles.titleList}>
+                    <Icon
+                        name="question-mark-circle-outline"
+                        width={20}
+                        height={20}
+                        style={styles.textHeaderCardIcon}></Icon>
+                    Завершить заказ?
+                </Text>)}
+                <Card
+                    style={styles.containerCards}
+                    status="primary"
+                    footer={canFinishOrder && !taskFinished && renderFinishOrderCardFooter()}
+                >
+                    <Text category="c2"> По заказу {order.type} завершены все задачи </Text>
+                </Card>
+            </Layout>
+
+        );
+    };
+
+    const renderFinishOrderCardFooter = () => {
+        return (
+            <Layout>
+                <View>
+                    <Button
+                        style={{}}
+                        accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
+                        onPress={() => finishCurrentOrder()}>
+                        Зафиксировать время заказа
+                    </Button>
+                </View>
+            </Layout>
+        )
+    }
+
+    const finishCurrentOrder = async () => {
+        let data = getDataPostRoute();
+        data.screen = 2;
+        data.type = order.type;
+        data.point = point.point;
+        data.uidPoint = point.uidPoint;
+        data.uidOrder = order.uidOrder;
+
+        data = JSON.stringify(data);
+
+        await postRoute(uid, data);
+
+        goBack();
     }
 
     const putTimeCardToServer = async (item) => {
@@ -117,7 +158,7 @@ const TaskOrderScreen = (props: Props) => {
             <Button
                 style={styles.buttonModal}
                 status="primary"
-                accessoryLeft={<Icon name='checkmark-square-outline'/>}
+                accessoryLeft={<Icon name='checkmark-square-outline' />}
                 onPress={() => putTimeCardToServer(item)}>
                 Зафиксировать
             </Button>
@@ -134,17 +175,17 @@ const TaskOrderScreen = (props: Props) => {
 
         setModalContent(
             <Card
-                style={{padding: 5}}
+                style={{ padding: 5 }}
                 disabled={true}
                 status='danger'
                 footer={footerModal(item)}
             >
                 <Text category='s1'>
-                    Необходимо зафиксировать время для
+                    Необходимо зафиксировать выполение
                 </Text>
                 <Text category='h6'>
                     {item.name}
-                </Text>       
+                </Text>
             </Card>
         );
 
@@ -176,6 +217,8 @@ const TaskOrderScreen = (props: Props) => {
 
     const TasksScreen = () => (
         <Layout style={{}}>
+            {canFinishOrder && !taskFinished && renderFinishOrderCard()}
+
             <List
                 style={{}}
                 data={tasks}
@@ -202,19 +245,40 @@ const TaskOrderScreen = (props: Props) => {
 
     // ---------- Фотографии ----------
 
-    const PhotoScreen = () => (
-        <SafeAreaView style={{ flex: 1 }}>
-            <Layout>
-                <ScrollView contentContainerStyle={styles.wrap}>
-                    <Text category="label" style={styles.titleList}>
-                        Добавить фото
-                    </Text>
-
-                    <AddPhoto {...props} />
-                </ScrollView>
-            </Layout>
-        </SafeAreaView>
-    );
+    const PhotoScreen = () => {
+        return (
+            <SafeAreaView style={{ flex: 1 }}>
+                {!taskFinished ? (
+                    <Layout>
+                        <ScrollView contentContainerStyle={styles.wrap}>
+                            <Text category="label" style={styles.titleList}>
+                                <Icon
+                                    name="camera-outline"
+                                    width={20}
+                                    height={20}
+                                    style={styles.textHeaderCardIcon}
+                                />
+                                Добавить фото
+                            </Text>
+                            <AddPhoto {...props} />
+                        </ScrollView>
+                    </Layout>
+                ) : (
+                    <Card style={styles.containerCard}>
+                        <Text category="label" style={styles.titleList}>
+                            <Icon
+                                name="alert-circle-outline"
+                                width={20}
+                                height={20}
+                                style={styles.textHeaderCardIcon}
+                            />
+                            Фотографии можно сделать только на активном маршруте
+                        </Text>
+                    </Card>
+                )}
+            </SafeAreaView>
+        )
+    };
 
     // ---------- Табы ----------
 

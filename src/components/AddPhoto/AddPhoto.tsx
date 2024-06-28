@@ -105,7 +105,7 @@ const AddPhoto = (props) => {
     }
 
     // Отправляем только новые фотографии на сервер
-    //const newImages = images.filter(image => !image.uploaded);
+    const newImages = images.filter(image => !image.uploaded);
     // Предположим, что у новых фотографий свойство "uploaded" равно false
     //data.images = newImages.map(image => image.assets[0].base64);
 
@@ -143,23 +143,29 @@ const AddPhoto = (props) => {
     <Icon {...props} name="trash-2-outline" />
   );
 
-  const renderCardHeader = () => (
-    <Layout style={styles.headerLayout}>
-      <Button
-        accessoryLeft={ImageIcon}
-        onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })}
-        status='primary'
-        style={{ flex: 1, margin: 4 }}>
-        Галерея
-      </Button>
-      <Button
-        accessoryLeft={CameraIcon}
-        onPress={launchCameraPicker}
-        status='success' style={{ flex: 1, margin: 4 }}>
-        Камера
-      </Button>
-    </Layout>
-  );
+  const renderCardHeader = () => {
+    canAddPhoto = params.status !== 3;
+    
+    return (
+      canAddPhoto && (
+        <Layout style={styles.headerLayout}>
+          <Button
+            accessoryLeft={ImageIcon}
+            onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })}
+            status='primary'
+            style={{ flex: 1, margin: 4 }}>
+            Галерея
+          </Button>
+          <Button
+            accessoryLeft={CameraIcon}
+            onPress={launchCameraPicker}
+            status='success' style={{ flex: 1, margin: 4 }}>
+            Камера
+          </Button>
+        </Layout>
+      )
+    )
+  };
 
   const renderCardFooter = () => {
     const hasUnuploadedPhotos = images.some(image => !image.uploaded);
@@ -174,8 +180,6 @@ const AddPhoto = (props) => {
       </Layout>
     ) : null;
   };
-
-
 
   return (
     <Card

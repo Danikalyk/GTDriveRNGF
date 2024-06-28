@@ -13,9 +13,6 @@ import DeviceInfo from 'react-native-device-info';
 import localStorage from '../store/localStorage';
 import Loader from '../components/Icons/Loader';
 import { appVersion } from '../version';
-import { PermissionsAndroid } from 'react-native';
-import RNFS from 'react-native-fs';
-import { ReactNativeAndroidIntentLauncher } from 'react-native-android-intent-launcher';
 import { getUpdate } from '../api/routes';
 
 
@@ -108,58 +105,11 @@ const LoginScreen = ({ navigation }: Props) => {
 
   getUpdate().then(data => {
     if (data.version !== appVersion) {
-      downloadAndInstallApk(data.link);
+      //-- Заделка для скачки приложения
     }
   }).catch(error => {
     console.error(error);
   });
-
-  async function downloadAndInstallApk(url) {
-    try {
-      // Проверяем разрешение на запись во внешнее хранилище
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        {
-          title: 'Разрешение на запись во внешнее хранилище',
-          message: 'Для скачивания и установки APK-файла необходимо разрешение на запись во внешнее хранилище.',
-          buttonNeutral: 'Позже',
-          buttonNegative: 'Отмена',
-          buttonPositive: 'ОК',
-        },
-      );
-  
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        // Создаем папку для загрузки APK-файла
-        const downloadDir = `${RNFS.ExternalStorageDirectoryPath}/Download`;
-        await RNFS.mkdir(downloadDir);
-
-        console.log("123", url);
-  
-        // Определяем путь для сохранения APK-файла
-        const apkPath = `${downloadDir}/app.apk`;
-  
-        // Скачиваем APK-файл
-        const downloadResult = await RNFS.downloadFile({
-          fromUrl: url,
-          toFile: apkPath,
-        }).promise;
-  
-        if (downloadResult.statusCode === 200) {
-          // Успешно скачали APK-файл, теперь устанавливаем его
-          ReactNativeAndroidIntentLauncher.startActivityAsync(ReactNativeAndroidIntentLauncher.ACTION_VIEW, {
-            data: `file://${apkPath}`,
-            type: 'application/vnd.android.package-archive',
-          });
-        } else {
-          console.error('Ошибка при скачивании APK-файла');
-        }
-      } else {
-        console.error('Отказано в разрешении на запись во внешнее хранилище');
-      }
-    } catch (error) {
-      console.error('Произошла ошибка', error);
-    }
-  }
   
   return (
     <SafeAreaView style={styles.container}>
@@ -212,7 +162,9 @@ const LoginScreen = ({ navigation }: Props) => {
             Войти
           </Button>
           
-          <Text appearance='hint' style={{fontSize: 10}}>{appVersion}</Text>
+          <View style={{}}>
+            <Text appearance='hint' style={{fontSize: 10}}>{appVersion}</Text>
+          </View>
         </View>
       </Layout>
     </SafeAreaView>

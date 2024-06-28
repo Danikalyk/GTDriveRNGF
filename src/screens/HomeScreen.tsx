@@ -24,7 +24,7 @@ const HomeScreen = (props) => {
   }, [mutate]);
   
   const handleLongPress = (item) => {
-    console.log('Вызвано сообщение об удалении элемента');
+    /*console.log('Вызвано сообщение об удалении элемента');
     Alert.alert(
       'Удаление элемента',
       'Вы уверены, что хотите удалить этот элемент?',
@@ -32,7 +32,7 @@ const HomeScreen = (props) => {
         { text: 'Отмена', style: 'cancel' },
         { text: 'Удалить', onPress: () => handleDeleteItem(item) }
       ]
-    );
+    );*/
   }
 
   const handleDeleteItem = (item) => {
@@ -46,7 +46,7 @@ const HomeScreen = (props) => {
   }
 
   useEffect(() => {
-    const hasStartGeo = routes && routes.some(route => route.start === true);
+    const hasStartGeo = routes && Array.isArray(routes) && routes?.some(route => route && route.start === true);
     setStartRoute(hasStartGeo);
 
     if (hasStartGeo && !startGeo) {
@@ -54,6 +54,7 @@ const HomeScreen = (props) => {
       const uid = startRoute.uid; 
       
       setRoute(uid);
+
       context.enableGeo(); 
       setStartGeo(true);
     }
@@ -112,14 +113,14 @@ const HomeScreen = (props) => {
   async function deleteAllSavedPhotos() {
     try {
       await AsyncStorage.clear();
-      /*сonst keys = await AsyncStorage.getAllKeys();
+      const keys = await AsyncStorage.getAllKeys();
       const savedPhotosKeys = keys.filter(key => key.startsWith('savedPhotos_'));
       await AsyncStorage.multiRemove(savedPhotosKeys);
-      console.log('Все фотографии успешно удалены.');*/
+      console.log('Все фотографии успешно удалены.');
     } catch (error) {
       console.log('Ошибка при удалении фотографий:', error);
     }
-  }
+  }  
 
   //deleteAllSavedPhotos();
 

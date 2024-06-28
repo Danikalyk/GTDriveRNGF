@@ -5,17 +5,13 @@ import {
   ButtonGroup,
   Icon,
   List,
-  Divider,
   Card,
   Toggle,
   Modal,
   BottomNavigation,
   BottomNavigationTab,
 } from '@ui-kitten/components';
-
 import { SvgXml } from 'react-native-svg';
-
-
 import {
   getCardStatus,
   getToggleCardStatus,
@@ -23,13 +19,11 @@ import {
   getDateFromJSON,
 } from '../components/functions.js';
 import {NavigationContainer} from '@react-navigation/native';
-import React from 'react';
-//import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-//import { faTwitter } from '@fortawesome/free-brands-svg-icons';
+import React, { useEffect, useCallback } from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {Alert, Linking, View} from 'react-native';
+import {RefreshControl, Alert, Linking, View} from 'react-native';
 import {openAddressOnMap} from '../utils/openAddressOnMap';
 import {RouterListItem} from '../types';
 import {postRoute} from '../api/routes';
@@ -39,11 +33,9 @@ import find from 'lodash/find';
 import AccidentScreen from './AccidentScreen';
 import {styles} from '../styles';
 import {useNavigation} from '@react-navigation/native';
-import {navigate} from '../RootNavigation.js';
 import { getRequest } from '../api/request.js';
 
 //type Props = {};
-
 
 const telegramXml = `
 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 32 32">
@@ -62,18 +54,16 @@ const RouteScreen = (props: Props) => {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const {Navigator, Screen} = createBottomTabNavigator();
   const [nextPointDrive, setNextPointDrive] = React.useState(false);
-  const navigation = useNavigation();
-
   const propsParams = props?.route?.params;
   const uid = propsParams.uid;
   const uidPoint = propsParams.uidPoint;
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+   
+
+
+  const onRefresh = useCallback(() => {
+    mutate();
+  }, [mutate]);
 
   const {
     data: route,
@@ -81,6 +71,8 @@ const RouteScreen = (props: Props) => {
     mutate,
     error,
   } = useSWR(`/route/${uid}`, getRequest);
+
+  //const [points, setPoints] = React.useState(route?.points);
 
   const points = route?.points;
   const point = find(points, {uidPoint: uidPoint});
@@ -91,6 +83,16 @@ const RouteScreen = (props: Props) => {
     uidPoint,
     points,
   };
+ 
+  const{ needRefresh } = route.params || {};
+
+  console.log("needRefresh", needRefresh);
+  
+  if(needRefresh) {
+    onRefresh();
+  }
+
+  
 
   // ---------- Открытие модального окна происшествия ----------
 
@@ -99,6 +101,7 @@ const RouteScreen = (props: Props) => {
   const handleCloseAccidentModal = () => {
     setVisibleAccident(false);
   };
+
 
   // ---------- Открытие навигатора ----------
 
@@ -197,7 +200,7 @@ const RouteScreen = (props: Props) => {
   const renderMainCardButtons = item => {
     return (
       <ButtonGroup
-        selectedIndex={selectedIndex}
+        selectedIndex={selectedIndex}e
         onSelect={onSelect}
         style={{flex: 1, justifyContent: 'space-between', flexDirection: 'row'}}
         appearance="outline"
@@ -251,12 +254,16 @@ const RouteScreen = (props: Props) => {
   // ---------- Кнопки ----------
 
   const renderButtonStartPoint = () => {
+    hasStartedPoint = points.find(item => item.status === 1);
+
     return (
-      <View>
-        <Button style={{}} onPress={startCurrentPoint}>
-          Начать следование
-        </Button>
-      </View>
+      !hasStartedPoint && (
+        <View>
+          <Button style={{}} onPress={startCurrentPoint}>
+            Начать следование
+          </Button>
+        </View>
+      )
     );
   };
 
@@ -271,7 +278,7 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderButtonFinishPoint = () => {
-    return (
+    return (!nextPointDrive && (
       <View>
         <Button
           style={{}}
@@ -280,6 +287,7 @@ const RouteScreen = (props: Props) => {
           Завершить точку
         </Button>
       </View>
+      )
     );
   };
 
@@ -303,12 +311,7 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderMainCardFooter = params => {
-    if (params.status === 3) {
-      return renderButtonCompletePoint();
-    }
-
-    allOrderFinished =
-      !!params.orders && params.orders.every(order => order.status === 3);
+    allOrderFinished = !!params.orders && params.orders.every(order => order.status === 3);
 
     if (params.point === 0) {
       //-- ЭтоТочка
@@ -318,6 +321,8 @@ const RouteScreen = (props: Props) => {
         return renderButtonOpenNavigator(params);
       } else if (params.status === 2 && allOrderFinished) {
         return renderButtonFinishPoint();
+      } else if (params.status === 3) {
+        return renderButtonCompletePoint();
       }
     } else if (params.point === 1) {
       //-- ЭтоСклад
@@ -325,6 +330,8 @@ const RouteScreen = (props: Props) => {
         return renderButtonOpenNavigator(params);
       } else if (params.status === 2 && allOrderFinished) {
         return renderButtonFinishPoint();
+      } else if (params.status === 3) {
+        return renderButtonCompletePoint();
       }
     }
   };
@@ -339,12 +346,11 @@ const RouteScreen = (props: Props) => {
     const nextPoint = sortedPoints.find((point, index) => index > currentIndex);
 
     return nextPoint;
-  }
+  };
 
   const renderNextPointCard = () => {
     const nextPoint = findNextPoint();
-    const showAddress =
-      nextPoint && nextPoint.address !== nextPoint.client_name;
+    const showAddress = nextPoint && nextPoint.address !== nextPoint.client_name;
 
     return (
       nextPoint &&
@@ -456,12 +462,16 @@ const RouteScreen = (props: Props) => {
       return;
     }
 
-    toggleStatus = getToggleCardStatus(item);
-
     if (
-      toggleStatus ||
-      item.tasks.length === 0 ||
-      item.tasks.every(task => task.status === 3)
+      item.tasks.length === 0
+      &&
+      item.status === 3 
+    ) {
+      Alert.alert("Время зафиксировано");
+    } else if (
+      item.tasks.length === 0
+      &&
+      item.status < 3
     ) {
       setModalContent(
         <Card
@@ -629,9 +639,9 @@ const RouteScreen = (props: Props) => {
 
     await postRoute(uid, data);
 
-    setNextPointDrive(true);
-
     //mutate();
+
+    setNextPointDrive(true);  
   };
 
   const putTimeCardToServer = async item => {
@@ -673,6 +683,7 @@ const RouteScreen = (props: Props) => {
         data={orders}
         ListHeaderComponent={renderMainCard(point)}
         renderItem={renderCardOrder}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
       />
 
       {renderModalWindow()}
@@ -689,7 +700,7 @@ const RouteScreen = (props: Props) => {
   // ---------- Фотографии ----------
 
   const PhotoScreen = () => {
-    if (point.status === 1 || point.status === 2) {
+    if (point.status !== 0) {
       return (
         <SafeAreaView style={{flex: 1}}>
           <Layout>

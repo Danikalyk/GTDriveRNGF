@@ -3,18 +3,16 @@
 /* eslint-disable react/no-unstable-nested-components */
 import map_scripts from '../map_scripts';
 import useSWR from 'swr';
-import Loader from '../components/Icons/Loader';
 import { Layout, List, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
 import React, { useEffect, useContext, useRef, useState } from 'react';
 import { View, Alert, ActivityIndicator } from 'react-native';
-import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getRoute, postRoute, getOSRM } from '../api/routes';
+import { postRoute, getOSRM } from '../api/routes';
 import { RouterListItem } from '../types';
 import { NavigationContainer } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { GlobalState } from '../store/global/global.state';
-import { getCardStatus, getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
+import { getCardStatus, getDataPostRoute } from '../components/functions.js';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { styles } from '../styles';
 import { UserContext } from '../store/user/UserProvider';
@@ -31,6 +29,7 @@ const RouteScreen = (props: Props) => {
   const Map_Ref = useRef(null);
   const lat = location?.coords?.latitude;
   const lon = location?.coords?.longitude;
+  const { Navigator, Screen } = createBottomTabNavigator();
 
   useEffect(() => {
     setPending(false);
@@ -53,11 +52,7 @@ const RouteScreen = (props: Props) => {
   let points = routeItem?.points;
   points = [...points].sort((a, b) => a.sort - b.sort);
 
-
-  // Табы
-  const { Navigator, Screen } = createBottomTabNavigator();
-
-  // ---------- Карточки шапки ----------
+  // ---------- Карточки Маршрута Доставки ----------
 
   const renderMainCard = () => {
     const currenRoute = routeItem.status === 1 && routeItem.check;
@@ -104,14 +99,11 @@ const RouteScreen = (props: Props) => {
     )
   }
 
-  const icon = (props, iconName) => (
-    <Icon {...props} name={iconName} />
-  );
-
   const renderMainCardFooter = () => {
-    if (!routeItem.check) {
-      //const otherRoute = (currentRoute !== uid);
-      const otherRoute = false;
+    allPointsFinished = points.every(point => point.status === 3);
+
+    if (!routeItem.check && !allPointsFinished) {
+      const otherRoute = currentRoute && (currentRoute !== uid);
       const buttonText = otherRoute ? 'В работе другой маршрут' : 'Начать Маршрут';
       const buttonIcon = otherRoute ? 'stop-circle' : 'flag';
       const buttonDisabled = pending || otherRoute;
@@ -128,6 +120,18 @@ const RouteScreen = (props: Props) => {
           </Button>
         </View>
       );
+    } else if (allPointsFinished && routeItem.check){
+      return (
+        <View>
+          <Button
+            onPress={finishThisRoute}
+            accessoryLeft={<Icon {...props} name='flag-outline' />}
+            style={{}}
+          >
+            Завершить маршрут
+          </Button>
+        </View>
+      ) 
     }
   };
 
