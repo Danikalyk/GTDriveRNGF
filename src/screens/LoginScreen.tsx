@@ -14,7 +14,8 @@ import localStorage from '../store/localStorage';
 import Loader from '../components/Icons/Loader';
 import { appVersion } from '../version';
 import { getUpdate } from '../api/routes';
-
+import RNFS from 'react-native-fs';
+import { downloadFile } from 'react-native-fs';
 
 const LoginScreen = ({ navigation }: Props) => {
   const context = useContext(GlobalState);
@@ -105,11 +106,15 @@ const LoginScreen = ({ navigation }: Props) => {
 
   getUpdate().then(data => {
     if (data.version !== appVersion) {
-      //-- Заделка для скачки приложения
+      downloadAndInstallApk(data.link);
     }
   }).catch(error => {
     console.error(error);
   });
+
+
+  const downloadAndInstallApk = async (apkUrl) => {
+  };
   
   return (
     <SafeAreaView style={styles.container}>

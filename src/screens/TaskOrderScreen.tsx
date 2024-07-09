@@ -26,7 +26,7 @@ const TaskOrderScreen = (props: Props) => {
     const propsParams = props?.route?.params;
     const uid = propsParams.uid;
     const goBack = () => {
-        navigation.goBack({ needRefresh: true});
+        navigation.goBack({ post: true});
     };
 
     useEffect(() => {
@@ -62,7 +62,7 @@ const TaskOrderScreen = (props: Props) => {
 
     const renderListHeader = () => {
         return (
-            <View>
+            <View style={{}}>
                 <Text category="label" style={styles.titleList}><Icon name="info-outline" width={23} height={23} style={styles.textHeaderCardIcon}></Icon> Задачи по заказу {order?.name}</Text>
             </View>
         )

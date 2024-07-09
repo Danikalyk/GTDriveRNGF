@@ -1,13 +1,6 @@
 import {
-  Button,
   Layout,
-  Text,
-  ButtonGroup,
-  Icon,
-  List,
-  ListItem,
-  Divider,
-  CheckBox,
+  Text
 } from '@ui-kitten/components';
 import React from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';

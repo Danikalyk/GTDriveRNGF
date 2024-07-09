@@ -109,7 +109,7 @@ const AddPhoto = (props) => {
     // Предположим, что у новых фотографий свойство "uploaded" равно false
     //data.images = newImages.map(image => image.assets[0].base64);
 
-    data.images = images;
+    data.images = newImages;
     data = JSON.stringify(data);
 
     await acceptImages(data);

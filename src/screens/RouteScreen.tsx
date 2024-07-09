@@ -4,12 +4,12 @@
 import map_scripts from '../map_scripts';
 import useSWR from 'swr';
 import { Layout, List, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
-import React, { useEffect, useContext, useRef, useState } from 'react';
-import { View, Alert, ActivityIndicator } from 'react-native';
+import React, { useEffect, useContext, useRef, useCallback } from 'react';
+import { View, Alert, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { postRoute, getOSRM } from '../api/routes';
 import { RouterListItem } from '../types';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { GlobalState } from '../store/global/global.state';
 import { getCardStatus, getDataPostRoute } from '../components/functions.js';
@@ -30,10 +30,26 @@ const RouteScreen = (props: Props) => {
   const lat = location?.coords?.latitude;
   const lon = location?.coords?.longitude;
   const { Navigator, Screen } = createBottomTabNavigator();
+  const navigation = useNavigation();
+  const goBack = () => {
+    navigation.goBack();
+  };
 
   useEffect(() => {
     setPending(false);
   }, []);
+
+  const onRefresh = useCallback(() => {
+    mutate(); // Обновление данных
+  }, [mutate]);
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      mutate();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const uid = props?.route?.params?.uid;
   const {
@@ -70,7 +86,7 @@ const RouteScreen = (props: Props) => {
           status='danger'
           header={renderMainCardHeader()}
           footer={renderMainCardFooter()}
-          style={styles.containerCards}
+          style={{...styles.containerCards, borderWidth: 1, borderColor: "#FF3D72"}}
         >
           <Text category="c2">
             Объем: {routeItem?.volume}, м3
@@ -120,7 +136,7 @@ const RouteScreen = (props: Props) => {
           </Button>
         </View>
       );
-    } else if (allPointsFinished && routeItem.check){
+    } else if (allPointsFinished && routeItem.check && routeItem.status !== 3){
       return (
         <View>
           <Button
@@ -131,6 +147,17 @@ const RouteScreen = (props: Props) => {
             Завершить маршрут
           </Button>
         </View>
+      ) 
+    } else if (routeItem.status === 3){ 
+      return (
+        <Button
+          style={{}}
+          appearance="outline"
+          status="success"
+          accessoryLeft={<Icon name="checkmark-circle-2-outline" />}
+        >
+          Маршрут завершен
+        </Button>
       ) 
     }
   };
@@ -282,7 +309,7 @@ const renderCardPointNameIcon = item => (
 const PointsScreen = () => (
   <SafeAreaView>
     <List
-      //refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
       style={{}}
       data={points}
       renderItem={renderCardsPoint}
@@ -413,7 +440,9 @@ const finishThisRoute = async () => {
 
   await postRoute(uid, data);
 
-  mutate();
+  goBack();
+
+  //mutate();
 };
 
 // ---------- Табы ----------

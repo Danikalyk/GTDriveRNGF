@@ -9,6 +9,7 @@ import { getCardStatus } from '../components/functions';
 import { styles } from '../styles';
 import useSWR from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 
 const HomeScreen = (props) => {
   const [startGeo, setStartGeo] = useState(false);
@@ -16,12 +17,21 @@ const HomeScreen = (props) => {
   const context = useContext(GlobalState);
   const { data: routes, mutate } = useSWR(`/routes?user=${currentUser}`, () => getRoutes(currentUser)); 
   const [startRoute, setStartRoute] = useState(null);
+  const navigation = useNavigation();
   //const [sortRoutes, setSortRoutes] = useState([]);
  // const [updatedRoutes, setRoutes] = useState([]); 
 
   const onRefresh = useCallback(() => {
     mutate(); // Обновление данных
   }, [mutate]);
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      mutate();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
   
   const handleLongPress = (item) => {
     /*console.log('Вызвано сообщение об удалении элемента');
@@ -59,6 +69,14 @@ const HomeScreen = (props) => {
       setStartGeo(true);
     }
   }, [routes, context, startGeo]);
+
+  const data = routes?.slice().sort((a, b) => {
+    if (a.start !== b.start) {
+      return b.start - a.start; 
+    } else {
+      return a.status - b.status;
+    }
+  });
 
   const getCardRouteStatus= (item) => {
     let status = getCardStatus(item.status);
@@ -116,6 +134,7 @@ const HomeScreen = (props) => {
       const keys = await AsyncStorage.getAllKeys();
       const savedPhotosKeys = keys.filter(key => key.startsWith('savedPhotos_'));
       await AsyncStorage.multiRemove(savedPhotosKeys);
+      
       console.log('Все фотографии успешно удалены.');
     } catch (error) {
       console.log('Ошибка при удалении фотографий:', error);
@@ -135,7 +154,7 @@ const HomeScreen = (props) => {
       <FlatList
         refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         style={{}}
-        data={routes}
+        data={data}
         renderItem={renderItemCard}
         keyExtractor={(item) => item.uid}
       />

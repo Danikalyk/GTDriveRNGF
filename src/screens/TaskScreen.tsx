@@ -18,7 +18,7 @@ import {
   getDataPostRoute,
   getDateFromJSON,
 } from '../components/functions.js';
-import {NavigationContainer} from '@react-navigation/native';
+import { NavigationContainer, useFocusEffect, useRoute } from '@react-navigation/native';
 import React, { useEffect, useCallback } from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -48,6 +48,7 @@ const whatsappXml = `
 `
 
 const RouteScreen = (props: Props) => {
+  const navigation = useNavigation();
   const [refreshing, setRefreshing] = React.useState(false);
   const [visible, setVisible] = React.useState(false);
   const [modalContent, setModalContent] = React.useState(null);
@@ -57,13 +58,21 @@ const RouteScreen = (props: Props) => {
   const propsParams = props?.route?.params;
   const uid = propsParams.uid;
   const uidPoint = propsParams.uidPoint;
-
-   
-
-
+  const goBack = () => {
+    navigation.goBack({ post: true});
+  };
+  
   const onRefresh = useCallback(() => {
     mutate();
   }, [mutate]);
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      mutate();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const {
     data: route,
@@ -83,16 +92,6 @@ const RouteScreen = (props: Props) => {
     uidPoint,
     points,
   };
- 
-  const{ needRefresh } = route.params || {};
-
-  console.log("needRefresh", needRefresh);
-  
-  if(needRefresh) {
-    onRefresh();
-  }
-
-  
 
   // ---------- Открытие модального окна происшествия ----------
 
@@ -198,6 +197,9 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderMainCardButtons = item => {
+    const telegram = route.telegram;
+    const whatsapp = route.whatsapp;
+    
     return (
       <ButtonGroup
         selectedIndex={selectedIndex}e
@@ -238,6 +240,7 @@ const RouteScreen = (props: Props) => {
       </ButtonGroup>
     );
   };
+  
 
   const openTelegramWithNumber = phoneNumber => {
     Linking.openURL(`https://t.me/${phoneNumber}`);
@@ -254,15 +257,29 @@ const RouteScreen = (props: Props) => {
   // ---------- Кнопки ----------
 
   const renderButtonStartPoint = () => {
-    hasStartedPoint = points.find(item => item.status === 1);
-
+    hasStartedPoint = points.some(item => item.status === 1 || item.status === 2);
+ 
     return (
       !hasStartedPoint && (
         <View>
-          <Button style={{}} onPress={startCurrentPoint}>
+          <Button 
+            style={{}} 
+            accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
+            onPress={startCurrentPoint}>
             Начать следование
           </Button>
-        </View>
+        </View> 
+      ) || (
+        <View>
+          <Button 
+            style={{}} 
+            accessoryLeft={<Icon {...props} name='clock-outline' />}
+            appearance="outline"
+            status="warning"
+            onPress={{}}>
+            В следовании другая точка
+          </Button>
+        </View>  
       )
     );
   };
@@ -270,7 +287,10 @@ const RouteScreen = (props: Props) => {
   const renderButtonOpenNavigator = (params) => {
     return (
       <View>
-        <Button style={{}} onPress={() => handleOpenNavigator(params)}>
+        <Button 
+          style={{}} 
+          accessoryLeft={<Icon name="compass-outline" />}
+          onPress={() => handleOpenNavigator(params)}>
           Открыть в навигаторе
         </Button>
       </View>
@@ -351,8 +371,36 @@ const RouteScreen = (props: Props) => {
   const renderNextPointCard = () => {
     const nextPoint = findNextPoint();
     const showAddress = nextPoint && nextPoint.address !== nextPoint.client_name;
+    const allPointsFinished = points.some(item => item.status === 0);
 
-    return (
+    return (!allPointsFinished && !nextPoint && (
+      <Layout>
+          <Text category="label" style={styles.titleList}>
+            <Icon
+              name="flag-outline"
+              width={20}
+              height={20}
+              style={styles.textHeaderCardIcon}></Icon>
+            Все точки завершены
+          </Text>
+          <Card
+            status="success"
+            style={styles.containerCards}>
+            <View>
+            <Button
+                style={{}}
+                appearance="outline"
+                status="primary"
+                accessoryLeft={<Icon name="arrow-back-outline" />}
+                onPress={() => goBack()}
+              >
+                Вернуться
+              </Button>
+            </View>
+          </Card>
+        </Layout>
+    ) || 
+      allPointsFinished &&
       nextPoint &&
       nextPointDrive && (
         <Layout>
