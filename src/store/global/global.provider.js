@@ -51,9 +51,10 @@ export const GlobalStateProvider = ({children}) => {
 
   async function requestStoragePermission() {
     try {
-      if (Number(Platform.Version) >= 33) {
-        return true;
-      }
+      // if (Number(Platform.Version) >= 33) {
+
+      //   return true;
+      // }
 
       const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
 
@@ -62,7 +63,7 @@ export const GlobalStateProvider = ({children}) => {
         return true;
       }
 
-      const status = await PermissionsAndroid.request(permission, {
+      const granted = await PermissionsAndroid.request(permission, {
         title: 'Storage Permission Required',
         message:
           'App needs access to your storage to download and install the update.',
@@ -71,14 +72,34 @@ export const GlobalStateProvider = ({children}) => {
         buttonPositive: 'OK',
       });
 
-      console.log('granted', status, PermissionsAndroid.RESULTS.GRANTED);
-      return status === 'granted';
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the camera');
+      } else if (granted === PermissionsAndroid.RESULTS.DENIED) {
+        console.log('Camera permission denied');
+      } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+        console.log("Camera permission denied and don't ask again selected");
+        // openAppSettings();
+        Alert.alert(
+          'Permission needed',
+          'To use this feature, you need to grant camera permission from settings.',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'Open Settings', onPress: () => openAppSettings()},
+          ],
+        );
+      }
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
-      console.log('DFDfHDJhfJDFFJ');
       console.warn(err);
       return false;
     }
   }
+
+  const openAppSettings = () => {
+    Linking.openSettings().catch(() => {
+      console.warn('Cannot open settings');
+    });
+  };
 
   async function downloadAndInstallAPK(url) {
     const hasPermission = await requestStoragePermission();
@@ -92,8 +113,6 @@ export const GlobalStateProvider = ({children}) => {
 
     const fileName = url.split('/').pop();
     const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-
-    console.log('destPath', destPath);
 
     RNFS.downloadFile({
       fromUrl: url,
