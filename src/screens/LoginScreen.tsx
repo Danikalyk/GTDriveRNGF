@@ -1,27 +1,33 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { View, Image, StyleSheet, Alert } from 'react-native';
-import { Button, Icon, Input, Layout, Spinner, Text } from '@ui-kitten/components';
-import { TouchableWithoutFeedback } from '@ui-kitten/components/devsupport';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { saveTokens, userAuth, getDevTokens } from '../api/auth';
-import { navigate } from '../RootNavigation';
-import { GlobalState } from '../store/global/global.state';
+import React, {useContext, useState, useEffect} from 'react';
+import {View, Image, StyleSheet, Alert} from 'react-native';
+import {
+  Button,
+  Icon,
+  Input,
+  Layout,
+  Spinner,
+  Text,
+} from '@ui-kitten/components';
+import {TouchableWithoutFeedback} from '@ui-kitten/components/devsupport';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {saveTokens, userAuth, getDevTokens} from '../api/auth';
+import {navigate} from '../RootNavigation';
+import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 import dayjs from 'dayjs';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import DeviceInfo from 'react-native-device-info';
 import localStorage from '../store/localStorage';
 import Loader from '../components/Icons/Loader';
-import { appVersion } from '../version';
-import { getUpdate } from '../api/routes';
-import RNFS from 'react-native-fs';
-import { downloadFile } from 'react-native-fs';
+import {appVersion} from '../version';
+import {getUpdate} from '../api/routes';
 
-const LoginScreen = ({ navigation }: Props) => {
+
+const LoginScreen = ({navigation}: Props) => {
   const context = useContext(GlobalState);
   const [userID, setUserID] = useState('');
   const [password, setPassword] = useState('');
-  const [pending, setPending] = useState(true);
+  const [pending, setPending] = useState(false);
   const [isSubmit, setSubmit] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const {currentUser, setUser} = useContext(UserContext);
@@ -47,17 +53,12 @@ const LoginScreen = ({ navigation }: Props) => {
     </TouchableWithoutFeedback>
   );
 
-  useEffect(() => {
-    setPending(false);
-    getUpdate();
-  });
-
   const onLogin = async () => {
     setSubmit(true);
     setPending(true);
 
-    const jwtToken = await getDevTokens({ isRefresh: true });
-    await saveTokens({ id: userID, password, jwtToken });
+    const jwtToken = await getDevTokens({isRefresh: true});
+    await saveTokens({id: userID, password, jwtToken});
 
     let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
     let version = DeviceInfo.getVersion();
@@ -67,7 +68,7 @@ const LoginScreen = ({ navigation }: Props) => {
       user: {
         date: dayjs().format(),
         id: userID,
-        password: password
+        password: password,
       },
       device: {
         ID: instanceId,
@@ -82,7 +83,7 @@ const LoginScreen = ({ navigation }: Props) => {
         setUser(userAnswer.userUID);
 
         context.login();
-        //context.enableGeo(); 
+        //context.enableGeo();
         setPending(false);
       } else {
         Alert.alert(userAnswer.error);
@@ -99,23 +100,11 @@ const LoginScreen = ({ navigation }: Props) => {
     navigate('SettingsScreen');
   };
 
-  const handleTextChange = (text) => {
+  const handleTextChange = text => {
     const formattedText = text.replace(/[^0-9]/g, '');
     setUserID(formattedText);
   };
 
-  getUpdate().then(data => {
-    if (data.version !== appVersion) {
-      downloadAndInstallApk(data.link);
-    }
-  }).catch(error => {
-    console.error(error);
-  });
-
-
-  const downloadAndInstallApk = async (apkUrl) => {
-  };
-  
   return (
     <SafeAreaView style={styles.container}>
       <Layout style={styles.layout}>
@@ -149,26 +138,26 @@ const LoginScreen = ({ navigation }: Props) => {
             onChangeText={nextValue => setPassword(nextValue)}
           />
         </View>
-        
+
         <View style={styles.buttonContainer}>
           <Button
             style={styles.settingsButton}
             onPress={gotoSettings}
             accessoryLeft={<Icon name="settings-2-outline" />}
-            appearance="outline"
-          >
+            appearance="outline">
             Настройки
           </Button>
           <Button
             onPress={onLogin}
             disabled={pending}
-            accessoryLeft={pending ? Loader : false}
-          >
+            accessoryLeft={pending ? Loader : false}>
             Войти
           </Button>
-          
+
           <View style={{}}>
-            <Text appearance='hint' style={{fontSize: 10}}>{appVersion}</Text>
+            <Text appearance="hint" style={{fontSize: 10}}>
+              {appVersion}
+            </Text>
           </View>
         </View>
       </Layout>
@@ -198,7 +187,7 @@ const styles = StyleSheet.create({
   spinnerContainer: {
     flex: 1,
     justifyContent: 'center',
-    
+
     position: 'absolute',
     left: 0,
     top: 0,
@@ -211,9 +200,7 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 10,
   },
-  buttonContainer: {
-    
-  },
+  buttonContainer: {},
   settingsButton: {
     marginBottom: 20,
   },

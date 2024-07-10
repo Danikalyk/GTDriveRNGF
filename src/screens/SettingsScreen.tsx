@@ -5,13 +5,14 @@ import {
   Layout,
   TopNavigation,
 } from '@ui-kitten/components';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {getDevTokens} from '../api/auth';
 import {pingServer} from '../api/request';
 import {navigate} from '../RootNavigation';
 import localStorage from '../store/localStorage';
+import {GlobalState} from '../store/global/global.state';
 
 const SettingsScreen = ({navigation}: Props) => {
   const [server, setServer] = React.useState('');
@@ -21,6 +22,11 @@ const SettingsScreen = ({navigation}: Props) => {
   const [isCheckStatus, setCheckStatus] = React.useState(false);
   const [isSubmit, setSubmit] = React.useState(false);
   const [token, setToken] = React.useState('');
+
+  const {showInstaller, updateData, downloadAndInstallAPK} =
+    useContext(GlobalState);
+
+  console.log({showInstaller, updateData});
 
   React.useEffect(() => {
     const init = async () => {
@@ -183,6 +189,13 @@ const SettingsScreen = ({navigation}: Props) => {
                   accessoryLeft={!!token ? SuccessIcon : null}>
                   Обновить токен
                 </Button>
+                {!!showInstaller && (
+                  <Button
+                    style={{margin: 5, marginTop: 10}}
+                    onPress={downloadAndInstallAPK}>
+                    Установить версию {updateData?.version}
+                  </Button>
+                )}
               </>
             )}
           </>
