@@ -101,7 +101,13 @@ export const GlobalStateProvider = ({children}) => {
     });
   };
 
-  async function downloadAndInstallAPK(url) {
+  async function downloadAndInstallAPK() {
+    const url = updateData.link;
+    console.log('Downloading APK...', {updateData});
+    // Linking.openURL(url); // TODO раскомментировать чтобы просто через хром закачать
+    // return
+
+
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
       Alert.alert(
@@ -110,6 +116,8 @@ export const GlobalStateProvider = ({children}) => {
       );
       return;
     }
+
+    
 
     const fileName = url.split('/').pop();
     const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
