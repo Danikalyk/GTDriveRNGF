@@ -98,11 +98,11 @@ const TaskOrderScreen = (props: Props) => {
                     Завершить заказ?
                 </Text>)}
                 <Card
-                    style={styles.containerCards}
+                    style={[styles.containerCards, {borderWidth: 1, borderColor: "#0092FF"}]}
                     status="primary"
                     footer={canFinishOrder && !taskFinished && renderFinishOrderCardFooter()}
                 >
-                    <Text category="c2"> По заказу {order.type} завершены все задачи </Text>
+                    <Text category="c2"> По заказу {order.type} завершены все задачи</Text>
                 </Card>
             </Layout>
 
@@ -175,7 +175,7 @@ const TaskOrderScreen = (props: Props) => {
 
         setModalContent(
             <Card
-                style={{ padding: 5 }}
+                style={{ padding: 1, borderWidth: 1, borderColor: "#FF3D72" }}
                 disabled={true}
                 status='danger'
                 footer={footerModal(item)}
@@ -192,16 +192,23 @@ const TaskOrderScreen = (props: Props) => {
         setVisible(true);
     };
 
-    const renderCardTask = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => (
-        <Card
-            style={styles.containerCards}
-            header={renderCardHeader(item)}
-            status={getCardStatus(item.status)}
-            onPress={() => onPressCardOrder(item)}
-        >
-            {renderCardTaskText(item)}
-        </Card>
-    );
+    const renderCardTask = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => {
+        const finishedTask = item.status === 3;
+
+        return(
+            <Card
+                style={[styles.containerCards,
+                    finishedTask && { borderWidth: 1, borderColor: "#91F2D2" } ||
+                    {borderWidth: 1, borderColor: "#FFAA00"} 
+                ]}
+                header={renderCardHeader(item)}
+                status={finishedTask && "success" || "warning"}
+                onPress={() => onPressCardOrder(item)}
+            >
+                {renderCardTaskText(item)}
+            </Card>
+        )    
+    };
 
     const renderCardTaskText = item => {
         return (

@@ -49,7 +49,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
           appearance="filled"
           onPress={handleSubmit}
           style={{ flex: 1 }}
-          accessoryLeft={<Icon name="checkmark-outline" />}
+          accessoryLeft={<Icon name='checkmark-square-outline' />}
         >
           Подтвердить
         </Button>

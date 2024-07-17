@@ -89,9 +89,16 @@ const HomeScreen = (props) => {
   }
 
   const renderItemCard = ({ item }) => {
+    const currentRoute = item.start;
+    const finishRoute = item.status === 3;
+
     return (
       <Card
-        style={styles.containerCards}
+        style={[
+          styles.containerCards,
+          currentRoute && { borderWidth: 1, borderColor: "#0092FF" } ||
+          finishRoute && { borderWidth: 1, borderColor: "#91F2D2" }
+        ]}
         header={() => renderCardHeader(item)}
         status={getCardRouteStatus(item)}
         onPress={() => props.navigation.navigate('RouteScreen', { ...item })}

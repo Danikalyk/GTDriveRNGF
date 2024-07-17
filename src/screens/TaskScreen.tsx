@@ -159,7 +159,10 @@ const RouteScreen = (props: Props) => {
           status={currentPoint ? 'danger' : 'success'}
           header={renderMainCardHeader(params)}
           footer={renderMainCardFooter(params)}
-          style={styles.containerCards}>
+          style={[styles.containerCards, 
+            currentPoint && { borderWidth: 1, borderColor: "#FF3D72" } ||
+            { borderWidth: 1, borderColor: "#91F2D2" }
+          ]}>
           {renderMainCardButtons(params)}
         </Card>
 
@@ -539,21 +542,25 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const renderCardOrder = ({
-    item,
-    index,
-  }: {
-    item: RouterListItem;
-    index: number;
-  }): React.ReactElement => (
-    <Card
-      style={styles.containerCards}
-      status={getCardStatus(item.status)}
-      header={() => renderCardOrderName(item)}
-      onPress={() => onPressCardOrder(item)}>
-      {renderCardOrderText(item)}
-    </Card>
-  );
+  const renderCardOrder = ({item, index,}: {item: RouterListItem;index: number;}): React.ReactElement => {
+    currentAction = item.status === 1;
+    currentActionOrder = item.status === 2;
+    finishedAction = item.status === 3;
+
+    return (
+      <Card
+        style={[styles.containerCards,
+          currentAction && {borderWidth: 1, borderColor: "#0092FF"} ||
+          finishedAction && {borderWidth: 1, borderColor: "#91F2D2"} ||
+          currentActionOrder && {borderWidth: 1, borderColor: "#FFAA00"} 
+        ]}
+        status={getCardStatus(item.status)}
+        header={() => renderCardOrderName(item)}
+        onPress={() => onPressCardOrder(item)}>
+        {renderCardOrderText(item)}
+      </Card>
+    ) 
+  };
 
   const renderCardOrderText = item => {
     const typeName = item.type !== 1 ? 'Время прибытия:' : 'Время фиксации:';

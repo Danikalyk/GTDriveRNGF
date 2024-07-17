@@ -184,6 +184,7 @@ const RouteScreen = (props: Props) => {
     const statusFirstPoint = points[0].status === 0;
     const isCurrentPoint = (item.status === 1 || item.status === 2) && routeItem.check;
     const isRoutePoint = !isCurrentPoint && ((index === 1 && !statusFirstPoint) || (index === 0 && statusFirstPoint));
+    const finishedPoint = item.status === 3;
   
     return (
       <Layout>
@@ -202,7 +203,10 @@ const RouteScreen = (props: Props) => {
         )}
   
         <Card
-          style={styles.containerCards}
+          style={[styles.containerCards,
+            isCurrentPoint && { borderWidth: 1, borderColor: "#FFA700"} ||
+            finishedPoint && { borderWidth: 1, borderColor: "#91F2D2"} 
+          ]}
           status={getCardStatus(item.status)}
           header={() => renderCardPointName(item)}
           onPress={() => handleOpenTaskScreen(item)}
