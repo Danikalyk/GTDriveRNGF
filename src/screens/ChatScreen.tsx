@@ -152,14 +152,9 @@ const ChatScreen = (props: Props) => {
     console.log('', data);
   };
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+  
 
-  // console.log('ChatScreen', props);
+  
 
   const {currentUser} = useContext(UserContext);
 
@@ -167,6 +162,7 @@ const ChatScreen = (props: Props) => {
 
   const {
     data: dataMessages,
+    mutate,
     error,
     isLoading,
   } = useSWR(`/messages/${user?.uid}`, () =>
@@ -178,6 +174,15 @@ const ChatScreen = (props: Props) => {
       sender: currentUser?.uid,
     }),
   );
+
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    mutate();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   const [messages, setMessages] = useState([]);
 

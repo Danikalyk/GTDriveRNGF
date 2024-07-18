@@ -31,6 +31,7 @@ const RouteScreen = (props: Props) => {
   const lon = location?.coords?.longitude;
   const { Navigator, Screen } = createBottomTabNavigator();
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = React.useState(false);
   const goBack = () => {
     navigation.goBack();
   };
@@ -39,9 +40,7 @@ const RouteScreen = (props: Props) => {
     setPending(false);
   }, []);
 
-  const onRefresh = useCallback(() => {
-    mutate(); // Обновление данных
-  }, []);
+
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -58,6 +57,15 @@ const RouteScreen = (props: Props) => {
     mutate,
     error,
   } = useSWR(`/route/${uid}`, getRequest);
+
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    mutate();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   const routeItem = route;
 

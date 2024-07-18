@@ -19,10 +19,15 @@ const HomeScreen = (props) => {
   const [startRoute, setStartRoute] = useState(null);
   const navigation = useNavigation();
 
+  const [refreshing, setRefreshing] = React.useState(false);
   
 
-  const onRefresh = useCallback(() => {
-    mutate(); // Обновление данных
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    mutate();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
   }, []);
 
   React.useEffect(() => {

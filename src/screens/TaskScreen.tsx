@@ -62,10 +62,7 @@ const RouteScreen = (props: Props) => {
     navigation.goBack({ post: true});
   };
   
-  const onRefresh = useCallback(() => {
-    
-    mutate();
-  }, []);
+ 
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -81,6 +78,15 @@ const RouteScreen = (props: Props) => {
     mutate,
     error,
   } = useSWR(`/route/${uid}`, getRequest);
+
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    mutate();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   //const [points, setPoints] = React.useState(route?.points);
 
