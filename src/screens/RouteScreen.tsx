@@ -21,7 +21,7 @@ import { getRequest } from '../api/request';
 type Props = {};
 
 const RouteScreen = (props: Props) => {
-  const [refreshing, setRefreshing] = React.useState(false);
+  
   const [pending, setPending] = React.useState(true);
   const context = useContext(GlobalState);
   const { currentRoute } = useContext(UserContext);
