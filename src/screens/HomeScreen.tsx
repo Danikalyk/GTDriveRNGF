@@ -18,8 +18,8 @@ const HomeScreen = (props) => {
   const { data: routes, mutate } = useSWR(`/routes?user=${currentUser}`, () => getRoutes(currentUser)); 
   const [startRoute, setStartRoute] = useState(null);
   const navigation = useNavigation();
-  //const [sortRoutes, setSortRoutes] = useState([]);
- // const [updatedRoutes, setRoutes] = useState([]); 
+
+  
 
   const onRefresh = useCallback(() => {
     mutate(); // Обновление данных
@@ -34,7 +34,8 @@ const HomeScreen = (props) => {
   }, [navigation]);
   
   const handleLongPress = (item) => {
-    /*console.log('Вызвано сообщение об удалении элемента');
+    console.log('Вызвано сообщение об удалении элемента')
+    
     Alert.alert(
       'Удаление элемента',
       'Вы уверены, что хотите удалить этот элемент?',
@@ -42,15 +43,15 @@ const HomeScreen = (props) => {
         { text: 'Отмена', style: 'cancel' },
         { text: 'Удалить', onPress: () => handleDeleteItem(item) }
       ]
-    );*/
+    );
   }
 
   const handleDeleteItem = (item) => {
+    console.log('Элемент успешно удален', item);
     // Обновление списка routes, исключая удаленный элемент
-    //const updatedRoutes = routes.filter(route => route.uid !== item.uid);
-    //setRoutes(updatedRoutes);
+    // TODO тут нужно дернуть ручку удаления элемента
 
-    //mutate();
+    mutate();
     
     //console.log('Элемент успешно удален', routes);
   }
@@ -70,7 +71,7 @@ const HomeScreen = (props) => {
     }
   }, [routes, context, startGeo]);
 
-  const data = routes?.slice().sort((a, b) => {
+  const data = routes && Array.isArray(routes) && routes?.slice().sort((a, b) => {
     if (a.start !== b.start) {
       return b.start - a.start; 
     } else {
@@ -160,7 +161,9 @@ const HomeScreen = (props) => {
           
       <FlatList
         refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
-        style={{}}
+        style={{
+          minHeight: '100%',
+        }}
         data={data}
         renderItem={renderItemCard}
         keyExtractor={(item) => item.uid}
