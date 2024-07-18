@@ -63,8 +63,9 @@ const RouteScreen = (props: Props) => {
   };
   
   const onRefresh = useCallback(() => {
+    
     mutate();
-  }, [mutate]);
+  }, []);
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -734,7 +735,9 @@ const RouteScreen = (props: Props) => {
   const TasksScreen = () => (
     <SafeAreaView style={{flex: 1}}>
       <List
-        style={{}}
+        style={{
+          minHeight: '100%',
+        }}
         data={orders}
         ListHeaderComponent={renderMainCard(point)}
         renderItem={renderCardOrder}

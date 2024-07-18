@@ -23,7 +23,7 @@ const HomeScreen = (props) => {
 
   const onRefresh = useCallback(() => {
     mutate(); // Обновление данных
-  }, [mutate]);
+  }, []);
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
