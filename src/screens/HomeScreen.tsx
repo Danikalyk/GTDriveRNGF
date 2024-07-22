@@ -18,12 +18,17 @@ const HomeScreen = (props) => {
   const { data: routes, mutate } = useSWR(`/routes?user=${currentUser}`, () => getRoutes(currentUser)); 
   const [startRoute, setStartRoute] = useState(null);
   const navigation = useNavigation();
-  //const [sortRoutes, setSortRoutes] = useState([]);
- // const [updatedRoutes, setRoutes] = useState([]); 
 
-  const onRefresh = useCallback(() => {
-    mutate(); // Обновление данных
-  }, [mutate]);
+  const [refreshing, setRefreshing] = React.useState(false);
+  
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    mutate();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -55,7 +60,8 @@ const HomeScreen = (props) => {
   }, [navigation, routes, context, startGeo]);
   
   const handleLongPress = (item) => {
-    /*console.log('Вызвано сообщение об удалении элемента');
+    console.log('Вызвано сообщение об удалении элемента')
+    
     Alert.alert(
       'Удаление элемента',
       'Вы уверены, что хотите удалить этот элемент?',
@@ -63,15 +69,15 @@ const HomeScreen = (props) => {
         { text: 'Отмена', style: 'cancel' },
         { text: 'Удалить', onPress: () => handleDeleteItem(item) }
       ]
-    );*/
+    );
   }
 
   const handleDeleteItem = (item) => {
+    console.log('Элемент успешно удален', item);
     // Обновление списка routes, исключая удаленный элемент
-    //const updatedRoutes = routes.filter(route => route.uid !== item.uid);
-    //setRoutes(updatedRoutes);
+    // TODO тут нужно дернуть ручку удаления элемента
 
-    //mutate();
+    mutate();
     
     //console.log('Элемент успешно удален', routes);
   }
@@ -96,6 +102,15 @@ const HomeScreen = (props) => {
   }, [routes, context, startGeo]);*/
 
 
+  }, [routes, context, startGeo]);
+
+  const data = routes && Array.isArray(routes) && routes?.slice().sort((a, b) => {
+    if (a.start !== b.start) {
+      return b.start - a.start; 
+    } else {
+      return a.status - b.status;
+    }
+  });
 
   const getCardRouteStatus= (item) => {
     let status = getCardStatus(item.status);
@@ -175,7 +190,9 @@ const HomeScreen = (props) => {
           
       <FlatList
         refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
-        style={{}}
+        style={{
+          minHeight: '100%',
+        }}
         data={data}
         renderItem={renderItemCard}
         keyExtractor={(item) => item.uid}
