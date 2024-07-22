@@ -5,7 +5,7 @@ import { Card, Icon, Layout, Text, Button } from '@ui-kitten/components';
 import { GlobalState } from '../store/global/global.state';
 import { UserContext } from '../store/user/UserProvider';
 import { getRoutes } from '../api/routes';
-import { getCardStatus } from '../components/functions';
+import { getCardStatus, deleteAllSavedPhotos } from '../components/functions';
 import { styles } from '../styles';
 import useSWR from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,10 +28,31 @@ const HomeScreen = (props) => {
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       mutate();
+
+      const hasStartGeo = routes && Array.isArray(routes) && routes?.some(route => route && route.start === true);
+      setStartRoute(hasStartGeo);
+
+      if (!hasStartGeo) {
+        deleteAllSavedPhotos();
+      }
+
+      if (hasStartGeo && !startGeo) {
+        const startRoute = routes.find(route => route.start === true); 
+        const uid = startRoute.uid; 
+        
+        setRoute(uid);
+
+        context.enableGeo(); 
+        setStartGeo(true);
+      } else {
+        setRoute(null);
+        setStartGeo(false);
+        context.disableGeo();
+      }
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, routes, context, startGeo]);
   
   const handleLongPress = (item) => {
     /*console.log('Вызвано сообщение об удалении элемента');
@@ -55,9 +76,13 @@ const HomeScreen = (props) => {
     //console.log('Элемент успешно удален', routes);
   }
 
-  useEffect(() => {
+  /*useEffect(() => {
     const hasStartGeo = routes && Array.isArray(routes) && routes?.some(route => route && route.start === true);
     setStartRoute(hasStartGeo);
+
+    if (!hasStartGeo) {
+      deleteAllSavedPhotos();
+    }
 
     if (hasStartGeo && !startGeo) {
       const startRoute = routes.find(route => route.start === true); 
@@ -68,15 +93,9 @@ const HomeScreen = (props) => {
       context.enableGeo(); 
       setStartGeo(true);
     }
-  }, [routes, context, startGeo]);
+  }, [routes, context, startGeo]);*/
 
-  const data = routes?.slice().sort((a, b) => {
-    if (a.start !== b.start) {
-      return b.start - a.start; 
-    } else {
-      return a.status - b.status;
-    }
-  });
+
 
   const getCardRouteStatus= (item) => {
     let status = getCardStatus(item.status);
@@ -96,7 +115,7 @@ const HomeScreen = (props) => {
       <Card
         style={[
           styles.containerCards,
-          currentRoute && { borderWidth: 1, borderColor: "#0092FF" } ||
+          currentRoute && !finishRoute && { borderWidth: 1, borderColor: "#0092FF" } ||
           finishRoute && { borderWidth: 1, borderColor: "#91F2D2" }
         ]}
         header={() => renderCardHeader(item)}
@@ -134,21 +153,17 @@ const HomeScreen = (props) => {
     </View>
   );
 
-  //-- Если нет активных маршрутов, то удаляем все фото
-  async function deleteAllSavedPhotos() {
-    try {
-      await AsyncStorage.clear();
-      const keys = await AsyncStorage.getAllKeys();
-      const savedPhotosKeys = keys.filter(key => key.startsWith('savedPhotos_'));
-      await AsyncStorage.multiRemove(savedPhotosKeys);
-      
-      console.log('Все фотографии успешно удалены.');
-    } catch (error) {
-      console.log('Ошибка при удалении фотографий:', error);
-    }
-  }  
-
-  //deleteAllSavedPhotos();
+  let data = routes && Array.isArray(routes);
+  
+  if (data) {
+    data = routes?.slice().sort((a, b) => {
+      if (a.start !== b.start) {
+        return b.start - a.start; 
+      } else {
+        return a.status - b.status;
+      }
+    });
+  }
 
   return (
     <SafeAreaView>

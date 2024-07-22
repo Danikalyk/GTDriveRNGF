@@ -24,7 +24,7 @@ const RouteScreen = (props: Props) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [pending, setPending] = React.useState(true);
   const context = useContext(GlobalState);
-  const { currentRoute } = useContext(UserContext);
+  const { currentRoute, setRoute } = useContext(UserContext);
   const { location } = useContext(GlobalState);
   const Map_Ref = useRef(null);
   const lat = location?.coords?.latitude;
@@ -118,6 +118,8 @@ const RouteScreen = (props: Props) => {
   const renderMainCardFooter = () => {
     allPointsFinished = points.every(point => point.status === 3);
 
+ 
+
     if (!routeItem.check && !allPointsFinished) {
       const otherRoute = currentRoute && (currentRoute !== uid);
       const buttonText = otherRoute ? 'В работе другой маршрут' : 'Начать Маршрут';
@@ -204,7 +206,7 @@ const RouteScreen = (props: Props) => {
   
         <Card
           style={[styles.containerCards,
-            isCurrentPoint && { borderWidth: 1, borderColor: "#FFA700"} ||
+            isCurrentPoint && { borderWidth: 1, borderColor: "#0092FF"} ||
             finishedPoint && { borderWidth: 1, borderColor: "#91F2D2"} 
           ]}
           status={getCardStatus(item.status)}
@@ -433,6 +435,9 @@ const getThisRoute = async () => {
 
 const finishThisRoute = async () => {
   //-- stopGeo
+
+  context.disableGeo(); 
+  setRoute(null);
 
   let data = getDataPostRoute();
   data.screen = 0;

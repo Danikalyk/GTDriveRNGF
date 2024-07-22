@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // status - Статусы
 //
 // Параметры:
@@ -61,6 +63,20 @@ export const getDateFromJSON = dateString => {
 
     return formattedDate;
 }
+
+ //-- Если нет активных маршрутов, то удаляем все фото
+ export async function deleteAllSavedPhotos() {
+    try {
+      await AsyncStorage.clear();
+      const keys = await AsyncStorage.getAllKeys();
+      const savedPhotosKeys = keys.filter(key => key.startsWith('savedPhotos_'));
+      await AsyncStorage.multiRemove(savedPhotosKeys);
+      
+      console.log('Все фотографии успешно удалены.');
+    } catch (error) {
+      console.log('Ошибка при удалении фотографий:', error);
+    }
+  } 
 
 
 
