@@ -21,14 +21,13 @@ const HomeScreen = (props) => {
 
   const [refreshing, setRefreshing] = React.useState(false);
   
-
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     mutate();
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
-  }, []);
+  }, [mutate]);
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -101,9 +100,6 @@ const HomeScreen = (props) => {
     }
   }, [routes, context, startGeo]);*/
 
-
-  }, [routes, context, startGeo]);
-
   const data = routes && Array.isArray(routes) && routes?.slice().sort((a, b) => {
     if (a.start !== b.start) {
       return b.start - a.start; 
@@ -167,18 +163,6 @@ const HomeScreen = (props) => {
       </Layout>
     </View>
   );
-
-  let data = routes && Array.isArray(routes);
-  
-  if (data) {
-    data = routes?.slice().sort((a, b) => {
-      if (a.start !== b.start) {
-        return b.start - a.start; 
-      } else {
-        return a.status - b.status;
-      }
-    });
-  }
 
   return (
     <SafeAreaView>
