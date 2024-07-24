@@ -62,8 +62,6 @@ const RouteScreen = (props: Props) => {
     navigation.goBack({ post: true});
   };
   
- 
-
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       mutate();

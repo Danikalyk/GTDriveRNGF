@@ -81,25 +81,6 @@ const HomeScreen = (props) => {
     //console.log('Элемент успешно удален', routes);
   }
 
-  /*useEffect(() => {
-    const hasStartGeo = routes && Array.isArray(routes) && routes?.some(route => route && route.start === true);
-    setStartRoute(hasStartGeo);
-
-    if (!hasStartGeo) {
-      deleteAllSavedPhotos();
-    }
-
-    if (hasStartGeo && !startGeo) {
-      const startRoute = routes.find(route => route.start === true); 
-      const uid = startRoute.uid; 
-      
-      setRoute(uid);
-
-      context.enableGeo(); 
-      setStartGeo(true);
-    }
-  }, [routes, context, startGeo]);*/
-
   const data = routes && Array.isArray(routes) && routes?.slice().sort((a, b) => {
     if (a.start !== b.start) {
       return b.start - a.start; 

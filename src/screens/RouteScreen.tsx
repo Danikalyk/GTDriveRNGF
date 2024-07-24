@@ -126,8 +126,6 @@ const RouteScreen = (props: Props) => {
   const renderMainCardFooter = () => {
     allPointsFinished = points.every(point => point.status === 3);
 
- 
-
     if (!routeItem.check && !allPointsFinished) {
       const otherRoute = currentRoute && (currentRoute !== uid);
       const buttonText = otherRoute ? 'В работе другой маршрут' : 'Начать Маршрут';
@@ -444,8 +442,6 @@ const getThisRoute = async () => {
 };
 
 const finishThisRoute = async () => {
-  //-- stopGeo
-
   context.disableGeo(); 
   setRoute(null);
 
