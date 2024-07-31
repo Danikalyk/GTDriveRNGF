@@ -116,10 +116,13 @@ function useGeolocation(enabledGeo) {
             uid: currentUser,
             uidRoute: currentRoute
           },
-          provider: {gps: providerState?.gps, network: providerState?.network},
+          provider: {
+            gps: providerState?.gps, 
+            network: providerState?.network
+          },
         },
-        desiredOdometerAccuracy: 10, //-- точность выброса, по умолчанию = 100 
-        elasticityMultiplier: 3, //--  величение elasticityMultiplierприведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
+        desiredOdometerAccuracy: 5, //-- точность выброса, по умолчанию = 100 
+        elasticityMultiplier: 3, //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
         geofenceProximityRadius: 100 //-- радиус геозоны
       })
         .then(state => {
