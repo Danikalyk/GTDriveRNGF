@@ -161,6 +161,7 @@ export const GlobalStateProvider = ({children}) => {
         dispatch({type: actions.LOGIN});
       },
       logout: () => {
+        dispatch({type: actions.DISABLE_GEO});
         dispatch({type: actions.LOGOUT});
       },
       setLightTheme: () => {
@@ -179,7 +180,7 @@ export const GlobalStateProvider = ({children}) => {
         dispatch({type: actions.ENABLE_GEO});
       },
       disableGeo: () => {
-        dispatch({type: actions.s});
+        dispatch({type: actions.DISABLE_GEO});
       },
       setLocation: location => {
         dispatch({type: actions.SET_LOCATION, payload: location});
