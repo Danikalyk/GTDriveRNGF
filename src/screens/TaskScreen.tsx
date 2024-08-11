@@ -11,15 +11,19 @@ import {
   BottomNavigation,
   BottomNavigationTab,
 } from '@ui-kitten/components';
-import { SvgXml } from 'react-native-svg';
+import {SvgXml} from 'react-native-svg';
 import {
   getCardStatus,
   getToggleCardStatus,
   getDataPostRoute,
   getDateFromJSON,
 } from '../components/functions.js';
-import { NavigationContainer, useFocusEffect, useRoute } from '@react-navigation/native';
-import React, { useEffect, useCallback } from 'react';
+import {
+  NavigationContainer,
+  useFocusEffect,
+  useRoute,
+} from '@react-navigation/native';
+import React, {useEffect, useCallback} from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -33,7 +37,7 @@ import find from 'lodash/find';
 import AccidentScreen from './AccidentScreen';
 import {styles} from '../styles';
 import {useNavigation} from '@react-navigation/native';
-import { getRequest } from '../api/request.js';
+import {getRequest} from '../api/request.js';
 
 //type Props = {};
 
@@ -45,7 +49,7 @@ const telegramXml = `
 
 const whatsappXml = `
 <svg fill="#fff" height="200px" width="200px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 308 308" xml:space="preserve" stroke="#fff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="XMLID_468_"> <path id="XMLID_469_" d="M227.904,176.981c-0.6-0.288-23.054-11.345-27.044-12.781c-1.629-0.585-3.374-1.156-5.23-1.156 c-3.032,0-5.579,1.511-7.563,4.479c-2.243,3.334-9.033,11.271-11.131,13.642c-0.274,0.313-0.648,0.687-0.872,0.687 c-0.201,0-3.676-1.431-4.728-1.888c-24.087-10.463-42.37-35.624-44.877-39.867c-0.358-0.61-0.373-0.887-0.376-0.887 c0.088-0.323,0.898-1.135,1.316-1.554c1.223-1.21,2.548-2.805,3.83-4.348c0.607-0.731,1.215-1.463,1.812-2.153 c1.86-2.164,2.688-3.844,3.648-5.79l0.503-1.011c2.344-4.657,0.342-8.587-0.305-9.856c-0.531-1.062-10.012-23.944-11.02-26.348 c-2.424-5.801-5.627-8.502-10.078-8.502c-0.413,0,0,0-1.732,0.073c-2.109,0.089-13.594,1.601-18.672,4.802 c-5.385,3.395-14.495,14.217-14.495,33.249c0,17.129,10.87,33.302,15.537,39.453c0.116,0.155,0.329,0.47,0.638,0.922 c17.873,26.102,40.154,45.446,62.741,54.469c21.745,8.686,32.042,9.69,37.896,9.69c0.001,0,0.001,0,0.001,0 c2.46,0,4.429-0.193,6.166-0.364l1.102-0.105c7.512-0.666,24.02-9.22,27.775-19.655c2.958-8.219,3.738-17.199,1.77-20.458 C233.168,179.508,230.845,178.393,227.904,176.981z"></path> <path id="XMLID_470_" d="M156.734,0C73.318,0,5.454,67.354,5.454,150.143c0,26.777,7.166,52.988,20.741,75.928L0.212,302.716 c-0.484,1.429-0.124,3.009,0.933,4.085C1.908,307.58,2.943,308,4,308c0.405,0,0.813-0.061,1.211-0.188l79.92-25.396 c21.87,11.685,46.588,17.853,71.604,17.853C240.143,300.27,308,232.923,308,150.143C308,67.354,240.143,0,156.734,0z M156.734,268.994c-23.539,0-46.338-6.797-65.936-19.657c-0.659-0.433-1.424-0.655-2.194-0.655c-0.407,0-0.815,0.062-1.212,0.188 l-40.035,12.726l12.924-38.129c0.418-1.234,0.209-2.595-0.561-3.647c-14.924-20.392-22.813-44.485-22.813-69.677 c0-65.543,53.754-118.867,119.826-118.867c66.064,0,119.812,53.324,119.812,118.867 C276.546,215.678,222.799,268.994,156.734,268.994z"></path> </g> </g></svg>
-`
+`;
 
 const RouteScreen = (props: Props) => {
   const navigation = useNavigation();
@@ -59,9 +63,9 @@ const RouteScreen = (props: Props) => {
   const uid = propsParams.uid;
   const uidPoint = propsParams.uidPoint;
   const goBack = () => {
-    navigation.goBack({ post: true});
+    navigation.goBack({post: true});
   };
-  
+
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       mutate();
@@ -76,7 +80,6 @@ const RouteScreen = (props: Props) => {
     mutate,
     error,
   } = useSWR(`/route/${uid}`, getRequest);
-
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -106,12 +109,9 @@ const RouteScreen = (props: Props) => {
     setVisibleAccident(false);
   };
 
-
   // ---------- Открытие навигатора ----------
 
-  const handleOpenNavigator = async (params) => {
-    
-
+  const handleOpenNavigator = async params => {
     const url = `yandexnavi://build_route_on_map?lat_to=${params.lat}&lon_to=${params.lon}`;
 
     openAddressOnMap('', params.lat, params.lon);
@@ -146,7 +146,7 @@ const RouteScreen = (props: Props) => {
 
   const renderMainCard = params => {
     const currentPoint = params.status === 1 || params.status === 2;
-    
+
     return (
       <Layout>
         {currentPoint && (
@@ -164,9 +164,12 @@ const RouteScreen = (props: Props) => {
           status={currentPoint ? 'danger' : 'success'}
           header={renderMainCardHeader(params)}
           footer={renderMainCardFooter(params)}
-          style={[styles.containerCards, 
-            currentPoint && { borderWidth: 1, borderColor: "#FF3D72" } ||
-            { borderWidth: 1, borderColor: "#91F2D2" }
+          style={[
+            styles.containerCards,
+            (currentPoint && {borderWidth: 1, borderColor: '#FF3D72'}) || {
+              borderWidth: 1,
+              borderColor: '#91F2D2',
+            },
           ]}>
           {renderMainCardButtons(params)}
         </Card>
@@ -207,10 +210,11 @@ const RouteScreen = (props: Props) => {
   const renderMainCardButtons = item => {
     const telegram = route.telegram;
     const whatsapp = route.whatsapp;
-    
+
     return (
       <ButtonGroup
-        selectedIndex={selectedIndex}e
+        selectedIndex={selectedIndex}
+        e
         onSelect={onSelect}
         style={{flex: 1, justifyContent: 'space-between', flexDirection: 'row'}}
         appearance="outline"
@@ -225,18 +229,13 @@ const RouteScreen = (props: Props) => {
         <Button
           key={2}
           onPress={() => openTelegramWithNumber('79222965859')}
-          accessoryLeft={
-            <SvgXml xml={telegramXml} width={20} height={20} />
-
-          }
+          accessoryLeft={<SvgXml xml={telegramXml} width={20} height={20} />}
           style={{backgroundColor: '#0088cc', marginRight: 0, flex: 1}}
         />
         <Button
           key={3}
           onPress={() => openWhatsAppWithNumber('79222965859')}
-          accessoryLeft={
-            <SvgXml xml={whatsappXml} width={20} height={20} />
-          }
+          accessoryLeft={<SvgXml xml={whatsappXml} width={20} height={20} />}
           style={{backgroundColor: '#43d854', marginRight: 0, flex: 1}}
         />
         <Button
@@ -248,7 +247,6 @@ const RouteScreen = (props: Props) => {
       </ButtonGroup>
     );
   };
-  
 
   const openTelegramWithNumber = phoneNumber => {
     Linking.openURL(`https://t.me/${phoneNumber}`);
@@ -265,38 +263,40 @@ const RouteScreen = (props: Props) => {
   // ---------- Кнопки ----------
 
   const renderButtonStartPoint = () => {
-    hasStartedPoint = points.some(item => item.status === 1 || item.status === 2);
- 
+    hasStartedPoint = points.some(
+      item => item.status === 1 || item.status === 2,
+    );
+
     return (
-      !hasStartedPoint && (
+      (!hasStartedPoint && (
         <View>
-          <Button 
-            style={{}} 
+          <Button
+            style={{}}
             accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
             onPress={startCurrentPoint}>
             Начать следование
           </Button>
-        </View> 
-      ) || (
+        </View>
+      )) || (
         <View>
-          <Button 
-            style={{}} 
-            accessoryLeft={<Icon {...props} name='clock-outline' />}
+          <Button
+            style={{}}
+            accessoryLeft={<Icon {...props} name="clock-outline" />}
             appearance="outline"
             status="warning"
             onPress={{}}>
             В следовании другая точка
           </Button>
-        </View>  
+        </View>
       )
     );
   };
 
-  const renderButtonOpenNavigator = (params) => {
+  const renderButtonOpenNavigator = params => {
     return (
       <View>
-        <Button 
-          style={{}} 
+        <Button
+          style={{}}
           accessoryLeft={<Icon name="compass-outline" />}
           onPress={() => handleOpenNavigator(params)}>
           Открыть в навигаторе
@@ -306,15 +306,16 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderButtonFinishPoint = () => {
-    return (!nextPointDrive && (
-      <View>
-        <Button
-          style={{}}
-          onPress={finishCurrentPoint}
-          accessoryLeft={<Icon name="flag" />}>
-          Завершить точку
-        </Button>
-      </View>
+    return (
+      !nextPointDrive && (
+        <View>
+          <Button
+            style={{}}
+            onPress={finishCurrentPoint}
+            accessoryLeft={<Icon name="flag" />}>
+            Завершить точку
+          </Button>
+        </View>
       )
     );
   };
@@ -339,7 +340,8 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderMainCardFooter = params => {
-    allOrderFinished = !!params.orders && params.orders.every(order => order.status === 3);
+    allOrderFinished =
+      !!params.orders && params.orders.every(order => order.status === 3);
 
     if (params.point === 0) {
       //-- ЭтоТочка
@@ -374,15 +376,17 @@ const RouteScreen = (props: Props) => {
     const nextPoint = sortedPoints.find((point, index) => index > currentIndex);
 
     return nextPoint;
-  };
+  }
 
   const renderNextPointCard = () => {
     const nextPoint = findNextPoint();
-    const showAddress = nextPoint && nextPoint.address !== nextPoint.client_name;
+    const showAddress =
+      nextPoint && nextPoint.address !== nextPoint.client_name;
     const allPointsFinished = points.some(item => item.status === 0);
 
-    return (!allPointsFinished && !nextPoint && (
-      <Layout>
+    return (
+      (!allPointsFinished && !nextPoint && (
+        <Layout>
           <Text category="label" style={styles.titleList}>
             <Icon
               name="flag-outline"
@@ -391,26 +395,21 @@ const RouteScreen = (props: Props) => {
               style={styles.textHeaderCardIcon}></Icon>
             Все точки завершены
           </Text>
-          <Card
-            status="success"
-            style={styles.containerCards}>
+          <Card status="success" style={styles.containerCards}>
             <View>
-            <Button
+              <Button
                 style={{}}
                 appearance="outline"
                 status="primary"
                 accessoryLeft={<Icon name="arrow-back-outline" />}
-                onPress={() => goBack()}
-              >
+                onPress={() => goBack()}>
                 Вернуться
               </Button>
             </View>
           </Card>
         </Layout>
-    ) || 
-      allPointsFinished &&
-      nextPoint &&
-      nextPointDrive && (
+      )) ||
+      (allPointsFinished && nextPoint && nextPointDrive && (
         <Layout>
           <Text category="label" style={styles.titleList}>
             <Icon
@@ -464,7 +463,7 @@ const RouteScreen = (props: Props) => {
             </View>
           </Card>
         </Layout>
-      )
+      ))
     );
   };
 
@@ -518,17 +517,9 @@ const RouteScreen = (props: Props) => {
       return;
     }
 
-    if (
-      item.tasks.length === 0
-      &&
-      item.status === 3 
-    ) {
-      Alert.alert("Время зафиксировано");
-    } else if (
-      item.tasks.length === 0
-      &&
-      item.status < 3
-    ) {
+    if (item.tasks.length === 0 && item.status === 3) {
+      Alert.alert('Время зафиксировано');
+    } else if (item.tasks.length === 0 && item.status < 3) {
       setModalContent(
         <Card
           style={{padding: 5}}
@@ -547,24 +538,31 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const renderCardOrder = ({item, index,}: {item: RouterListItem;index: number;}): React.ReactElement => {
+  const renderCardOrder = ({
+    item,
+    index,
+  }: {
+    item: RouterListItem;
+    index: number;
+  }): React.ReactElement => {
     currentAction = item.status === 1;
     currentActionOrder = item.status === 2;
     finishedAction = item.status === 3;
 
     return (
       <Card
-        style={[styles.containerCards,
-          currentAction && {borderWidth: 1, borderColor: "#0092FF"} ||
-          finishedAction && {borderWidth: 1, borderColor: "#91F2D2"} ||
-          currentActionOrder && {borderWidth: 1, borderColor: "#FFAA00"} 
+        style={[
+          styles.containerCards,
+          (currentAction && {borderWidth: 1, borderColor: '#0092FF'}) ||
+            (finishedAction && {borderWidth: 1, borderColor: '#91F2D2'}) ||
+            (currentActionOrder && {borderWidth: 1, borderColor: '#FFAA00'}),
         ]}
         status={getCardStatus(item.status)}
         header={() => renderCardOrderName(item)}
         onPress={() => onPressCardOrder(item)}>
         {renderCardOrderText(item)}
       </Card>
-    ) 
+    );
   };
 
   const renderCardOrderText = item => {
@@ -701,11 +699,10 @@ const RouteScreen = (props: Props) => {
 
     //mutate();
 
-    setNextPointDrive(true);  
+    setNextPointDrive(true);
   };
 
   const putTimeCardToServer = async item => {
-    
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = item.type;
@@ -719,8 +716,6 @@ const RouteScreen = (props: Props) => {
     mutate();
 
     setVisible(false);
-
-    
   };
 
   // ---------- Модальное окно ----------
@@ -745,7 +740,21 @@ const RouteScreen = (props: Props) => {
         data={orders}
         ListHeaderComponent={renderMainCard(point)}
         renderItem={renderCardOrder}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={onRefresh} />
+        }
+        ListFooterComponent={() => (
+          <View style={{height: 100}}>
+            <Button
+              style={styles.settingsButton}
+              onPress={() => {
+                BackgroundGeolocation.resetOdometer();
+              }}
+              appearance="outline">
+              Очистить одометр
+            </Button>
+          </View>
+        )}
       />
 
       {renderModalWindow()}
