@@ -22,7 +22,6 @@ import Loader from '../components/Icons/Loader';
 import {appVersion} from '../version';
 import {getUpdate} from '../api/routes';
 
-
 const LoginScreen = ({navigation}: Props) => {
   const context = useContext(GlobalState);
   const [userID, setUserID] = useState('');
@@ -79,15 +78,15 @@ const LoginScreen = ({navigation}: Props) => {
 
     try {
       const userAnswer = await userAuth(params);
-
-      if (!userAnswer.error) {
+      
+      if (!userAnswer.error && userAnswer?.userUID) {
         setUser(userAnswer.userUID);
 
         context.login();
         //context.enableGeo();
         setPending(false);
       } else {
-        Alert.alert(userAnswer.error);
+        Alert.alert(userAnswer.error || userAnswer.message || 'Error');
         setPending(false);
         return;
       }

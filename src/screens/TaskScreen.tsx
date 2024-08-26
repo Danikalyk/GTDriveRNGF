@@ -38,6 +38,7 @@ import AccidentScreen from './AccidentScreen';
 import {styles} from '../styles';
 import {useNavigation} from '@react-navigation/native';
 import {getRequest} from '../api/request.js';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 
 //type Props = {};
 
@@ -679,8 +680,29 @@ const RouteScreen = (props: Props) => {
     data.point = point.point;
     data.uidPoint = point.uidPoint;
 
+    const lan = point.lan
+    const lon = point.lon
+
+    BackgroundGeolocation.addGeofence({
+      identifier: "MyGeofence",
+      radius: 200, // радиус геозоны в метрах
+      latitude: lan,
+      longitude: lon,
+      notifyOnEntry: true,
+      notifyOnExit: false,
+      notifyOnDwell: false
+    }).then(() => {
+      console.log('[addGeofence] success');
+    }).catch((error) => {
+      console.log('[addGeofence] FAILURE: ', error);
+    });
+
+    
+
     data = JSON.stringify(data);
 
+    
+   
     const res = await postRoute(uid, data);
 
     mutate();

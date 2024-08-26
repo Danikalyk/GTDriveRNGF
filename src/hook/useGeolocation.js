@@ -4,6 +4,7 @@ import {getDevTokens, getTokens} from '../api/auth';
 import {getBaseUrl} from '../api/axios';
 import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
+import {Alert} from 'react-native';
 
 function useGeolocation(enabledGeo) {
   const context = React.useContext(GlobalState);
@@ -57,7 +58,7 @@ function useGeolocation(enabledGeo) {
             // <-- Optional HTTP params
             user: {
               uid: currentUser,
-              uidRoute: currentRoute
+              uidRoute: currentRoute,
             },
             provider: {gps: event?.gps, network: event?.network},
           },
@@ -74,8 +75,16 @@ function useGeolocation(enabledGeo) {
       },
     );
 
-    const init = async () => {
+    const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
+      geofence => {
+        if (geofence.identifier === 'MyGeofence') {
+          console.log('Вы подъехали к точке!');
+          Alert.alert('Вы подъехали к точке!');
+        }
+      },
+    );
 
+    const init = async () => {
       const baseUrl = await getBaseUrl();
       const {token} = await getTokens();
 
@@ -114,16 +123,16 @@ function useGeolocation(enabledGeo) {
           // <-- Optional HTTP params
           user: {
             uid: currentUser,
-            uidRoute: currentRoute
+            uidRoute: currentRoute,
           },
           provider: {
-            gps: providerState?.gps, 
-            network: providerState?.network
+            gps: providerState?.gps,
+            network: providerState?.network,
           },
         },
-        desiredOdometerAccuracy: 5, //-- точность выброса, по умолчанию = 100 
+        desiredOdometerAccuracy: 5, //-- точность выброса, по умолчанию = 100
         elasticityMultiplier: 3, //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
-        geofenceProximityRadius: 100 //-- радиус геозоны
+        geofenceProximityRadius: 100, //-- радиус геозоны
       })
         .then(state => {
           setEnabled(state.enabled);
