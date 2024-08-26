@@ -79,6 +79,7 @@ const LoginScreen = ({navigation}: Props) => {
 
     try {
       const userAnswer = await userAuth(params);
+
       if (!userAnswer.error) {
         setUser(userAnswer.userUID);
 
