@@ -79,7 +79,7 @@ function useGeolocation(enabledGeo) {
       geofence => {
         if (geofence.identifier === 'MyGeofence') {
           console.log('Вы подъехали к точке!');
-          Alert.alert('Вы подъехали к точке!');
+          //Alert.alert('Вы подъехали к точке!');
         }
       },
     );
@@ -105,7 +105,7 @@ function useGeolocation(enabledGeo) {
         debug: false, // <-- enable this hear sounds for background-geolocation life-cycle.
         logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
         stopOnTerminate: false, // <-- Allow the background-service to continue tracking when user closes the app.
-        startOnBoot: true, // <-- Auto start tracking when device is powered-up.
+        startOnBoot: false, // <-- Auto start tracking when device is powered-up. default = true
         // HTTP / SQLite config
         url: `${baseUrl}/geo_info_users`,
         // url: `http://localhost:3000/geo_info_users`,

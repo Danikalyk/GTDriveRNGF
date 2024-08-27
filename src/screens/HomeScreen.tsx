@@ -185,21 +185,23 @@ const HomeScreen = props => {
         data={data}
         renderItem={renderItemCard}
         keyExtractor={item => item.uid}
-        ListFooterComponent={() => (
-          <View style={{height: 100}}>
-            <Button
-              style={styles.settingsButton}
-              onPress={() => {
-                BackgroundGeolocation.resetOdometer();
-              }}
-              appearance="outline">
-              Очистить одометр
-            </Button>
-          </View>
-        )}
       />
     </SafeAreaView>
   );
 };
+
+
+/*ListFooterComponent={() => (
+  <View style={{height: 100}}>
+    <Button
+      style={styles.settingsButton}
+      onPress={() => {
+        BackgroundGeolocation.resetOdometer();
+      }}
+      appearance="outline">
+      Очистить одометр
+    </Button>
+  </View>
+)}*/
 
 export default HomeScreen;

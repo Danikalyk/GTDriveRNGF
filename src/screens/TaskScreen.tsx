@@ -145,9 +145,9 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Верхняя карточка ----------
 
-  const renderMainCard = params => {
+  const renderMainCard = params => { 
     const currentPoint = params.status === 1 || params.status === 2;
-
+    
     return (
       <Layout>
         {currentPoint && (
@@ -357,7 +357,9 @@ const RouteScreen = (props: Props) => {
       }
     } else if (params.point === 1) {
       //-- ЭтоСклад
-      if (params.status === 1) {
+      if(params.status === 0) {
+        return renderButtonStartPoint();  
+      } else if(params.status === 1) {
         return renderButtonOpenNavigator(params);
       } else if (params.status === 2 && allOrderFinished) {
         return renderButtonFinishPoint();
@@ -381,12 +383,11 @@ const RouteScreen = (props: Props) => {
 
   const renderNextPointCard = () => {
     const nextPoint = findNextPoint();
-    const showAddress =
-      nextPoint && nextPoint.address !== nextPoint.client_name;
     const allPointsFinished = points.some(item => item.status === 0);
+    const pointStatus = point.status === 3;
 
     return (
-      (!allPointsFinished && !nextPoint && (
+      (!allPointsFinished && !nextPoint && pointStatus && (
         <Layout>
           <Text category="label" style={styles.titleList}>
             <Icon
@@ -448,25 +449,42 @@ const RouteScreen = (props: Props) => {
                   </Text>
                 </Layout>
               </View>
-              <View style={styles.containerCardText}>
-                {showAddress && (
-                  <Text category="c2">Адрес: {nextPoint?.address}</Text>
-                )}
-                <Text category="c2">Объем: {nextPoint?.volume}, м3</Text>
-                <Text category="c2">Вес: {nextPoint?.weight}, кг</Text>
-                <Text category="c2">
-                  Количество заказов: {nextPoint?.countOrders}
-                </Text>
-                {/*<Text category="c2">
-              Загрузка: {item?.loading}, %
-            </Text>*/}
-              </View>
+                    {renderNextPointCardText(nextPoint)}
             </View>
           </Card>
         </Layout>
       ))
     );
   };
+
+  const renderNextPointCardText = nextPoint => {
+    const showAddress = nextPoint && nextPoint.address !== nextPoint.client_name;
+    const returnWarehouse = nextPoint.type == 7;
+
+    if (returnWarehouse) {
+      return(
+        <View style={styles.containerCardText}> 
+          <Text category="c2">Точка завершения Маршрута</Text> 
+        </View>
+      )
+    } else {
+      return(
+        <View style={styles.containerCardText}>
+          {showAddress && (
+            <Text category="c2">Адрес: {nextPoint?.address}</Text>
+          )}
+          <Text category="c2">Объем: {nextPoint?.volume}, м3</Text>
+          <Text category="c2">Вес: {nextPoint?.weight}, кг</Text>
+          <Text category="c2">
+            Количество заказов: {nextPoint?.countOrders}
+          </Text>
+          {/*<Text category="c2">
+        Загрузка: {item?.loading}, %
+      </Text>*/}
+        </View>
+      )
+    }
+  }
 
   const renderNextPointCardHeader = nextPoint => (
     <Layout style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
@@ -509,6 +527,9 @@ const RouteScreen = (props: Props) => {
   );
 
   const onPressCardOrder = item => {
+
+    console.log("@@@3", JSON.stringify(item));
+
     if (
       params.status === 0 ||
       (item.status !== 1 && params.orders[0].status !== 3)
@@ -595,7 +616,10 @@ const RouteScreen = (props: Props) => {
 
     return (
       <Layout style={styles.textBodyCardWithLeftView}>
-        <Toggle checked={getToggleCardStatus(item)}></Toggle>
+        <Toggle 
+          checked={getToggleCardStatus(item)}
+          onChange={() => onPressCardOrder(item)}
+        ></Toggle>
         <View style={styles.containerCardText}>{content}</View>
       </Layout>
     );
@@ -680,7 +704,8 @@ const RouteScreen = (props: Props) => {
     data.point = point.point;
     data.uidPoint = point.uidPoint;
 
-    const lan = point.lan
+    //-- Потом разберусь
+    /*const lan = point.lan
     const lon = point.lon
 
     BackgroundGeolocation.addGeofence({
@@ -695,14 +720,10 @@ const RouteScreen = (props: Props) => {
       console.log('[addGeofence] success');
     }).catch((error) => {
       console.log('[addGeofence] FAILURE: ', error);
-    });
-
-    
+    });*/
 
     data = JSON.stringify(data);
-
     
-   
     const res = await postRoute(uid, data);
 
     mutate();
@@ -765,18 +786,6 @@ const RouteScreen = (props: Props) => {
         refreshControl={
           <RefreshControl refreshing={false} onRefresh={onRefresh} />
         }
-        ListFooterComponent={() => (
-          <View style={{height: 100}}>
-            <Button
-              style={styles.settingsButton}
-              onPress={() => {
-                BackgroundGeolocation.resetOdometer();
-              }}
-              appearance="outline">
-              Очистить одометр
-            </Button>
-          </View>
-        )}
       />
 
       {renderModalWindow()}
@@ -868,3 +877,17 @@ const RouteScreen = (props: Props) => {
 };
 
 export default RouteScreen;
+
+
+/*ListFooterComponent={() => (
+  <View style={{height: 100}}>
+    <Button
+      style={styles.settingsButton}
+      onPress={() => {
+        BackgroundGeolocation.resetOdometer();
+      }}
+      appearance="outline">
+      Очистить одометр
+    </Button>
+  </View>
+)}*/

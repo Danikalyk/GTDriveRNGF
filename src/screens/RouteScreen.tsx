@@ -17,6 +17,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { styles } from '../styles';
 import { UserContext } from '../store/user/UserProvider';
 import { getRequest } from '../api/request';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 
 type Props = {};
 
@@ -158,6 +159,7 @@ const RouteScreen = (props: Props) => {
       ) 
     } else if (routeItem.status === 3){ 
       return (
+      <View>
         <Button
           style={{}}
           appearance="outline"
@@ -166,6 +168,7 @@ const RouteScreen = (props: Props) => {
         >
           Маршрут завершен
         </Button>
+      </View>
       ) 
     }
   };
@@ -230,6 +233,7 @@ const handleOpenTaskScreen = item => {
   if (!routeItem.check) {
     Alert.alert("Необходимо принять маршрут");
   } else {
+    console.log("@@@", item);
     props.navigation.navigate('TaskScreen', { ...item, ...points })
   }
 }
@@ -307,14 +311,29 @@ const renderCardPointName = (item: RouterListItem) => {
   );
 };
 
-const renderCardPointNameIcon = item => (
-  <Icon
-    name={item.point === 1 ? "download-outline" : "pin-outline"}
-    width={23}
-    height={23}
-    style={{ margin: 10 }}
-  />
-);
+const renderCardPointNameIcon = item => {
+
+  let nameIcon = "pin-outline";
+
+  if (item.point === 1) {
+    /*if (item.type = 7) {
+      nameIcon = "corner-up-left-outline";
+    } else {
+      nameIcon = "download-outline";
+    }*/
+
+    nameIcon = "download-outline";
+  }
+
+  return (
+    <Icon
+      name={nameIcon}
+      width={23}
+      height={23}
+      style={{ margin: 10 }}
+    />
+  )
+};
 
 // ---------- Таб Точки ----------
 
@@ -428,6 +447,7 @@ jsMapInit = async (lat, lon) => {
 
 const getThisRoute = async () => {
   context.enableGeo();
+  BackgroundGeolocation.resetOdometer()
 
   let data = getDataPostRoute();
   data.screen = 0;
