@@ -3,7 +3,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import map_scripts from '../map_scripts';
 import useSWR from 'swr';
-import { Layout, List, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
+import { Layout, List, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab, Spinner } from '@ui-kitten/components';
 import React, { useEffect, useContext, useRef, useCallback } from 'react';
 import { View, Alert, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import { RouterListItem } from '../types';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { GlobalState } from '../store/global/global.state';
-import { getCardStatus, getDataPostRoute } from '../components/functions.js';
+import { getCardStatus, getDataPostRoute, addGeofenceToNextPoint } from '../components/functions.js';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { styles } from '../styles';
 import { UserContext } from '../store/user/UserProvider';
@@ -22,7 +22,7 @@ import BackgroundGeolocation from 'react-native-background-geolocation';
 type Props = {};
 
 const RouteScreen = (props: Props) => {
-  
+
   const [pending, setPending] = React.useState(true);
   const context = useContext(GlobalState);
   const { currentRoute, setRoute } = useContext(UserContext);
@@ -40,8 +40,6 @@ const RouteScreen = (props: Props) => {
   useEffect(() => {
     setPending(false);
   }, []);
-
-
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -233,7 +231,6 @@ const handleOpenTaskScreen = item => {
   if (!routeItem.check) {
     Alert.alert("Необходимо принять маршрут");
   } else {
-    console.log("@@@", item);
     props.navigation.navigate('TaskScreen', { ...item, ...points })
   }
 }
@@ -339,6 +336,11 @@ const renderCardPointNameIcon = item => {
 
 const PointsScreen = () => (
   <SafeAreaView>
+    {pending && (
+      <View style={styles.spinnerContainer}>
+        <Spinner size='giant'/>
+      </View>
+    )}
     <List
       refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
       style={{
@@ -446,6 +448,9 @@ jsMapInit = async (lat, lon) => {
 // ---------- Запросы к серверу ----------
 
 const getThisRoute = async () => {
+  setPending(true);
+
+  setRoute(uid);
   context.enableGeo();
   BackgroundGeolocation.resetOdometer()
 
@@ -459,9 +464,13 @@ const getThisRoute = async () => {
   await postRoute(uid, data);
 
   mutate();
+
+  setPending(false);
 };
 
 const finishThisRoute = async () => {
+  setPending(true);
+
   context.disableGeo(); 
   setRoute(null);
 
@@ -478,6 +487,8 @@ const finishThisRoute = async () => {
   goBack();
 
   //mutate();
+
+  setPending(false);
 };
 
 // ---------- Табы ----------

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, Icon, Layout } from '@ui-kitten/components';
+import { Button, Card, Icon, Layout, Spinner } from '@ui-kitten/components';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ImageBackground, View } from 'react-native';
@@ -30,15 +30,28 @@ const styles = {
     bottom: 0,
     margin: 5
   },
+  spinnerContainer: {
+    position: 'absolute',
+    zIndex: 999,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  }
 };
 
 const AddPhoto = (props) => {
   const [images, setImages] = useState([]);
+  const [pending, setPending] = useState(false);
   const params = props?.route?.params;
   const uid = params?.uid;
   const uidOrder = params?.uidOrder;
   const uidPoint = params?.uidPoint;
   const uidPointOrder = uidOrder ? uidOrder : uidPoint;
+  
 
   useEffect(() => {
     getSavedPhotos();
@@ -95,6 +108,8 @@ const AddPhoto = (props) => {
   };
 
   const onSubmitPhoto = async () => {
+    setPending(true);
+
     let data = getDataPostRoute();
     data.screen = 3;
     data.uid = uid;
@@ -125,6 +140,8 @@ const AddPhoto = (props) => {
     savePhotos(updatedImages);
 
     setImages(updatedImages);
+
+    setPending(false);
   };
 
   const CameraIcon = (props): IconElement => (
@@ -182,26 +199,33 @@ const AddPhoto = (props) => {
   };
 
   return (
-    <Card
-      style={styles.cardLayout}
-      header={renderCardHeader}
-      footer={renderCardFooter}
-    >
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {images.map((image, index) => (
-          <View
-            style={styles.imageContainer}
-            key={index}
-          >
-            <ImageBackground
-              style={styles.imageBackground}
-              source={{ uri: image.assets[0].uri }} />
+    <Layout>
+      {pending && (
+        <View style={styles.spinnerContainer}>
+          <Spinner size='giant'/>
+        </View>
+      )}
+      <Card
+        style={styles.cardLayout}
+        header={renderCardHeader}
+        footer={renderCardFooter}
+      >
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+          {images.map((image, index) => (
+            <View
+              style={styles.imageContainer}
+              key={index}
+            >
+              <ImageBackground
+                style={styles.imageBackground}
+                source={{ uri: image.assets[0].uri }} />
 
-            {!image.uploaded && <Button accessoryLeft={TrashIcon} onPress={() => removeNewImage(index)}>Удалить</Button>}
-          </View>
-        ))}
-      </View>
-    </Card>
+              {!image.uploaded && <Button accessoryLeft={TrashIcon} onPress={() => removeNewImage(index)}>Удалить</Button>}
+            </View>
+          ))}
+        </View>
+      </Card>
+    </Layout>
   );
 };
 

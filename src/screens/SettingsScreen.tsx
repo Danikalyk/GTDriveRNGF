@@ -5,16 +5,16 @@ import {
   Layout,
   TopNavigation,
 } from '@ui-kitten/components';
-import React, {useContext, useEffect} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {getDevTokens} from '../api/auth';
-import {pingServer} from '../api/request';
-import {navigate} from '../RootNavigation';
+import React, { useContext, useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getDevTokens } from '../api/auth';
+import { pingServer } from '../api/request';
+import { navigate } from '../RootNavigation';
 import localStorage from '../store/localStorage';
-import {GlobalState} from '../store/global/global.state';
+import { GlobalState } from '../store/global/global.state';
 
-const SettingsScreen = ({navigation}: Props) => {
+const SettingsScreen = ({ navigation }: Props) => {
   const [server, setServer] = React.useState('');
   const [port, setPort] = React.useState('');
   const [database, setDatabase] = React.useState('');
@@ -23,10 +23,8 @@ const SettingsScreen = ({navigation}: Props) => {
   const [isSubmit, setSubmit] = React.useState(false);
   const [token, setToken] = React.useState('');
 
-  const {showInstaller, updateData, downloadAndInstallAPK} =
+  const { showInstaller, updateData, downloadAndInstallAPK } =
     useContext(GlobalState);
-
-  console.log({showInstaller, updateData});
 
   React.useEffect(() => {
     const init = async () => {
@@ -97,7 +95,7 @@ const SettingsScreen = ({navigation}: Props) => {
   };
 
   const refreshToken = async () => {
-    const token = await getDevTokens({isRefresh: true});
+    const token = await getDevTokens({ isRefresh: true });
     if (token) {
       setToken(token);
     }
@@ -117,7 +115,7 @@ const SettingsScreen = ({navigation}: Props) => {
   }, [token]);
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{ flex: 1 }}>
       <TopNavigation title="Настройки" alignment="center" />
       <Layout
         style={{
@@ -163,27 +161,27 @@ const SettingsScreen = ({navigation}: Props) => {
             {Boolean(server && port && database) && (
               <>
                 <Button
-                  style={{margin: 5, marginTop: 10}}
+                  style={{ margin: 5, marginTop: 10 }}
                   onPress={onCheckServer}
                   status={
                     serverStatus === 200
                       ? 'success'
                       : isCheckStatus
-                      ? 'danger'
-                      : 'primary'
+                        ? 'danger'
+                        : 'primary'
                   }
                   accessoryLeft={
                     serverStatus === 200
                       ? SuccessIcon
                       : isCheckStatus
-                      ? AlertIcon
-                      : null
+                        ? AlertIcon
+                        : null
                   }
                   appearance="outline">
                   Проверить сервер
                 </Button>
                 <Button
-                  style={{margin: 5, marginTop: 10}}
+                  style={{ margin: 5, marginTop: 10 }}
                   onPress={refreshToken}
                   status={token ? 'success' : 'primary'}
                   accessoryLeft={!!token ? SuccessIcon : null}>
@@ -191,7 +189,7 @@ const SettingsScreen = ({navigation}: Props) => {
                 </Button>
                 {!!showInstaller && (
                   <Button
-                    style={{margin: 5, marginTop: 10}}
+                    style={{ margin: 5, marginTop: 10 }}
                     onPress={downloadAndInstallAPK}>
                     Установить версию {updateData?.version}
                   </Button>
@@ -202,7 +200,7 @@ const SettingsScreen = ({navigation}: Props) => {
         </View>
         <View>
           <Button
-            style={{marginBottom: 20}}
+            style={{ marginBottom: 20 }}
             onPress={onCancel}
             accessoryLeft={SettingIcon}
             appearance="outline">

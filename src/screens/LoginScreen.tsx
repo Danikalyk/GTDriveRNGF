@@ -108,16 +108,15 @@ const LoginScreen = ({navigation}: Props) => {
   return (
     <SafeAreaView style={styles.container}>
       <Layout style={styles.layout}>
+        {pending && (
+          <View style={styles.spinnerContainer}>
+            <Spinner size='giant'/>
+          </View>
+        )}
         <View style={styles.logoContainer}>
           <Image source={require('../logo.png')} style={styles.logo} />
         </View>
         <View style={styles.formContainer}>
-          {pending && (
-            <View style={styles.spinnerContainer}>
-              <Spinner />
-            </View>
-          )}
-
           <Input
             style={styles.input}
             value={userID}
@@ -149,7 +148,7 @@ const LoginScreen = ({navigation}: Props) => {
           </Button>
           <Button
             onPress={onLogin}
-            disabled={pending}
+            //disabled={pending}
             accessoryLeft={pending ? Loader : false}>
             Войти
           </Button>
@@ -185,14 +184,15 @@ const styles = StyleSheet.create({
     // styles for form container
   },
   spinnerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-
     position: 'absolute',
-    left: 0,
+    zIndex: 999,
     top: 0,
+    left: 0,
     right: 0,
     bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   select: {
     marginBottom: 10,

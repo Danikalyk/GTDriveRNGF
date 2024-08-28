@@ -37,13 +37,14 @@ export const styles = StyleSheet.create({
     },
     textTimeLeft: {
         marginRight: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     textBodyCardWithLeftView: {
         flex: 1, 
         flexDirection: 'row', 
         alignItems: 'center',
         justifyContent: 'flex-start',
-        backgroundColor: 'rgba(255, 255, 255, 0)',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     textHeaderCardOrder: {
         flex: 1, 
@@ -61,9 +62,19 @@ export const styles = StyleSheet.create({
         flexWrap: 'wrap', 
         justifyContent: 'space-between'
     },
-
     titleList: {
         margin: 10,    
+    },
+    spinnerContainer: {
+        position: 'absolute',
+        zIndex: 999,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     }
   }
 );

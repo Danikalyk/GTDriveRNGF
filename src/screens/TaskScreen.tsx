@@ -10,6 +10,7 @@ import {
   Modal,
   BottomNavigation,
   BottomNavigationTab,
+  Spinner
 } from '@ui-kitten/components';
 import {SvgXml} from 'react-native-svg';
 import {
@@ -23,7 +24,7 @@ import {
   useFocusEffect,
   useRoute,
 } from '@react-navigation/native';
-import React, {useEffect, useCallback} from 'react';
+import React, {useEffect, useCallback, useState} from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -54,6 +55,7 @@ const whatsappXml = `
 
 const RouteScreen = (props: Props) => {
   const navigation = useNavigation();
+  const [pending, setPending] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [visible, setVisible] = React.useState(false);
   const [modalContent, setModalContent] = React.useState(null);
@@ -102,6 +104,44 @@ const RouteScreen = (props: Props) => {
     points,
   };
 
+  useEffect(() => {
+
+    /*console.log("point", JSON.stringify(point));
+    //-- Гоним на склад
+    if (point.point === 1 && point.type === 1) {
+      console.log({point});
+      addGeofenceToNextPoint(point);
+    } 
+
+    // Обработка событий геозон
+    const geofenceEventListener = BackgroundGeolocation.onGeofence((geofence) => {
+      Alert.alert('Вы подъехали к точке!');
+
+      BackgroundGeolocation.removeGeofence(point.uidPoint);
+      geofenceEventListener.remove()
+    });*/
+
+    // Получение текущих геозон
+    /*BackgroundGeolocation.getGeofences().then((geofences) => {
+      console.log('[getGeofences] ', geofences);
+      
+
+      //BackgroundGeolocation.removeGeofence(geofences);
+
+    }).catch((error) => {
+      console.log('[getGeofences] FAILURE: ', error);
+    });*/
+
+    
+
+    /*return () => {
+      // Очистка при размонтировании компонента
+      BackgroundGeolocation.removeGeofence("MyGeofence");
+      geofenceEventListener.remove();
+    };*/
+
+  }, []);
+
   // ---------- Открытие модального окна происшествия ----------
 
   const [visibleAccident, setVisibleAccident] = React.useState(false);
@@ -147,6 +187,7 @@ const RouteScreen = (props: Props) => {
 
   const renderMainCard = params => { 
     const currentPoint = params.status === 1 || params.status === 2;
+    const buttonShipment = checkButtonShipment();
     
     return (
       <Layout>
@@ -176,20 +217,72 @@ const RouteScreen = (props: Props) => {
         </Card>
 
         {renderNextPointCard()}
+          
+        <View style={{flex: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginRight: 5}}>
+          <View>
+            <Text category="label" style={styles.titleList}>
+              <Icon
+                name="flash-outline"
+                width={20}
+                height={20}
+                style={styles.textHeaderCardIcon}></Icon>
+              Действия
+            </Text>
+          </View>
 
-        <View>
-          <Text category="label" style={styles.titleList}>
-            <Icon
-              name="flash-outline"
-              width={20}
-              height={20}
-              style={styles.textHeaderCardIcon}></Icon>
-            Действия
-          </Text>
+          {buttonShipment && (<View>
+            <Button  
+              size='small'
+              accessoryLeft={<Icon name="checkmark-square-2-outline" />}  
+              onPress={() => handleAlertShipmantAllOrders()}
+            >
+              Отгрузить
+            </Button>
+          </View>)}
         </View>
       </Layout>
     );
   };
+
+  const handleAlertShipmantAllOrders = () => {
+    Alert.alert('Отгрузить заказы?', 'Будут отгружены все заказы без заданий', [
+      {
+        text: 'Отмена',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {text: 'Отгрузить', onPress: () => handleShipmantAllOrders()},
+    ]);
+  }
+
+  const handleShipmantAllOrders = () => {
+    const filteredOrders = point.orders.filter(order => 
+      order.type === 4 && 
+      order.status === 2 && 
+      order.tasks.length === 0
+    ); 
+
+    if (filteredOrders.length > 0) {
+      filteredOrders.forEach(order => {
+        putTimeCardToServer(order);  
+      });
+    }
+  }
+
+  const checkButtonShipment = () => {
+    let buttonShipment = false;
+
+    allComplete = point.orders.every(order => order.status === 3);
+
+    console.log("orders", JSON.stringify(point));
+
+    //console.log("orders", JSON.stringify(orders));
+    if (point.point === 0 && point.status == 2 && orders.length > 1 && !allComplete) {
+      buttonShipment = true;
+    }
+
+    return buttonShipment;
+  }
 
   const renderMainCardHeader = item => {
     return (
@@ -229,13 +322,13 @@ const RouteScreen = (props: Props) => {
         />
         <Button
           key={2}
-          onPress={() => openTelegramWithNumber('79222965859')}
+          onPress={() => openTelegramWithNumber(telegram)}
           accessoryLeft={<SvgXml xml={telegramXml} width={20} height={20} />}
           style={{backgroundColor: '#0088cc', marginRight: 0, flex: 1}}
         />
         <Button
           key={3}
-          onPress={() => openWhatsAppWithNumber('79222965859')}
+          onPress={() => openWhatsAppWithNumber(whatsapp)}
           accessoryLeft={<SvgXml xml={whatsappXml} width={20} height={20} />}
           style={{backgroundColor: '#43d854', marginRight: 0, flex: 1}}
         />
@@ -459,7 +552,7 @@ const RouteScreen = (props: Props) => {
 
   const renderNextPointCardText = nextPoint => {
     const showAddress = nextPoint && nextPoint.address !== nextPoint.client_name;
-    const returnWarehouse = nextPoint.type == 7;
+    const returnWarehouse = nextPoint.type == 7; //-- 7 это склад
 
     if (returnWarehouse) {
       return(
@@ -527,9 +620,6 @@ const RouteScreen = (props: Props) => {
   );
 
   const onPressCardOrder = item => {
-
-    console.log("@@@3", JSON.stringify(item));
-
     if (
       params.status === 0 ||
       (item.status !== 1 && params.orders[0].status !== 3)
@@ -680,6 +770,8 @@ const RouteScreen = (props: Props) => {
   // ---------- Запросы к серверу ----------
 
   const startNextPoint = async item => {
+    setPending(true);
+
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 5;
@@ -688,48 +780,42 @@ const RouteScreen = (props: Props) => {
 
     data = JSON.stringify(data);
 
-    const res = await postRoute(uid, data);
+    await postRoute(uid, data);
+
+    //addGeofenceToNextPoint(item);
 
     props.navigation.navigate('TaskScreen', {...item});
 
     setNextPointDrive(false);
 
     mutate();
+
+    setPending(false);
   };
 
   const startCurrentPoint = async () => {
+    setPending(true);
+
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 5;
     data.point = point.point;
     data.uidPoint = point.uidPoint;
 
-    //-- Потом разберусь
-    /*const lan = point.lan
-    const lon = point.lon
-
-    BackgroundGeolocation.addGeofence({
-      identifier: "MyGeofence",
-      radius: 200, // радиус геозоны в метрах
-      latitude: lan,
-      longitude: lon,
-      notifyOnEntry: true,
-      notifyOnExit: false,
-      notifyOnDwell: false
-    }).then(() => {
-      console.log('[addGeofence] success');
-    }).catch((error) => {
-      console.log('[addGeofence] FAILURE: ', error);
-    });*/
-
     data = JSON.stringify(data);
     
-    const res = await postRoute(uid, data);
+    //addGeofenceToNextPoint(point);
+
+    await postRoute(uid, data);
 
     mutate();
+
+    setPending(false);
   };
 
   const finishCurrentPoint = async () => {
+    setPending(true);
+
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 6;
@@ -743,9 +829,13 @@ const RouteScreen = (props: Props) => {
     //mutate();
 
     setNextPointDrive(true);
+
+    setPending(false);
   };
 
   const putTimeCardToServer = async item => {
+    setPending(true);
+
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = item.type;
@@ -759,6 +849,8 @@ const RouteScreen = (props: Props) => {
     mutate();
 
     setVisible(false);
+
+    setPending(false);
   };
 
   // ---------- Модальное окно ----------
@@ -776,6 +868,11 @@ const RouteScreen = (props: Props) => {
 
   const TasksScreen = () => (
     <SafeAreaView style={{flex: 1}}>
+      {pending && (
+        <View style={styles.spinnerContainer}>
+          <Spinner size='giant'/>
+        </View>
+      )}
       <List
         style={{
           minHeight: '100%',
@@ -877,17 +974,3 @@ const RouteScreen = (props: Props) => {
 };
 
 export default RouteScreen;
-
-
-/*ListFooterComponent={() => (
-  <View style={{height: 100}}>
-    <Button
-      style={styles.settingsButton}
-      onPress={() => {
-        BackgroundGeolocation.resetOdometer();
-      }}
-      appearance="outline">
-      Очистить одометр
-    </Button>
-  </View>
-)}*/

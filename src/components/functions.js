@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 
 // status - Статусы
 //
@@ -77,6 +78,24 @@ export const getDateFromJSON = dateString => {
       console.log('Ошибка при удалении фотографий:', error);
     }
   } 
+
+//-- Установим подъезд на точку 
+/*export async const addGeofenceToNextPoint = point => {
+    BackgroundGeolocation.addGeofence({
+      identifier: point.uidPoint,
+      radius: 300, // радиус геозоны в метрах
+      latitude: point.lat,
+      longitude: point.lon,
+      dwellDelay: 300,
+      notifyOnEntry: true,
+      notifyOnExit: false,
+      notifyOnDwell: false
+    }).then(() => {
+      console.log('[addGeofence] success');
+    }).catch((error) => {
+      console.log('[addGeofence] FAILURE: ', error);
+    });
+  }*/
 
 
 

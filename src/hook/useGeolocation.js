@@ -12,6 +12,8 @@ function useGeolocation(enabledGeo) {
   const [enabled, setEnabled] = React.useState(enabledGeo);
   const {currentUser, currentRoute} = useContext(UserContext);
 
+  console.log('enabledGeo', enabledGeo);
+
   useEffect(() => {
     setEnabled(enabledGeo);
   }, [enabledGeo]);
@@ -24,8 +26,7 @@ function useGeolocation(enabledGeo) {
     }
 
     /// 1.  Subscribe to events.
-    const onLocation: Subscription = BackgroundGeolocation.onLocation(
-      location => {
+    const onLocation: Subscription = BackgroundGeolocation.onLocation((location) => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
         //console.log({location});
@@ -75,14 +76,15 @@ function useGeolocation(enabledGeo) {
       },
     );
 
-    const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
+    /*const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
       geofence => {
         if (geofence.identifier === 'MyGeofence') {
           console.log('Вы подъехали к точке!');
-          //Alert.alert('Вы подъехали к точке!');
+          
+          Alert.alert('Вы подъехали к точке!');
         }
       },
-    );
+    );*/
 
     const init = async () => {
       const baseUrl = await getBaseUrl();
@@ -96,16 +98,17 @@ function useGeolocation(enabledGeo) {
       /// 2. ready the plugin.
       BackgroundGeolocation.ready({
         // Geolocation Config
-        enabled: true,
+        enabled: false,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
         distanceFilter: 10, //-- Расстояние при котором идет отсылка координат между точками A и B
+        interval: 5000,
         // Activity Recognition
         stopTimeout: 5,
         // Application config
         debug: false, // <-- enable this hear sounds for background-geolocation life-cycle.
         logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
-        stopOnTerminate: false, // <-- Allow the background-service to continue tracking when user closes the app.
-        startOnBoot: false, // <-- Auto start tracking when device is powered-up. default = true
+        stopOnTerminate: true, // <-- Allow the background-service to continue tracking when user closes the app.
+        startOnBoot: true, // <-- Auto start tracking when device is powered-up. default = true
         // HTTP / SQLite config
         url: `${baseUrl}/geo_info_users`,
         // url: `http://localhost:3000/geo_info_users`,
@@ -130,9 +133,9 @@ function useGeolocation(enabledGeo) {
             network: providerState?.network,
           },
         },
-        desiredOdometerAccuracy: 5, //-- точность выброса, по умолчанию = 100
-        elasticityMultiplier: 3, //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
-        geofenceProximityRadius: 100, //-- радиус геозоны
+        desiredOdometerAccuracy: 10, //-- точность выброса, по умолчанию = 100
+        elasticityMultiplier: 0.5 //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
+        //geofenceProximityRadius: 300 //-- радиус геозоны
       })
         .then(state => {
           setEnabled(state.enabled);

@@ -29,8 +29,6 @@ export const GlobalStateProvider = ({children}) => {
   const [showInstaller, setShowInstaller] = useState(false);
   const [updateData, setUpdateData] = useState(null);
 
-  console.log({updateData});
-
   useEffect(() => {
     const init = async () => {
       getUpdate()

@@ -10,8 +10,6 @@ export async function getRequestUpdate() {
 
   return req
     .then(response => {
-      //console.log("newversion", response.data);
-
       const json = response.data;
 
       return json;
