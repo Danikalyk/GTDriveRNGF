@@ -65,7 +65,7 @@ const SettingsScreen = ({ navigation }: Props) => {
     }
   };
 
-  const onSave = async () => {
+  const onSave = async (returnLoginScreen) => {
     setSubmit(true);
 
     if (server && port && database) {
@@ -81,11 +81,15 @@ const SettingsScreen = ({ navigation }: Props) => {
         database,
       });
 
-      onCancel();
+      if (returnLoginScreen) {
+        onCancel();
+      }
     }
   };
 
   const onCheckServer = async () => {
+    onSave(false);
+
     const result = await pingServer();
     if (result?.status === 200) {
       setServerStatus(result.status);
@@ -95,7 +99,10 @@ const SettingsScreen = ({ navigation }: Props) => {
   };
 
   const refreshToken = async () => {
+    onSave(false);
+
     const token = await getDevTokens({ isRefresh: true });
+    
     if (token) {
       setToken(token);
     }

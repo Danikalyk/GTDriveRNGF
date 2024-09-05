@@ -68,9 +68,11 @@ export const getDateFromJSON = dateString => {
  //-- Если нет активных маршрутов, то удаляем все фото
  export async function deleteAllSavedPhotos() {
     try {
-      await AsyncStorage.clear();
+      //await AsyncStorage.clear();
+      
       const keys = await AsyncStorage.getAllKeys();
       const savedPhotosKeys = keys.filter(key => key.startsWith('savedPhotos_'));
+      
       await AsyncStorage.multiRemove(savedPhotosKeys);
       
       console.log('Все фотографии успешно удалены.');

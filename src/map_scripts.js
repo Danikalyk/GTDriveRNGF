@@ -87,7 +87,7 @@ const html_script = `
 			});
 
 			function init(lat, lon) {
-				map = L.map('map').setView([lat, lon], 7);
+				map = L.map('map', {attributionControl: false}).setView([lat, lon], 7);
 				
 				L.marker([lat, lon], {icon: iconCar} ).addTo(map);
 
@@ -98,6 +98,11 @@ const html_script = `
 				L.tileLayer('https://osm.gt-logistics.su/styles/basic-preview/{z}/{x}/{y}.png', {
 					maxZoom: 18
 				}).addTo(map);
+			}
+
+			function updateMarkerPosition(lat, lng) {
+				marker.setLatLng([lat, lng]);
+				map.setView([lat, lng]);
 			}
 
 			function renderPoints1 (data) {

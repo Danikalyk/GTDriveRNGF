@@ -5,7 +5,7 @@ import { Card, Icon, Layout, Text, Button } from '@ui-kitten/components';
 import { GlobalState } from '../store/global/global.state';
 import { UserContext } from '../store/user/UserProvider';
 import { getRoutes } from '../api/routes';
-import { getCardStatus, deleteAllSavedPhotos } from '../components/functions';
+import { getCardStatus } from '../components/functions';
 import { styles } from '../styles';
 import useSWR from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,6 +36,8 @@ const HomeScreen = props => {
   React.useEffect(() => {
 
     if (routes) {
+      deleteSavedPhotos();
+
       if (!renderComplete) {
         setRenderComplete(true);
 
@@ -46,9 +48,9 @@ const HomeScreen = props => {
        
           setStartRoute(hasStartGeo);
 
-        if (!hasStartGeo) {
+        /*if (!hasStartGeo) {
           deleteAllSavedPhotos();
-        }
+        }*/
 
         if (hasStartGeo && !startGeo) {
           const startRoute = routes.find(route => route.start === true);
@@ -105,7 +107,7 @@ const HomeScreen = props => {
   }, [navigation, routes, context, startGeo]);
 
   const handleLongPress = item => {
-    console.log('Вызвано сообщение об удалении элемента');
+    //console.log('Вызвано сообщение об удалении элемента');
 
     Alert.alert(
       'Удаление элемента',
@@ -202,6 +204,24 @@ const HomeScreen = props => {
     </View>
   );
 
+  async function deleteSavedPhotos() {
+    // Получаем все ключи из AsyncStorage
+    const keys = await AsyncStorage.getAllKeys();
+    const savedPhotosKeys = keys.filter(uid => uid.startsWith('savedPhotos_'));
+
+    // Текущие маршруты
+    const validUids = data.map(item => item.uid);
+
+    // Находим ключи, которые нужно удалить
+    const keysToRemove = savedPhotosKeys.filter(key => {
+        const uid = key.replace('savedPhotos_', ''); // Извлекаем uid из ключа
+        return !validUids.includes(uid); // Проверяем, есть ли uid в validUids
+    });
+
+    // Удаляем ненужные ключи из AsyncStorage
+    await AsyncStorage.multiRemove(keysToRemove);
+  } 
+
   return (
     <SafeAreaView>
       {startRoute && (
@@ -229,19 +249,5 @@ const HomeScreen = props => {
     </SafeAreaView>
   );
 };
-
-
-/*ListFooterComponent={() => (
-  <View style={{height: 100}}>
-    <Button
-      style={styles.settingsButton}
-      onPress={() => {
-        BackgroundGeolocation.resetOdometer();
-      }}
-      appearance="outline">
-      Очистить одометр
-    </Button>
-  </View>
-)}*/
 
 export default HomeScreen;
