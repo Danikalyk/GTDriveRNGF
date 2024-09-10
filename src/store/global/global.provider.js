@@ -105,7 +105,6 @@ export const GlobalStateProvider = ({children}) => {
     // Linking.openURL(url); // TODO раскомментировать чтобы просто через хром закачать
     // return
 
-
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
       Alert.alert(
@@ -114,8 +113,6 @@ export const GlobalStateProvider = ({children}) => {
       );
       return;
     }
-
-    
 
     const fileName = url.split('/').pop();
     const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
@@ -152,52 +149,51 @@ export const GlobalStateProvider = ({children}) => {
     Linking.openURL(`file://${filePath}`);
   }
 
-  const value = useMemo(
+  // Мемоизация для основных действий
+  const actionsValue = useMemo(
     () => ({
-      ...state,
-      login: () => {
-        dispatch({type: actions.LOGIN});
-      },
+      login: () => dispatch({type: actions.LOGIN}),
       logout: () => {
         dispatch({type: actions.DISABLE_GEO});
         dispatch({type: actions.LOGOUT});
       },
-      setLightTheme: () => {
-        dispatch({type: actions.LIGHT_THEME});
-      },
-      setDarkTheme: () => {
-        dispatch({type: actions.DARK_THEME});
-      },
-      openModal: () => {
-        dispatch({type: actions.OPEN_MODAL});
-      },
-      closeModal: () => {
-        dispatch({type: actions.CLOSE_MODAL});
-      },
-      enableGeo: () => {
-        dispatch({type: actions.ENABLE_GEO});
-      },
-      disableGeo: () => {
-        dispatch({type: actions.DISABLE_GEO});
-      },
-      setLocation: location => {
-        dispatch({type: actions.SET_LOCATION, payload: location});
-      },
+      setLightTheme: () => dispatch({type: actions.LIGHT_THEME}),
+      setDarkTheme: () => dispatch({type: actions.DARK_THEME}),
+      openModal: () => dispatch({type: actions.OPEN_MODAL}),
+      closeModal: () => dispatch({type: actions.CLOSE_MODAL}),
+      enableGeo: () => dispatch({type: actions.ENABLE_GEO}),
+      disableGeo: () => dispatch({type: actions.DISABLE_GEO}),
+      setLocation: location =>
+        dispatch({type: actions.SET_LOCATION, payload: location}),
     }),
-    [state, dispatch],
+    [dispatch],
   );
 
-  const {theme} = state;
+  // Мемоизация для всех частей состояния
+  const themeValue = useMemo(() => state.theme, [state.theme]);
+  const locationValue = useMemo(() => state.location, [state.location]);
+  const isLoggedInValue = useMemo(() => state.isLoggedIn, [state.isLoggedIn]);
+  const isModalOpenValue = useMemo(
+    () => state.isModalOpen,
+    [state.isModalOpen],
+  );
+  const enabledGeoValue = useMemo(() => state.enabledGeo, [state.enabledGeo]);
 
+
+  
   // Wrap the context provider around our component
   return (
-    <ApplicationProvider {...eva} theme={eva[theme]}>
+    <ApplicationProvider {...eva} theme={eva[themeValue]}>
       <GlobalState.Provider
         value={{
-          ...value,
+          ...actionsValue,
           showInstaller,
           updateData,
           downloadAndInstallAPK,
+          location: locationValue,
+          isLoggedIn: isLoggedInValue,
+          isModalOpen: isModalOpenValue,
+          enabledGeo: enabledGeoValue,
         }}>
         {children}
       </GlobalState.Provider>
