@@ -72,7 +72,7 @@ const RouteScreen = (props: Props) => {
     return null;
   }
 
-  let points = routeItem?.points;
+  let points = routeItem?.points || [];
   points = [...points].sort((a, b) => a.sort - b.sort);
 
   // ---------- Карточки Маршрута Доставки ----------
