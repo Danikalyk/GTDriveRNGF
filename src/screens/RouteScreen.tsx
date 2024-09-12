@@ -191,8 +191,6 @@ const RouteScreen = (props: Props) => {
 
   const renderCardsPoint = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => { 
 
-    console.log(item);
-
     const statusFirstPoint = points[0].status === 0;
     const isCurrentPoint = (item.status === 1 || item.status === 2) && routeItem.check;
     const isRoutePoint = !isCurrentPoint && ((index === 1 && !statusFirstPoint) || (index === 0 && statusFirstPoint));

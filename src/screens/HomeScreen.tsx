@@ -5,7 +5,7 @@ import { Card, Icon, Layout, Text, Button } from '@ui-kitten/components';
 import { GlobalState } from '../store/global/global.state';
 import { UserContext } from '../store/user/UserProvider';
 import { getRoutes } from '../api/routes';
-import { getCardStatus } from '../components/functions';
+import { getCardStatus, addGeofenceToNextPoint } from '../components/functions';
 import { styles } from '../styles';
 import useSWR from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,6 +38,8 @@ const HomeScreen = props => {
   React.useEffect(() => {
 
     if (routes) {
+      //console.log({routes});
+
       deleteSavedPhotos();
 
       if (!renderComplete) {
@@ -57,6 +59,8 @@ const HomeScreen = props => {
         if (hasStartGeo && !startGeo) {
           const startRoute = routes.find(route => route.start === true);
           const uid = startRoute.uid;
+          
+          addGeofenceToNextPoint(startRoute.startGeo);
 
           setRoute(uid);
 

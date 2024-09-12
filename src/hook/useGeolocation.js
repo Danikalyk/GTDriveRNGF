@@ -5,6 +5,7 @@ import {getBaseUrl} from '../api/axios';
 import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 import {Alert} from 'react-native';
+import { Platform, ToastAndroid } from 'react-native';
 
 function useGeolocation(enabledGeo) {
   const context = React.useContext(GlobalState);
@@ -29,7 +30,7 @@ function useGeolocation(enabledGeo) {
     const onLocation: Subscription = BackgroundGeolocation.onLocation((location) => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
-        console.log({location});
+        //console.log({location});
 
         context.setLocation(location);
       },
@@ -76,15 +77,28 @@ function useGeolocation(enabledGeo) {
       },
     );
 
-    /*const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
-      geofence => {
-        if (geofence.identifier === 'MyGeofence') {
-          console.log('Вы подъехали к точке!');
-          
-          Alert.alert('Вы подъехали к точке!');
+    const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
+      async (geofenceEvent) => {
+        if (geofenceEvent.action === 'ENTER') {
+          //if (Platform.OS === 'android') {
+          //  ToastAndroid.show(`Вы подъезжаете на точку!`, ToastAndroid.SHORT);
+          //} else {
+            setTimeout(() => {
+              Alert.alert(`Вы подъезжаете на точку!`);
+            }, 5000); // Задержка 500 мс
+          //}
+
+          try {
+            // Удаляем геозону
+            await BackgroundGeolocation.removeGeofence(geofenceEvent.identifier);
+            
+            console.log(`Геозона с идентификатором ${geofenceEvent.identifier} удалена`);
+          } catch (error) {
+            console.log('Ошибка при удалении геозоны:', error);
+          }
         }
-      },
-    );*/
+      }
+    );
 
     const init = async () => {
       const baseUrl = await getBaseUrl();
