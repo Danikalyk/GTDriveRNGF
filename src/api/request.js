@@ -34,7 +34,7 @@ export async function putRequest(url, params = {}, isDev = false) {
   return req
     .then(res => res.data)
     .catch(error => {
-      console.error('putRequest', error.message);
+      console.error('putRequest', url, error.message);
       return error.toJSON();
     });
 }

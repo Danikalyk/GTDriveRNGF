@@ -17,11 +17,13 @@ const HomeScreen = props => {
   const [renderComplete, setRenderComplete] = useState(false)
   const { currentUser, currentRoute, setRoute } = useContext(UserContext);
   const context = useContext(GlobalState);
-  const { data: routes, mutate } = useSWR(`/routes?user=${currentUser}`, () =>
+  const { data: routes, mutate, error } = useSWR(`/routes?user=${currentUser}`, () =>
     getRoutes(currentUser),
   );
   const [startRoute, setStartRoute] = useState(null);
   const navigation = useNavigation();
+
+  
 
   const [refreshing, setRefreshing] = React.useState(false);
 

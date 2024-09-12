@@ -29,7 +29,7 @@ function useGeolocation(enabledGeo) {
     const onLocation: Subscription = BackgroundGeolocation.onLocation((location) => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
-        //console.log({location});
+        console.log({location});
 
         context.setLocation(location);
       },
