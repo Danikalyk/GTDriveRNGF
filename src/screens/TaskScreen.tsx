@@ -18,6 +18,7 @@ import {
   getToggleCardStatus,
   getDataPostRoute,
   getDateFromJSON,
+  addGeofenceToNextPoint
 } from '../components/functions.js';
 import {
   NavigationContainer,
@@ -106,12 +107,12 @@ const RouteScreen = (props: Props) => {
 
   useEffect(() => {
 
-    /*console.log("point", JSON.stringify(point));
+    console.log("point", JSON.stringify(point));
     //-- Гоним на склад
-    if (point.point === 1 && point.type === 1) {
+    /*if (point.point === 1 && point.type === 1) {
       console.log({point});
       addGeofenceToNextPoint(point);
-    } 
+    }*/ 
 
     // Обработка событий геозон
     const geofenceEventListener = BackgroundGeolocation.onGeofence((geofence) => {
@@ -119,7 +120,7 @@ const RouteScreen = (props: Props) => {
 
       BackgroundGeolocation.removeGeofence(point.uidPoint);
       geofenceEventListener.remove()
-    });*/
+    });
 
     // Получение текущих геозон
     /*BackgroundGeolocation.getGeofences().then((geofences) => {
@@ -274,7 +275,7 @@ const RouteScreen = (props: Props) => {
 
     allComplete = point.orders.every(order => order.status === 3);
 
-    console.log("orders", JSON.stringify(point));
+    //console.log("orders", JSON.stringify(point));
 
     //console.log("orders", JSON.stringify(orders));
     if (point.point === 0 && point.status == 2 && orders.length > 1 && !allComplete) {
@@ -782,7 +783,7 @@ const RouteScreen = (props: Props) => {
 
     await postRoute(uid, data);
 
-    //addGeofenceToNextPoint(item);
+    addGeofenceToNextPoint(item);
 
     props.navigation.navigate('TaskScreen', {...item});
 
@@ -804,7 +805,7 @@ const RouteScreen = (props: Props) => {
 
     data = JSON.stringify(data);
     
-    //addGeofenceToNextPoint(point);
+    addGeofenceToNextPoint(point);
 
     await postRoute(uid, data);
 

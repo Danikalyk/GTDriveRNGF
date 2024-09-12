@@ -82,7 +82,7 @@ export const getDateFromJSON = dateString => {
   } 
 
 //-- Установим подъезд на точку 
-/*export async const addGeofenceToNextPoint = point => {
+export async function addGeofenceToNextPoint(point) {
     BackgroundGeolocation.addGeofence({
       identifier: point.uidPoint,
       radius: 300, // радиус геозоны в метрах
@@ -97,7 +97,7 @@ export const getDateFromJSON = dateString => {
     }).catch((error) => {
       console.log('[addGeofence] FAILURE: ', error);
     });
-  }*/
+  }
 
 
 
