@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import {getDevTokens, getTokens} from '../api/auth';
 import {getBaseUrl} from '../api/axios';
@@ -12,6 +12,7 @@ function useGeolocation(enabledGeo) {
   const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
   const {currentUser, currentRoute} = useContext(UserContext);
+  const [isAlertShown, setIsAlertShown] = useState(false);
 
   console.log('enabledGeo', enabledGeo);
 
@@ -80,14 +81,6 @@ function useGeolocation(enabledGeo) {
     const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
       async (geofenceEvent) => {
         if (geofenceEvent.action === 'ENTER') {
-          //if (Platform.OS === 'android') {
-          //  ToastAndroid.show(`Вы подъезжаете на точку!`, ToastAndroid.SHORT);
-          //} else {
-            setTimeout(() => {
-              Alert.alert(`Вы подъезжаете на точку!`);
-            }, 5000); // Задержка 500 мс
-          //}
-
           try {
             // Удаляем геозону
             await BackgroundGeolocation.removeGeofence(geofenceEvent.identifier);
@@ -96,6 +89,14 @@ function useGeolocation(enabledGeo) {
           } catch (error) {
             console.log('Ошибка при удалении геозоны:', error);
           }
+
+          setIsAlertShown(true);
+
+          setTimeout(() => {
+            Alert.alert(`Вы подъезжаете на точку!`);
+            
+            setIsAlertShown(false);
+          }, 1000);  
         }
       }
     );
