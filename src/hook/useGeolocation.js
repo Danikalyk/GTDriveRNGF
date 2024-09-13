@@ -5,10 +5,13 @@ import {getBaseUrl} from '../api/axios';
 import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 import {Alert} from 'react-native';
+import { LocationContext } from '../store/location/LocationProvider';
 
 function useGeolocation(enabledGeo) {
-  const context = React.useContext(GlobalState);
-  const [location, setLocation] = React.useState('');
+  // const context = React.useContext(GlobalState);
+
+  const {setLocation} = useContext(LocationContext);
+  // const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
   const {currentUser, currentRoute} = useContext(UserContext);
 
@@ -30,8 +33,8 @@ function useGeolocation(enabledGeo) {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
         console.log({location});
-
-        context.setLocation(location);
+        setLocation(location);
+        // context.setLocation(location);
       },
     );
 
