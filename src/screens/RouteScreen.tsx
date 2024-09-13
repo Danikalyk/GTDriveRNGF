@@ -220,14 +220,7 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Карточки точек доставки ----------
 
-  const renderCardsPoint = ({
-    item,
-    index,
-  }: {
-    item: RouterListItem;
-    index: number;
-  }): React.ReactElement => {
-    console.log(item);
+  const renderCardsPoint = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => { 
 
     const statusFirstPoint = points[0].status === 0;
     const isCurrentPoint =

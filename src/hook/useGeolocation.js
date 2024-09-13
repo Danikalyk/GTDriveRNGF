@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import {getDevTokens, getTokens} from '../api/auth';
 import {getBaseUrl} from '../api/axios';
@@ -6,6 +6,7 @@ import {GlobalState} from '../store/global/global.state';
 import {UserContext} from '../store/user/UserProvider';
 import {Alert} from 'react-native';
 import { LocationContext } from '../store/location/LocationProvider';
+import { Platform, ToastAndroid } from 'react-native';
 
 function useGeolocation(enabledGeo) {
   // const context = React.useContext(GlobalState);
@@ -14,6 +15,7 @@ function useGeolocation(enabledGeo) {
   // const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
   const {currentUser, currentRoute} = useContext(UserContext);
+  const [isAlertShown, setIsAlertShown] = useState(false);
 
   console.log('enabledGeo', enabledGeo);
 
@@ -79,15 +81,28 @@ function useGeolocation(enabledGeo) {
       },
     );
 
-    /*const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
-      geofence => {
-        if (geofence.identifier === 'MyGeofence') {
-          console.log('Вы подъехали к точке!');
-          
-          Alert.alert('Вы подъехали к точке!');
+    const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
+      async (geofenceEvent) => {
+        if (geofenceEvent.action === 'ENTER') {
+          try {
+            // Удаляем геозону
+            await BackgroundGeolocation.removeGeofence(geofenceEvent.identifier);
+            
+            console.log(`Геозона с идентификатором ${geofenceEvent.identifier} удалена`);
+          } catch (error) {
+            console.log('Ошибка при удалении геозоны:', error);
+          }
+
+          setIsAlertShown(true);
+
+          setTimeout(() => {
+            Alert.alert(`Вы подъезжаете на точку!`);
+            
+            setIsAlertShown(false);
+          }, 1000);  
         }
-      },
-    );*/
+      }
+    );
 
     const init = async () => {
       const baseUrl = await getBaseUrl();
