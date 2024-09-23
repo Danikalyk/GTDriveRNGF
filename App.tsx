@@ -7,6 +7,8 @@ import GeoBackgroundg from './src/components/GeoBackgroundg';
 import MainNavigation from './src/components/MainNavigation';
 import CombinedContextProviders from './src/store/CombinedContextProviders';
 
+import NetInfo from '@react-native-community/netinfo';
+
 import {AppState} from 'react-native';
 import {SWRConfig} from 'swr';
 
@@ -40,6 +42,17 @@ function App(): JSX.Element {
 
           return () => {
             subscription.remove();
+          };
+        },
+        initReconnect(callback) {
+          const unsubscribe = NetInfo.addEventListener(state => {
+            if (state.isConnected) {
+              callback(); // Триггер перезапроса данных при подключении сети
+            }
+          });
+
+          return () => {
+            unsubscribe();
           };
         },
       }}>

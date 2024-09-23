@@ -13,6 +13,7 @@
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-community/netinfo": "^11.4.1",
     "@react-navigation/bottom-tabs": "^6.5.20",
     "@react-navigation/devtools": "^6.0.18",
     "@react-navigation/drawer": "^6.6.2",
@@ -48,7 +49,6 @@
     "react-native-image-viewing": "^0.2.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-logs": "^5.0.1",
-    "react-native-maps": "^1.18.0",
     "react-native-pager-view": "^6.2.3",
     "react-native-parsed-text": "^0.0.22",
     "react-native-reanimated": "3.1.0",
