@@ -187,7 +187,7 @@ const RouteScreen = (props: Props) => {
   // ---------- Верхняя карточка ----------
 
   const renderMainCard = params => {
-    const currentPoint = params.status === 1 || params.status === 2;
+    const currentPoint = params?.status === 1 || params?.status === 2;
     const buttonShipment = checkButtonShipment();
 
     return (
