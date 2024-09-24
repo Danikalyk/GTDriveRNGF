@@ -60,7 +60,7 @@ const HomeScreen = props => {
           const startRoute = routes.find(route => route.start === true);
           const uid = startRoute.uid;
           
-          addGeofenceToNextPoint(startRoute.startGeo);
+          //addGeofenceToNextPoint(startRoute.startGeo);
 
           setRoute(uid);
 

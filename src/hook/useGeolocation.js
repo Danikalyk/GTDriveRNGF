@@ -125,7 +125,7 @@ function useGeolocation(enabledGeo) {
         // Application config
         debug: false, // <-- enable this hear sounds for background-geolocation life-cycle.
         logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
-        stopOnTerminate: true, // <-- Allow the background-service to continue tracking when user closes the app.
+        stopOnTerminate: false, // <-- Allow the background-service to continue tracking when user closes the app. 20240924 - true
         startOnBoot: true, // <-- Auto start tracking when device is powered-up. default = true
         // HTTP / SQLite config
         url: `${baseUrl}/geo_info_users`,
