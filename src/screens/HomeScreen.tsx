@@ -21,10 +21,7 @@ const HomeScreen = props => {
     getRoutes(currentUser),
   );
   const [startRoute, setStartRoute] = useState(null);
-  const navigation = useNavigation();
-
-  
-
+  const navigation = useNavigation(); 
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(() => {
@@ -60,7 +57,7 @@ const HomeScreen = props => {
           const startRoute = routes.find(route => route.start === true);
           const uid = startRoute.uid;
           
-          //addGeofenceToNextPoint(startRoute.startGeo);
+          addGeofenceToNextPoint(startRoute.startGeo);
 
           setRoute(uid);
 

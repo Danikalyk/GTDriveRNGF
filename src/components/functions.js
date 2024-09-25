@@ -83,6 +83,10 @@ export async function deleteAllSavedPhotos() {
 
 //-- Установим подъезд на точку 
 export const addGeofenceToNextPoint = async (point) => {
+
+  if (point.uidPoint === "00000000-0000-0000-0000-000000000000"){
+    return;
+  }
   // Получаем список геозон асинхронно
   const geofences = await BackgroundGeolocation.getGeofences();
 
