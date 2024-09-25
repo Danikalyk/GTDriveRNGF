@@ -41,6 +41,7 @@ import {styles} from '../styles';
 import {useNavigation} from '@react-navigation/native';
 import {getReq, getRequest} from '../api/request.js';
 import NetInfo from '@react-native-community/netinfo';
+import FunctionQueue from '../utils/FunctionQueue.js';
 
 //type Props = {};
 
@@ -55,6 +56,7 @@ const whatsappXml = `
 `;
 
 const RouteScreen = (props: Props) => {
+  const queue = new FunctionQueue();
   const {cache} = useSWRConfig();
   const getCachedData = key => {
     return cache.get(key); // Получаем кэшированные данные по ключу
@@ -82,6 +84,21 @@ const RouteScreen = (props: Props) => {
     return unsubscribe;
   }, [navigation]);
 
+
+  useEffect(() => {
+    // Подписка на изменения состояния сети
+    const unsubscribe = NetInfo.addEventListener(state => {
+      if (state.isConnected) {
+        console.log('Сеть восстановлена');
+        queue.processQueue(); // Запускаем очередь при восстановлении сети
+      }
+    });
+
+    return () => {
+      unsubscribe(); // Отменяем подписку при размонтировании компонента
+    };
+  }, []);
+
   const {
     data: route,
     isLoading,
@@ -106,6 +123,11 @@ const RouteScreen = (props: Props) => {
       console.log('data', data);
       return {...currentData, ...data};
     }, false);
+
+    if (!netInfo.isConnected) {
+      // Если нет сети, добавляем в очередь
+      queue.enqueue(callback);
+    }
     if (netInfo.isConnected) {
       // Если есть сеть, выполняем запрос
       callback();
@@ -826,6 +848,8 @@ const RouteScreen = (props: Props) => {
     data.uidPoint = item.uidPoint;
 
     updateDate(data, async () => {
+
+      console.log('AAAAAAAAA')
       const dataString = JSON.stringify(data);
 
       await postRoute(uid, dataString);
