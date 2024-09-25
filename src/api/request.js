@@ -15,6 +15,15 @@ export async function getRequest(url, params = {}, isDev = false) {
     });
 }
 
+
+export async function getReq(url, params = {}, isDev = false) {
+  const req = !isDev
+    ? axiosInstance.get(url, {params})
+    : axiosInstanceDev.get(url, {params});
+
+  return req
+}
+
 export async function postRequest(url, payload = {}) {
   const req = axiosInstance.post(url, payload);
 

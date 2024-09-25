@@ -2,7 +2,7 @@
 
 /* eslint-disable react/no-unstable-nested-components */
 import map_scripts from '../map_scripts';
-import useSWR from 'swr';
+import useSWR, {useSWRConfig} from 'swr';
 import {
   Layout,
   List,
@@ -30,7 +30,7 @@ import {
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {styles} from '../styles';
 import {UserContext} from '../store/user/UserProvider';
-import {getRequest} from '../api/request';
+import {getReq, getRequest} from '../api/request';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import {LocationContext} from '../store/location/LocationProvider';
 
@@ -39,6 +39,11 @@ const {Navigator, Screen} = createBottomTabNavigator();
 type Props = {};
 
 const RouteScreen = (props: Props) => {
+  const {cache} = useSWRConfig();
+  const getCachedData = key => {
+    return cache.get(key); // Получаем кэшированные данные по ключу
+  };
+
   const [pending, setPending] = React.useState(true);
   const context = useContext(GlobalState);
   const {currentRoute, setRoute} = useContext(UserContext);
@@ -67,7 +72,16 @@ const RouteScreen = (props: Props) => {
     isLoading,
     mutate,
     error,
-  } = useSWR(`/route/${uid}`, getRequest);
+  } = useSWR(`/route/${uid}`, () => getReq(`/route/${uid}`).then(res => res.data), {
+    fallbackData: getCachedData(`/route/${uid}`),
+  });
+  if (error && (!route || !route?.points)) {
+    mutate(
+      `/route/${uid}`,
+      getCachedData(`/route/${uid}`),
+      false,
+    ); // Возвращаем кэшированные данные
+  }
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -79,7 +93,7 @@ const RouteScreen = (props: Props) => {
 
   const routeItem = route;
 
-  if (error || !routeItem) {
+  if (!routeItem?.points) {
     return null;
   }
 
@@ -220,8 +234,13 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Карточки точек доставки ----------
 
-  const renderCardsPoint = ({ item, index }: { item: RouterListItem; index: number; }): React.ReactElement => { 
-
+  const renderCardsPoint = ({
+    item,
+    index,
+  }: {
+    item: RouterListItem;
+    index: number;
+  }): React.ReactElement => {
     const statusFirstPoint = points[0].status === 0;
     const isCurrentPoint =
       (item.status === 1 || item.status === 2) && routeItem.check;

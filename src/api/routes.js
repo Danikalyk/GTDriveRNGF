@@ -1,4 +1,4 @@
-import { getRequest, putRequest, postRequest, postRequestJwt } from './request';
+import { getRequest, putRequest, postRequest, postRequestJwt, getReq } from './request';
 import { getRequestOSRM } from './requestOSRM';
 import { getRequestUpdate } from './requestUpdate';
 
@@ -7,7 +7,7 @@ export async function uploadLocation(params) {
 }
 
 export async function getRoutes(userId) {
-  return getRequest(`/routes?user=${userId}`);
+  return getReq(`/routes?user=${userId}`).then(res => res.data);
 }
 
 

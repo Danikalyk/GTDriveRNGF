@@ -10,37 +10,37 @@ import {
   Modal,
   BottomNavigation,
   BottomNavigationTab,
-  Spinner
+  Spinner,
 } from '@ui-kitten/components';
-import { SvgXml } from 'react-native-svg';
+import {SvgXml} from 'react-native-svg';
 import {
   getCardStatus,
   getToggleCardStatus,
   getDataPostRoute,
   getDateFromJSON,
-  addGeofenceToNextPoint
+  addGeofenceToNextPoint,
 } from '../components/functions.js';
 import {
   NavigationContainer,
   useFocusEffect,
   useRoute,
 } from '@react-navigation/native';
-import React, { useEffect, useCallback, useState } from 'react';
+import React, {useEffect, useCallback, useState} from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { RefreshControl, Alert, Linking, View } from 'react-native';
-import { openAddressOnMap } from '../utils/openAddressOnMap';
-import { RouterListItem } from '../types';
-import { postRoute } from '../api/routes';
-import { ScrollView } from 'react-native-gesture-handler';
-import useSWR from 'swr';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {RefreshControl, Alert, Linking, View} from 'react-native';
+import {openAddressOnMap} from '../utils/openAddressOnMap';
+import {RouterListItem} from '../types';
+import {postRoute} from '../api/routes';
+import {ScrollView} from 'react-native-gesture-handler';
+import useSWR, {useSWRConfig} from 'swr';
 import find from 'lodash/find';
 import AccidentScreen from './AccidentScreen';
-import { styles } from '../styles';
-import { useNavigation } from '@react-navigation/native';
-import { getRequest } from '../api/request.js';
-import BackgroundGeolocation from 'react-native-background-geolocation';
+import {styles} from '../styles';
+import {useNavigation} from '@react-navigation/native';
+import {getReq, getRequest} from '../api/request.js';
+import NetInfo from '@react-native-community/netinfo';
 
 //type Props = {};
 
@@ -55,19 +55,23 @@ const whatsappXml = `
 `;
 
 const RouteScreen = (props: Props) => {
+  const {cache} = useSWRConfig();
+  const getCachedData = key => {
+    return cache.get(key); // Получаем кэшированные данные по ключу
+  };
   const navigation = useNavigation();
   const [pending, setPending] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [visible, setVisible] = React.useState(false);
   const [modalContent, setModalContent] = React.useState(null);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const { Navigator, Screen } = createBottomTabNavigator();
+  const {Navigator, Screen} = createBottomTabNavigator();
   const [nextPointDrive, setNextPointDrive] = React.useState(false);
   const propsParams = props?.route?.params;
   const uid = propsParams.uid;
   const uidPoint = propsParams.uidPoint;
   const goBack = () => {
-    navigation.goBack({ post: true });
+    navigation.goBack({post: true});
   };
 
   React.useEffect(() => {
@@ -83,7 +87,30 @@ const RouteScreen = (props: Props) => {
     isLoading,
     mutate,
     error,
-  } = useSWR(`/route/${uid}`, getRequest);
+  } = useSWR(
+    `/route/${uid}`,
+    () => getReq(`/route/${uid}`).then(res => res.data),
+    {
+      fallbackData: getCachedData(`/route/${uid}`),
+    },
+  );
+  if (error && (!route || !route?.points)) {
+    mutate(`/route/${uid}`, getCachedData(`/route/${uid}`), false); // Возвращаем кэшированные данные
+  }
+
+  const updateDate = async (data: any, callback = () => {}) => {
+    // Проверяем состояние сети
+    const netInfo = await NetInfo.fetch();
+    mutate((currentData: any) => {
+      console.log('currentData', currentData);
+      console.log('data', data);
+      return {...currentData, ...data};
+    }, false);
+    if (netInfo.isConnected) {
+      // Если есть сеть, выполняем запрос
+      callback();
+    }
+  };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -96,7 +123,7 @@ const RouteScreen = (props: Props) => {
   //const [points, setPoints] = React.useState(route?.points);
 
   const points = route?.points;
-  const point = find(points, { uidPoint: uidPoint });
+  const point = find(points, {uidPoint: uidPoint});
   const orders = point?.orders;
   const params = {
     ...route,
@@ -106,14 +133,12 @@ const RouteScreen = (props: Props) => {
   };
 
   useEffect(() => {
-
     //console.log("point", JSON.stringify(point));
     //-- Гоним на склад
     /*if (point.point === 1 && point.type === 1) {
       console.log({point});
       addGeofenceToNextPoint(point);
     }*/
-
     // Обработка событий геозон
     /*const geofenceEventListener = BackgroundGeolocation.onGeofence((geofence) => {
       Alert.alert('Вы подъехали к точке!');
@@ -121,7 +146,6 @@ const RouteScreen = (props: Props) => {
       BackgroundGeolocation.removeGeofence(point.uidPoint);
       geofenceEventListener.remove()
     });*/
-
     // Получение текущих геозон
     /*BackgroundGeolocation.getGeofences().then((geofences) => {
       console.log('[getGeofences] ', geofences);
@@ -132,15 +156,11 @@ const RouteScreen = (props: Props) => {
     }).catch((error) => {
       console.log('[getGeofences] FAILURE: ', error);
     });*/
-
-
-
     /*return () => {
       // Очистка при размонтировании компонента
       BackgroundGeolocation.removeGeofence("MyGeofence");
       geofenceEventListener.remove();
     };*/
-
   }, []);
 
   // ---------- Открытие модального окна происшествия ----------
@@ -209,7 +229,7 @@ const RouteScreen = (props: Props) => {
           footer={renderMainCardFooter(params)}
           style={[
             styles.containerCards,
-            (currentPoint && { borderWidth: 1, borderColor: '#FF3D72' }) || {
+            (currentPoint && {borderWidth: 1, borderColor: '#FF3D72'}) || {
               borderWidth: 1,
               borderColor: '#91F2D2',
             },
@@ -219,7 +239,15 @@ const RouteScreen = (props: Props) => {
 
         {renderNextPointCard()}
 
-        <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginRight: 5 }}>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginRight: 5,
+          }}>
           <View>
             <Text category="label" style={styles.titleList}>
               <Icon
@@ -231,15 +259,16 @@ const RouteScreen = (props: Props) => {
             </Text>
           </View>
 
-          {buttonShipment && (<View>
-            <Button
-              size='small'
-              accessoryLeft={<Icon name="checkmark-square-2-outline" />}
-              onPress={() => handleAlertShipmantAllOrders()}
-            >
-              Отгрузить
-            </Button>
-          </View>)}
+          {buttonShipment && (
+            <View>
+              <Button
+                size="small"
+                accessoryLeft={<Icon name="checkmark-square-2-outline" />}
+                onPress={() => handleAlertShipmantAllOrders()}>
+                Отгрузить
+              </Button>
+            </View>
+          )}
         </View>
       </Layout>
     );
@@ -252,15 +281,14 @@ const RouteScreen = (props: Props) => {
         onPress: () => console.log('Cancel Pressed'),
         style: 'cancel',
       },
-      { text: 'Отгрузить', onPress: () => handleShipmantAllOrders() },
+      {text: 'Отгрузить', onPress: () => handleShipmantAllOrders()},
     ]);
-  }
+  };
 
   const handleShipmantAllOrders = () => {
-    const filteredOrders = point.orders.filter(order =>
-      order.type === 4 &&
-      order.status === 2 &&
-      order.tasks.length === 0
+    const filteredOrders = point.orders.filter(
+      order =>
+        order.type === 4 && order.status === 2 && order.tasks.length === 0,
     );
 
     if (filteredOrders.length > 0) {
@@ -268,26 +296,31 @@ const RouteScreen = (props: Props) => {
         putTimeCardToServer(order);
       });
     }
-  }
+  };
 
   const checkButtonShipment = () => {
     let buttonShipment = false;
 
-    allComplete = point.orders.every(order => order.status === 3);
+    allComplete = point?.orders?.every(order => order.status === 3);
 
     //console.log("orders", JSON.stringify(point));
 
     //console.log("orders", JSON.stringify(orders));
-    if (point.point === 0 && point.status == 2 && orders.length > 1 && !allComplete) {
+    if (
+      point?.point === 0 &&
+      point?.status == 2 &&
+      orders?.length > 1 &&
+      !allComplete
+    ) {
       buttonShipment = true;
     }
 
     return buttonShipment;
-  }
+  };
 
   const renderMainCardHeader = item => {
     return (
-      <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+      <Layout style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
         <View style={styles.textHeaderCard}>
           <Icon
             name="pin-outline"
@@ -311,7 +344,7 @@ const RouteScreen = (props: Props) => {
         selectedIndex={selectedIndex}
         e
         onSelect={onSelect}
-        style={{ flex: 1, justifyContent: 'space-between', flexDirection: 'row' }}
+        style={{flex: 1, justifyContent: 'space-between', flexDirection: 'row'}}
         appearance="outline"
         status="control"
         size="medium">
@@ -319,25 +352,25 @@ const RouteScreen = (props: Props) => {
           key={1}
           onPress={() => openPhoneWithNumber('79222965859')}
           accessoryLeft={<Icon name="phone" />}
-          style={{ backgroundColor: '#0088cc', marginRight: 0, flex: 1 }}
+          style={{backgroundColor: '#0088cc', marginRight: 0, flex: 1}}
         />
         <Button
           key={2}
           onPress={() => openTelegramWithNumber(telegram)}
           accessoryLeft={<SvgXml xml={telegramXml} width={20} height={20} />}
-          style={{ backgroundColor: '#0088cc', marginRight: 0, flex: 1 }}
+          style={{backgroundColor: '#0088cc', marginRight: 0, flex: 1}}
         />
         <Button
           key={3}
           onPress={() => openWhatsAppWithNumber(whatsapp)}
           accessoryLeft={<SvgXml xml={whatsappXml} width={20} height={20} />}
-          style={{ backgroundColor: '#43d854', marginRight: 0, flex: 1 }}
+          style={{backgroundColor: '#43d854', marginRight: 0, flex: 1}}
         />
         <Button
           key={4}
           onPress={() => setVisibleAccident(true)}
           accessoryLeft={<Icon name="alert-circle" />}
-          style={{ backgroundColor: '#B00000', marginRight: 0, flex: 1 }}
+          style={{backgroundColor: '#B00000', marginRight: 0, flex: 1}}
         />
       </ButtonGroup>
     );
@@ -434,7 +467,7 @@ const RouteScreen = (props: Props) => {
     );
   };
 
-  const renderMainCardFooter = params => {
+  const renderMainCardFooter = (params = {}) => {
     allOrderFinished =
       !!params.orders && params.orders.every(order => order.status === 3);
 
@@ -466,9 +499,9 @@ const RouteScreen = (props: Props) => {
   // ---------- Карточка следующая точка ----------
 
   function findNextPoint() {
-    const sortedPoints = points.sort((a, b) => a.sort - b.sort);
+    const sortedPoints = points?.sort((a, b) => a.sort - b.sort);
     const currentIndex = sortedPoints.findIndex(
-      point => point.uidPoint === uidPoint,
+      point => point?.uidPoint === uidPoint,
     );
     const nextPoint = sortedPoints.find((point, index) => index > currentIndex);
 
@@ -552,7 +585,8 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderNextPointCardText = nextPoint => {
-    const showAddress = nextPoint && nextPoint.address !== nextPoint.client_name;
+    const showAddress =
+      nextPoint && nextPoint.address !== nextPoint.client_name;
     const returnWarehouse = nextPoint.type == 7; //-- 7 это склад
 
     if (returnWarehouse) {
@@ -560,7 +594,7 @@ const RouteScreen = (props: Props) => {
         <View style={styles.containerCardText}>
           <Text category="c2">Точка завершения Маршрута</Text>
         </View>
-      )
+      );
     } else {
       return (
         <View style={styles.containerCardText}>
@@ -576,12 +610,12 @@ const RouteScreen = (props: Props) => {
         Загрузка: {item?.loading}, %
       </Text>*/}
         </View>
-      )
+      );
     }
-  }
+  };
 
   const renderNextPointCardHeader = nextPoint => (
-    <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+    <Layout style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
       <View style={styles.textHeaderCard}>
         <Icon
           name="pin-outline"
@@ -621,10 +655,12 @@ const RouteScreen = (props: Props) => {
   );
 
   const shouldShowAlert = (params, item, orderWithType1AndNotStatus3) => {
-    return params.status === 0 || (item.status !== 1 && orderWithType1AndNotStatus3);
+    return (
+      params.status === 0 || (item.status !== 1 && orderWithType1AndNotStatus3)
+    );
   };
 
-  const shouldShowTimeFixedAlert = (item) => {
+  const shouldShowTimeFixedAlert = item => {
     return item.tasks.length === 0 && item.status === 3;
   };
 
@@ -633,7 +669,9 @@ const RouteScreen = (props: Props) => {
   };
 
   const onPressCardOrder = (item, props, uidPoint) => {
-    const orderWithType1AndNotStatus3 = params.orders.find(order => order.type === 1 && order.status !== 3);
+    const orderWithType1AndNotStatus3 = params.orders.find(
+      order => order.type === 1 && order.status !== 3,
+    );
 
     if (shouldShowAlert(params, item, orderWithType1AndNotStatus3)) {
       Alert.alert('Необходимо начать следование или зафиксировать прибытие');
@@ -645,343 +683,344 @@ const RouteScreen = (props: Props) => {
     } else if (shouldShowTimeNotFixedModal(item, visible)) {
       setModalContent(
         <Card
-          style={{ padding: 5 }}
+          style={{padding: 5}}
           disabled={true}
           status="danger"
-          footer={footerModal(item)}
-        >
+          footer={footerModal(item)}>
           <Text category="s1">Необходимо зафиксировать время</Text>
 
           <Text category="h6">{item.name}</Text>
-        </Card>
+        </Card>,
       );
       setVisible(true);
     } else {
-      props.navigation.navigate('TaskOrderScreen', { ...item, uidPoint });
+      props.navigation.navigate('TaskOrderScreen', {...item, uidPoint});
     }
   };
 
-const renderCardOrder = ({
-  item,
-  index,
-}: {
-  item: RouterListItem;
-  index: number;
-}): React.ReactElement => {
-  currentAction = item.status === 1;
-  currentActionOrder = item.status === 2;
-  finishedAction = item.status === 3;
+  const renderCardOrder = ({
+    item,
+    index,
+  }: {
+    item: RouterListItem;
+    index: number;
+  }): React.ReactElement => {
+    currentAction = item.status === 1;
+    currentActionOrder = item.status === 2;
+    finishedAction = item.status === 3;
 
-  return (
-    <Card
-      style={[
-        styles.containerCards,
-        (currentAction && { borderWidth: 1, borderColor: '#0092FF' }) ||
-        (finishedAction && { borderWidth: 1, borderColor: '#91F2D2' }) ||
-        (currentActionOrder && { borderWidth: 1, borderColor: '#FFAA00' }),
-      ]}
-      status={getCardStatus(item.status)}
-      header={() => renderCardOrderName(item)}
-      onPress={() => onPressCardOrder(item)}>
-      {renderCardOrderText(item)}
-    </Card>
-  );
-};
+    return (
+      <Card
+        style={[
+          styles.containerCards,
+          (currentAction && {borderWidth: 1, borderColor: '#0092FF'}) ||
+            (finishedAction && {borderWidth: 1, borderColor: '#91F2D2'}) ||
+            (currentActionOrder && {borderWidth: 1, borderColor: '#FFAA00'}),
+        ]}
+        status={getCardStatus(item.status)}
+        header={() => renderCardOrderName(item)}
+        onPress={() => onPressCardOrder(item)}>
+        {renderCardOrderText(item)}
+      </Card>
+    );
+  };
 
-const renderCardOrderText = item => {
-  const typeName = item.type !== 1 ? 'Время прибытия:' : 'Время фиксации:';
-  const formattedDate =
-    item.type !== 4 && getToggleCardStatus(item)
-      ? getDateFromJSON(item.date)
-      : null;
+  const renderCardOrderText = item => {
+    const typeName = item.type !== 1 ? 'Время прибытия:' : 'Время фиксации:';
+    const formattedDate =
+      item.type !== 4 && getToggleCardStatus(item)
+        ? getDateFromJSON(item.date)
+        : null;
 
-  let content;
-  if (item.type !== 4) {
-    if (formattedDate) {
+    let content;
+    if (item.type !== 4) {
+      if (formattedDate) {
+        content = (
+          <Text category="c2">
+            {typeName} {formattedDate}
+          </Text>
+        );
+      } else {
+        content = <Text category="c2">Необходимо зафиксировать время</Text>;
+      }
+    } else {
       content = (
-        <Text category="c2">
-          {typeName} {formattedDate}
-        </Text>
+        <>
+          <Text category="c2">Объем = {`${item.weight}`}</Text>
+          <Text category="c2">Вес = {`${item.volume}`}</Text>
+        </>
+      );
+    }
+
+    return (
+      <Layout style={styles.textBodyCardWithLeftView}>
+        <Toggle
+          checked={getToggleCardStatus(item)}
+          onChange={() => onPressCardOrder(item)}></Toggle>
+        <View style={styles.containerCardText}>{content}</View>
+      </Layout>
+    );
+  };
+
+  const renderCardOrderName = (item: RouterListItem) => {
+    const hasTasks = item.tasks.length !== 0;
+
+    return (
+      <View style={styles.textHeaderCardOrder}>
+        <View style={styles.textHeaderCard}>
+          {renderCardOrderIcon(item.type)}
+
+          <Text
+            category="label"
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              fontSize: 14,
+            }}>
+            {item.name}
+          </Text>
+        </View>
+
+        {hasTasks && (
+          <Icon
+            name="bulb-outline"
+            width={24}
+            height={24}
+            style={{color: 'red'}}
+          />
+        )}
+      </View>
+    );
+  };
+
+  const renderCardOrderIcon = type => {
+    const iconNames = {
+      1: 'compass-outline',
+      2: 'download-outline',
+      3: 'file-text-outline',
+      4: 'bookmark-outline',
+    };
+
+    const iconName = iconNames[type] || 'file-outline';
+
+    return (
+      <Icon
+        name={iconName}
+        width={23}
+        height={23}
+        style={styles.textHeaderCardIcon}
+      />
+    );
+  };
+
+  // ---------- Запросы к серверу ----------
+
+  const startNextPoint = async item => {
+    setPending(true);
+
+    let data = getDataPostRoute();
+    data.screen = 2;
+    data.type = 5;
+    data.point = item.point;
+    data.uidPoint = item.uidPoint;
+
+    updateDate(data, async () => {
+      const dataString = JSON.stringify(data);
+
+      await postRoute(uid, dataString);
+
+      await addGeofenceToNextPoint(item);
+
+      props.navigation.navigate('TaskScreen', {...item});
+
+      mutate();
+      setNextPointDrive(false);
+    });
+
+    setPending(false);
+  };
+
+  const startCurrentPoint = async () => {
+    setPending(true);
+
+    let data = getDataPostRoute();
+    data.screen = 2;
+    data.type = 5;
+    data.point = point.point;
+    data.uidPoint = point.uidPoint;
+
+    updateDate(data, async () => {
+      const dataString = JSON.stringify(data);
+      await postRoute(uid, dataString);
+
+      await addGeofenceToNextPoint(point);
+
+      mutate();
+    });
+    setPending(false);
+  };
+
+  const finishCurrentPoint = async () => {
+    setPending(true);
+
+    let data = getDataPostRoute();
+    data.screen = 2;
+    data.type = 6;
+    data.point = point.point;
+    data.uidPoint = point.uidPoint;
+
+    updateDate(data, async () => {
+      const dataString = JSON.stringify(data);
+      await postRoute(uid, dataString);
+
+      setNextPointDrive(true);
+
+      mutate();
+    });
+
+    setPending(false);
+  };
+
+  const putTimeCardToServer = async item => {
+    setVisible(false);
+    setPending(true);
+
+    let data = getDataPostRoute();
+    data.screen = 2;
+    data.type = item.type;
+    data.point = point.point;
+    data.uidPoint = point.uidPoint;
+    data.uidOrder = item.uidOrder;
+
+    updateDate(data, async () => {
+      const dataString = JSON.stringify(data);
+      await postRoute(uid, dataString);
+
+      mutate();
+    });
+
+    setPending(false);
+  };
+
+  // ---------- Модальное окно ----------
+
+  const renderModalWindow = () => {
+    return (
+      <Modal
+        visible={visible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setVisible(false)}>
+        {modalContent}
+      </Modal>
+    );
+  };
+
+  const TasksScreen = () => (
+    <SafeAreaView style={{flex: 1}}>
+      {pending && (
+        <View style={styles.spinnerContainer}>
+          <Spinner size="giant" />
+        </View>
+      )}
+      <List
+        style={{
+          minHeight: '100%',
+        }}
+        data={orders}
+        ListHeaderComponent={renderMainCard(point)}
+        renderItem={renderCardOrder}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={onRefresh} />
+        }
+      />
+
+      {renderModalWindow()}
+
+      <AccidentScreen
+        visibleAccident={visibleAccident}
+        onClose={handleCloseAccidentModal}
+        uidPoint={uidPoint}
+        uid={uid}
+      />
+    </SafeAreaView>
+  );
+
+  // ---------- Фотографии ----------
+
+  const PhotoScreen = () => {
+    if (point.status !== 0) {
+      return (
+        <SafeAreaView style={{flex: 1}}>
+          <Layout>
+            <ScrollView contentContainerStyle={styles.wrap}>
+              <Text category="label" style={styles.titleList}>
+                <Icon
+                  name="camera-outline"
+                  width={20}
+                  height={20}
+                  style={styles.textHeaderCardIcon}></Icon>
+                Добавить фото
+              </Text>
+              <AddPhoto {...props} />
+            </ScrollView>
+          </Layout>
+        </SafeAreaView>
       );
     } else {
-      content = <Text category="c2">Необходимо зафиксировать время</Text>;
-    }
-  } else {
-    content = (
-      <>
-        <Text category="c2">Объем = {`${item.weight}`}</Text>
-        <Text category="c2">Вес = {`${item.volume}`}</Text>
-      </>
-    );
-  }
-
-  return (
-    <Layout style={styles.textBodyCardWithLeftView}>
-      <Toggle
-        checked={getToggleCardStatus(item)}
-        onChange={() => onPressCardOrder(item)}
-      ></Toggle>
-      <View style={styles.containerCardText}>{content}</View>
-    </Layout>
-  );
-};
-
-const renderCardOrderName = (item: RouterListItem) => {
-  const hasTasks = item.tasks.length !== 0;
-
-  return (
-    <View style={styles.textHeaderCardOrder}>
-      <View style={styles.textHeaderCard}>
-        {renderCardOrderIcon(item.type)}
-
-        <Text
-          category="label"
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            fontSize: 14,
-          }}>
-          {item.name}
-        </Text>
-      </View>
-
-      {hasTasks && (
-        <Icon
-          name="bulb-outline"
-          width={24}
-          height={24}
-          style={{ color: 'red' }}
-        />
-      )}
-    </View>
-  );
-};
-
-const renderCardOrderIcon = type => {
-  const iconNames = {
-    1: 'compass-outline',
-    2: 'download-outline',
-    3: 'file-text-outline',
-    4: 'bookmark-outline',
-  };
-
-  const iconName = iconNames[type] || 'file-outline';
-
-  return (
-    <Icon
-      name={iconName}
-      width={23}
-      height={23}
-      style={styles.textHeaderCardIcon}
-    />
-  );
-};
-
-// ---------- Запросы к серверу ----------
-
-const startNextPoint = async item => {
-  setPending(true);
-
-  let data = getDataPostRoute();
-  data.screen = 2;
-  data.type = 5;
-  data.point = item.point;
-  data.uidPoint = item.uidPoint;
-
-  data = JSON.stringify(data);
-
-  await postRoute(uid, data);
-
-  await addGeofenceToNextPoint(item);
-
-  props.navigation.navigate('TaskScreen', { ...item });
-
-  setNextPointDrive(false);
-
-  mutate();
-
-  setPending(false);
-};
-
-const startCurrentPoint = async () => {
-  setPending(true);
-
-  let data = getDataPostRoute();
-  data.screen = 2;
-  data.type = 5;
-  data.point = point.point;
-  data.uidPoint = point.uidPoint;
-
-  data = JSON.stringify(data);
-
-  await postRoute(uid, data);
-
-  await addGeofenceToNextPoint(point);
-
-  mutate();
-
-  setPending(false);
-};
-
-const finishCurrentPoint = async () => {
-  setPending(true);
-
-  let data = getDataPostRoute();
-  data.screen = 2;
-  data.type = 6;
-  data.point = point.point;
-  data.uidPoint = point.uidPoint;
-
-  data = JSON.stringify(data);
-
-  await postRoute(uid, data);
-
-  //mutate();
-
-  setNextPointDrive(true);
-
-  setPending(false);
-};
-
-const putTimeCardToServer = async item => {
-  setVisible(false);
-  setPending(true);
-
-  let data = getDataPostRoute();
-  data.screen = 2;
-  data.type = item.type;
-  data.point = point.point;
-  data.uidPoint = point.uidPoint;
-  data.uidOrder = item.uidOrder;
-
-  data = JSON.stringify(data);
-
-  await postRoute(uid, data);
-  
-  mutate();
-
-  setPending(false);
-};
-
-// ---------- Модальное окно ----------
-
-const renderModalWindow = () => {
-  return (
-    <Modal
-      visible={visible}
-      backdropStyle={styles.backdrop}
-      onBackdropPress={() => setVisible(false)}>
-      {modalContent}
-    </Modal>
-  );
-};
-
-const TasksScreen = () => (
-  <SafeAreaView style={{ flex: 1 }}>
-    {pending && (
-      <View style={styles.spinnerContainer}>
-        <Spinner size='giant' />
-      </View>
-    )}
-    <List
-      style={{
-        minHeight: '100%',
-      }}
-      data={orders}
-      ListHeaderComponent={renderMainCard(point)}
-      renderItem={renderCardOrder}
-      refreshControl={
-        <RefreshControl refreshing={false} onRefresh={onRefresh} />
-      }
-    />
-
-    {renderModalWindow()}
-
-    <AccidentScreen
-      visibleAccident={visibleAccident}
-      onClose={handleCloseAccidentModal}
-      uidPoint={uidPoint}
-      uid={uid}
-    />
-  </SafeAreaView>
-);
-
-// ---------- Фотографии ----------
-
-const PhotoScreen = () => {
-  if (point.status !== 0) {
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <Layout>
-          <ScrollView contentContainerStyle={styles.wrap}>
+      return (
+        <SafeAreaView style={{flex: 1}}>
+          <Card style={styles.containerCard}>
             <Text category="label" style={styles.titleList}>
               <Icon
-                name="camera-outline"
+                name="alert-circle-outline"
                 width={20}
                 height={20}
                 style={styles.textHeaderCardIcon}></Icon>
-              Добавить фото
+              Фотографии можно сделать только на активном маршруте
             </Text>
-            <AddPhoto {...props} />
-          </ScrollView>
-        </Layout>
-      </SafeAreaView>
-    );
-  } else {
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <Card style={styles.containerCard}>
-          <Text category="label" style={styles.titleList}>
-            <Icon
-              name="alert-circle-outline"
-              width={20}
-              height={20}
-              style={styles.textHeaderCardIcon}></Icon>
-            Фотографии можно сделать только на активном маршруте
-          </Text>
-        </Card>
-      </SafeAreaView>
-    );
-  }
-};
+          </Card>
+        </SafeAreaView>
+      );
+    }
+  };
 
-const TabNavigator = () => (
-  <Navigator tabBar={props => <BottomTabBar {...props} />}>
-    <Screen
-      name="Действия"
-      component={TasksScreen}
-      options={{ headerShown: false }}
-    />
-    <Screen
-      name="Фото"
-      component={PhotoScreen}
-      options={{ headerShown: false }}
-    />
-  </Navigator>
-);
+  const TabNavigator = () => (
+    <Navigator tabBar={props => <BottomTabBar {...props} />}>
+      <Screen
+        name="Действия"
+        component={TasksScreen}
+        options={{headerShown: false}}
+      />
+      <Screen
+        name="Фото"
+        component={PhotoScreen}
+        options={{headerShown: false}}
+      />
+    </Navigator>
+  );
 
-const BottomTabBar = ({ navigation, state }) => (
-  <BottomNavigation
-    selectedIndex={state.index}
-    onSelect={index => navigation.navigate(state.routeNames[index])}>
-    <BottomNavigationTab
-      title="Задачи"
-      icon={<Icon {...props} name="bookmark-outline" />}
-    />
-    <BottomNavigationTab
-      title="Фото"
-      icon={<Icon {...props} name="camera-outline" />}
-    />
-  </BottomNavigation>
-);
+  const BottomTabBar = ({navigation, state}) => (
+    <BottomNavigation
+      selectedIndex={state.index}
+      onSelect={index => navigation.navigate(state.routeNames[index])}>
+      <BottomNavigationTab
+        title="Задачи"
+        icon={<Icon {...props} name="bookmark-outline" />}
+      />
+      <BottomNavigationTab
+        title="Фото"
+        icon={<Icon {...props} name="camera-outline" />}
+      />
+    </BottomNavigation>
+  );
 
-// ---------- Отрисовка ----------
-return (
-  <NavigationContainer independent={true}>
-    <TabNavigator />
-  </NavigationContainer>
-);
+  // ---------- Отрисовка ----------
+  return (
+    <NavigationContainer independent={true}>
+      <TabNavigator />
+    </NavigationContainer>
+  );
 };
 
 export default RouteScreen;
