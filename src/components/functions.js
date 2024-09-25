@@ -45,7 +45,8 @@ export const getDataPostRoute = () => {
     date: currentDate.toJSON(),                         // Дата
     images: images,                                     // Изображения
     accident: "",                                       // Происшествие
-    finish: false                                       // Завершено 
+    finish: false,                                      // Завершено 
+    needJSON: true                                      // Требуется вернуть JSON 
   };
 
   return data;
