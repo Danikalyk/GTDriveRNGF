@@ -9,6 +9,8 @@ class FunctionQueue {
 
   // Метод для добавления функции в очередь
   enqueue(fn, ...args) {
+    console.log('enqueue', JSON.stringify(args));
+
     this.queue.push(() => fn(...args));
     // this.processQueue();
   }

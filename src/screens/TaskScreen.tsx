@@ -209,6 +209,8 @@ const RouteScreen = (props: Props) => {
       console.log('!netInfo.isConnected');
 
       data.needJSON = false;
+
+      console.log('callback', JSON.stringify(callback));
       // Если нет сети, добавляем в очередь
       queue.enqueue(callback);
     }
