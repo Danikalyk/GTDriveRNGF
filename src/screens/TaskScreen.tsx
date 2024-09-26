@@ -202,7 +202,7 @@ const RouteScreen = (props: Props) => {
     //const cachedData = getCachedData(`/route/${uid}`);
     //mutate(`/route/${uid}`, cachedData, true); // Возвращаем кэшированные данные
 
-    console.log('netInfo', JSON.stringify(netInfo));
+    // console.log('netInfo', JSON.stringify(netInfo));
 
     if (!netInfo.isConnected) {
 
@@ -942,7 +942,7 @@ const RouteScreen = (props: Props) => {
 
     updateDate(data, async () => {
 
-      //console.log('AAAAAAAAA')
+      
       const dataString = JSON.stringify(data);
 
       await postRoute(uid, dataString);
@@ -968,6 +968,7 @@ const RouteScreen = (props: Props) => {
     data.uidPoint = point.uidPoint;
 
     updateDate(data, async () => {
+      
       const dataString = JSON.stringify(data);
       await postRoute(uid, dataString);
 
@@ -988,6 +989,7 @@ const RouteScreen = (props: Props) => {
     data.uidPoint = point.uidPoint;
 
     updateDate(data, async () => {
+      
       const dataString = JSON.stringify(data);
       await postRoute(uid, dataString);
 
@@ -1011,9 +1013,9 @@ const RouteScreen = (props: Props) => {
     data.uidOrder = item.uidOrder;
 
     updateDate(data, async () => {
+      
       const dataString = JSON.stringify(data);
       await postRoute(uid, dataString);
-
       mutate();
     });
 

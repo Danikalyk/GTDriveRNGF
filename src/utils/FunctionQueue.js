@@ -10,13 +10,13 @@ class FunctionQueue {
   // Метод для добавления функции в очередь
   enqueue(fn, ...args) {
     this.queue.push(() => fn(...args));
-    this.processQueue();
+    // this.processQueue();
   }
 
   // Метод для обработки очереди
   async processQueue() {
     
-    console.log('Обработка очереди', JSON.stringify(this));
+    console.log('Обработка очереди', this);
 
     if (this.isProcessing) return; // Если уже обрабатывается, выходим
     this.isProcessing = true;
