@@ -14,7 +14,7 @@ import {
   BottomNavigationTab,
   Spinner,
 } from '@ui-kitten/components';
-import React, { useEffect, useContext, useRef, useCallback } from 'react';
+import React, { useEffect, useContext, useRef, useCallback, useState } from 'react';
 import { View, Alert, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { postRoute, getOSRM } from '../api/routes';
@@ -50,7 +50,7 @@ const RouteScreen = (props: Props) => {
     return cache.get(key); // Получаем кэшированные данные по ключу
   };
 
-  const [pending, setPending] = React.useState(true);
+  const [pending, setPending] = useState(false);
   const context = useContext(GlobalState);
   const { currentRoute, setRoute } = useContext(UserContext);
 
@@ -59,10 +59,6 @@ const RouteScreen = (props: Props) => {
   const goBack = () => {
     navigation.goBack();
   };
-
-  useEffect(() => {
-    setPending(false);
-  }, []);
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -104,49 +100,37 @@ const RouteScreen = (props: Props) => {
     ); // Возвращаем кэшированные данные
   }
 
-  const updateDate = async (data: any, callback = () => { }) => {
+  const updateDate = async (data: any, callback = () => {}) => {
     // Проверяем состояние сети
     const netInfo = await NetInfo.fetch();
 
     mutate((currentData: any) => {
-      const updatedData = { ...currentData };
+        const updatedData = { ...currentData };
 
-      if (data.finish) {
-        updatedData.status = 3;
-      }else {
-        updatedData.status = 2;
-        updatedData.check = true;
-      }
+        // Устанавливаем статус и проверку
+        updatedData.status = data.finish ? 3 : 2;
+        updatedData.check = !data.finish;
 
-      //const point = updatedData.points.find(point => point.uidPoint === data.uidPoint);
+        console.log('updatedDataRoute', JSON.stringify(updatedData));
+        console.log('data', JSON.stringify(data));
 
-      //if (point) {
-      //}
-
-      console.log('updatedDataRoute', JSON.stringify(updatedData));
-
-      console.log('data', JSON.stringify(data));
-
-      
-
-      return updatedData;
+        return updatedData;
     }, false);
 
-    // Обновляем данные на экране
-    //const cachedData = getCachedData(`/route/${uid}`);
-    //mutate(`/route/${uid}`, cachedData, true); // Возвращаем кэшированные данные
+    const callbackFunc = async () => {
+      await callback(); // Ждем завершения колбэка
+    };
 
     if (!netInfo.isConnected) {
       data.needJSON = false;
-      // Если нет сети, добавляем в очередь
-      queue.enqueue(callback);
+      queue.enqueue(callbackFunc); // Добавляем в очередь, если нет сети
+    } else {
+      // Здесь мы вызываем callbackFunc без await, так как это не обязательно
+      callbackFunc(); // Выполняем колбэк, если есть сеть
     }
 
-    if (netInfo.isConnected) {
-      // Если есть сеть, выполняем запрос
-      callback();
-    }
-  };
+    setPending(false); // Устанавливаем pending в false
+};
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -587,8 +571,10 @@ const RouteScreen = (props: Props) => {
 
   const getThisRoute = async () => {
     setPending(true);
-
     setRoute(uid);
+    
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     context.enableGeo();
     BackgroundGeolocation.resetOdometer();
 
@@ -611,9 +597,12 @@ const RouteScreen = (props: Props) => {
   const finishThisRoute = async () => {
     setPending(true);
 
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     context.disableGeo();
     setRoute(null);
 
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     let data = getDataPostRoute();
     data.screen = 0;

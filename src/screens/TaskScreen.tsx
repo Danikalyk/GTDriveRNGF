@@ -12,7 +12,7 @@ import {
   BottomNavigationTab,
   Spinner,
 } from '@ui-kitten/components';
-import {SvgXml} from 'react-native-svg';
+import { SvgXml } from 'react-native-svg';
 import {
   getCardStatus,
   getToggleCardStatus,
@@ -25,21 +25,21 @@ import {
   useFocusEffect,
   useRoute,
 } from '@react-navigation/native';
-import React, {useEffect, useCallback, useState} from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {RefreshControl, Alert, Linking, View} from 'react-native';
-import {openAddressOnMap} from '../utils/openAddressOnMap';
-import {RouterListItem} from '../types';
-import {postRoute} from '../api/routes';
-import {ScrollView} from 'react-native-gesture-handler';
-import useSWR, {useSWRConfig} from 'swr';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { RefreshControl, Alert, Linking, View } from 'react-native';
+import { openAddressOnMap } from '../utils/openAddressOnMap';
+import { RouterListItem } from '../types';
+import { postRoute } from '../api/routes';
+import { ScrollView } from 'react-native-gesture-handler';
+import useSWR, { useSWRConfig } from 'swr';
 import find from 'lodash/find';
 import AccidentScreen from './AccidentScreen';
-import {styles} from '../styles';
-import {useNavigation} from '@react-navigation/native';
-import {getReq, getRequest} from '../api/request.js';
+import { styles } from '../styles';
+import { useNavigation } from '@react-navigation/native';
+import { getReq, getRequest } from '../api/request.js';
 import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../utils/FunctionQueue.js';
 
@@ -60,8 +60,8 @@ const whatsappXml = `
 const queue = new FunctionQueue();
 
 const RouteScreen = (props: Props) => {
-  
-  const {cache} = useSWRConfig();
+
+  const { cache } = useSWRConfig();
   const getCachedData = key => {
     return cache.get(key); // Получаем кэшированные данные по ключу
   };
@@ -71,14 +71,19 @@ const RouteScreen = (props: Props) => {
   const [visible, setVisible] = React.useState(false);
   const [modalContent, setModalContent] = React.useState(null);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const {Navigator, Screen} = createBottomTabNavigator();
+  const { Navigator, Screen } = createBottomTabNavigator();
   const [nextPointDrive, setNextPointDrive] = React.useState(false);
   const propsParams = props?.route?.params;
   const uid = propsParams.uid;
   const uidPoint = propsParams.uidPoint;
+  const typePoint = propsParams.type;
   const goBack = () => {
-    navigation.goBack({post: true});
+    navigation.goBack({ post: true });
   };
+
+  /*React.useEffect(() => {
+    setPending(false);
+  }, []);*/
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -91,9 +96,9 @@ const RouteScreen = (props: Props) => {
   useEffect(() => {
     // Подписка на изменения состояния сети
     const unsubscribe = NetInfo.addEventListener(state => {
-      console.log('NetInfo', { state })
+      //console.log('NetInfo', { state })
       if (state.isConnected) {
-        console.log('Сеть восстановлена');
+        //console.log('Сеть восстановлена');
 
         queue.processQueue(); // Запускаем очередь при восстановлении сети
       }
@@ -121,121 +126,73 @@ const RouteScreen = (props: Props) => {
     mutate(`/route/${uid}`, getCachedData(`/route/${uid}`), false); // Возвращаем кэшированные данные
   }
 
-  const updateDate = async (data: any, callback = () => {}) => {
-    // Проверяем состояние сети
+  const updateDate = async (data: any, callback = () => { }) => {
     const netInfo = await NetInfo.fetch();
 
-    // type - Вид дейсвтия
-    //
-    // Параметры:
-    //		0 - Прибытие на точку разгрузки заказа - НЕ ИСПОЛЬЗОВАТЬ!!!
-    //		1 - Прибытие на точку погрузки
-    //		2 - ТС загружено
-    //		3 - Закрывающие документы получены
-    //		4 - Заказ отмечен
-    //		5 - Начать следование до точки (общий)
-    //		6 - Точка завершена (общий)
-    //		7 - Возврат на склад
-
-    // status - Статусы
-    //
-    // Параметры:
-    //  	0	- не обработано
-    //		1	- текущий
-    // 		2	- на точке
-    //  	3 	- завершен
-    //  	-1	- отказ
-    //  	-2  - недоступен
-
     mutate((currentData: any) => {
-      const updatedData = {...currentData};
-      const point = updatedData.points.find(
-        point => point.uidPoint === data.uidPoint,
-      );
+      const updatedData = { ...currentData };
+      const point = updatedData.points.find(p => p.uidPoint === data.uidPoint);
 
       if (point) {
-        if (data.type === 5) {
-          point.status = 1;
-
-          const orderType1 = orders.find(order => order.type === 1); //-- Прибытие на точку сразу переводим в статус 1
-          orderType1.status = 1;
-        } else if (data.type === 6) {
-          point.status = 3;
-        } else {
-          const order = point.orders.find(
-            order =>
-              order.uidOrder === data.uidOrder && order.type === data.type,
-          );
-
-          if (order) {
-            order.date = data.date;
-
-            if (point.point === 1) {
-              //-- Это Склад
-              if (order.type === 1) {
-                point.status = 2;
-
-                const orderType2 = orders.find(order => order.type === 2); //-- ТС Загружено
-                orderType2.status = 2;
-              } else if (order.type === 2) {
-                const orderType3 = orders.find(order => order.type === 3); //-- Закрывающие документы получены
-                orderType3.status = 2;
-              } else if (order.type === 7) {
-                //-- Возврат на склад
-                point.status = 2;
-              }
-
-              order.status = 3;
-            } else {
-              if (order.type === 1) {
-                order.status = 3;
-                point.status = 2;
-
-                point.orders.forEach(order => {
-                  if (order.status === 0) {
-                    order.status = 1;
-                  }
-                });
-              } else {
-                order.status = 3;
-              }
+        switch (data.type) {
+          case 5:
+            point.status = 1;
+            orders.find(order => order.type === 1).status = 1; // Прибытие на точку
+            break;
+          case 6:
+            point.status = 3;
+            break;
+          default:
+            const order = point.orders.find(o => o.uidOrder === data.uidOrder && o.type === data.type);
+            if (order) {
+              order.date = data.date;
+              handleOrderStatus(point, order);
             }
-          }
+            break;
         }
       }
-
-      //console.log('updatedData', JSON.stringify(updatedData));
 
       return updatedData;
     }, false);
 
-    // Обновляем данные на экране
-    //const cachedData = getCachedData(`/route/${uid}`);
-    //mutate(`/route/${uid}`, cachedData, true); // Возвращаем кэшированные данные
-
-    // console.log('netInfo', JSON.stringify(netInfo));
-
-    const callbackFunc = () => {
-      callback();
-    }
+    const callbackFunc = async () => {
+      await callback(); // Ждем завершения колбэка
+    };
 
     if (!netInfo.isConnected) {
-      console.log('!netInfo.isConnected');
-
       data.needJSON = false;
-
-      console.log('callback', callback);
-      // Если нет сети, добавляем в очередь
-      queue.enqueue(callbackFunc);
+      queue.enqueue(callbackFunc); // Добавляем в очередь, если нет сети
+    } else {
+      // Здесь мы вызываем callbackFunc без await, так как это не обязательно
+      callbackFunc(); // Выполняем колбэк, если есть сеть
     }
 
-    if (netInfo.isConnected) {
-      console.log('netInfo.isConnected');
-
-      // Если есть сеть, выполняем запрос
-      callback();
-    }
+    setPending(false); // Устанавливаем pending в false
   };
+
+  const handleOrderStatus = (point, order) => {
+    if (point.point === 1) { // Это Склад
+        if (order.type === 1) {
+            point.status = 2;
+            orders.find(o => o.type === 2).status = 2; // ТС Загружено
+        } else if (order.type === 2) {
+            orders.find(o => o.type === 3).status = 2; // Закрывающие документы получены
+        } else if (order.type === 7) {
+            point.status = 2; // Возврат на склад
+        }
+        order.status = 3;
+    } else {
+        if (order.type === 1) {
+            order.status = 3;
+            point.status = 2;
+            point.orders.forEach(o => {
+                if (o.status === 0) o.status = 1;
+            });
+        } else {
+            order.status = 3;
+        }
+    }
+};
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -248,7 +205,7 @@ const RouteScreen = (props: Props) => {
   //const [points, setPoints] = React.useState(route?.points);
 
   const points = route?.points;
-  const point = find(points, {uidPoint: uidPoint});
+  const point = find(points, { uidPoint: uidPoint });
   const orders = point?.orders;
   const params = {
     ...route,
@@ -267,7 +224,7 @@ const RouteScreen = (props: Props) => {
     // Обработка событий геозон
     /*const geofenceEventListener = BackgroundGeolocation.onGeofence((geofence) => {
       Alert.alert('Вы подъехали к точке!');
-
+  
       BackgroundGeolocation.removeGeofence(point.uidPoint);
       geofenceEventListener.remove()
     });*/
@@ -275,9 +232,9 @@ const RouteScreen = (props: Props) => {
     /*BackgroundGeolocation.getGeofences().then((geofences) => {
       console.log('[getGeofences] ', geofences);
       
-
+  
       //BackgroundGeolocation.removeGeofence(geofences);
-
+  
     }).catch((error) => {
       console.log('[getGeofences] FAILURE: ', error);
     });*/
@@ -354,7 +311,7 @@ const RouteScreen = (props: Props) => {
           footer={renderMainCardFooter(params)}
           style={[
             styles.containerCards,
-            (currentPoint && {borderWidth: 1, borderColor: '#FF3D72'}) || {
+            (currentPoint && { borderWidth: 1, borderColor: '#FF3D72' }) || {
               borderWidth: 1,
               borderColor: '#91F2D2',
             },
@@ -406,7 +363,7 @@ const RouteScreen = (props: Props) => {
         onPress: () => console.log('Cancel Pressed'),
         style: 'cancel',
       },
-      {text: 'Отгрузить', onPress: () => handleShipmantAllOrders()},
+      { text: 'Отгрузить', onPress: () => handleShipmantAllOrders() },
     ]);
   };
 
@@ -445,7 +402,7 @@ const RouteScreen = (props: Props) => {
 
   const renderMainCardHeader = item => {
     return (
-      <Layout style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+      <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
         <View style={styles.textHeaderCard}>
           <Icon
             name="pin-outline"
@@ -469,7 +426,7 @@ const RouteScreen = (props: Props) => {
         selectedIndex={selectedIndex}
         e
         onSelect={onSelect}
-        style={{flex: 1, justifyContent: 'space-between', flexDirection: 'row'}}
+        style={{ flex: 1, justifyContent: 'space-between', flexDirection: 'row' }}
         appearance="outline"
         status="control"
         size="medium">
@@ -477,25 +434,25 @@ const RouteScreen = (props: Props) => {
           key={1}
           onPress={() => openPhoneWithNumber('79222965859')}
           accessoryLeft={<Icon name="phone" />}
-          style={{backgroundColor: '#0088cc', marginRight: 0, flex: 1}}
+          style={{ backgroundColor: '#0088cc', marginRight: 0, flex: 1 }}
         />
         <Button
           key={2}
           onPress={() => openTelegramWithNumber(telegram)}
           accessoryLeft={<SvgXml xml={telegramXml} width={20} height={20} />}
-          style={{backgroundColor: '#0088cc', marginRight: 0, flex: 1}}
+          style={{ backgroundColor: '#0088cc', marginRight: 0, flex: 1 }}
         />
         <Button
           key={3}
           onPress={() => openWhatsAppWithNumber(whatsapp)}
           accessoryLeft={<SvgXml xml={whatsappXml} width={20} height={20} />}
-          style={{backgroundColor: '#43d854', marginRight: 0, flex: 1}}
+          style={{ backgroundColor: '#43d854', marginRight: 0, flex: 1 }}
         />
         <Button
           key={4}
           onPress={() => setVisibleAccident(true)}
           accessoryLeft={<Icon name="alert-circle" />}
-          style={{backgroundColor: '#B00000', marginRight: 0, flex: 1}}
+          style={{ backgroundColor: '#B00000', marginRight: 0, flex: 1 }}
         />
       </ButtonGroup>
     );
@@ -624,14 +581,20 @@ const RouteScreen = (props: Props) => {
   // ---------- Карточка следующая точка ----------
 
   function findNextPoint() {
-    if (!Array.isArray(points) || points.length === 0) {
+    if (!Array.isArray(points)) {
       return false;
     }
 
+    console.log('point.type', point.type);
+    console.log({ typePoint });
+
     const sortedPoints = points?.sort((a, b) => a.sort - b.sort);
     const currentIndex = sortedPoints.findIndex(
-      point => point?.uidPoint === uidPoint,
+      point => point?.uidPoint === uidPoint && point?.type === typePoint && point?.status === 3,
     );
+
+    console.log({ currentIndex });
+
     const nextPoint = sortedPoints.find((point, index) => index > currentIndex);
 
     return nextPoint || false;
@@ -744,7 +707,7 @@ const RouteScreen = (props: Props) => {
   };
 
   const renderNextPointCardHeader = nextPoint => (
-    <Layout style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+    <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
       <View style={styles.textHeaderCard}>
         <Icon
           name="pin-outline"
@@ -812,7 +775,7 @@ const RouteScreen = (props: Props) => {
     } else if (shouldShowTimeNotFixedModal(item, visible)) {
       setModalContent(
         <Card
-          style={{padding: 5}}
+          style={{ padding: 5 }}
           disabled={true}
           status="danger"
           footer={footerModal(item)}>
@@ -823,7 +786,7 @@ const RouteScreen = (props: Props) => {
       );
       setVisible(true);
     } else {
-      props.navigation.navigate('TaskOrderScreen', {...item, uidPoint});
+      props.navigation.navigate('TaskOrderScreen', { ...item, uidPoint });
     }
   };
 
@@ -842,9 +805,9 @@ const RouteScreen = (props: Props) => {
       <Card
         style={[
           styles.containerCards,
-          (currentAction && {borderWidth: 1, borderColor: '#0092FF'}) ||
-            (finishedAction && {borderWidth: 1, borderColor: '#91F2D2'}) ||
-            (currentActionOrder && {borderWidth: 1, borderColor: '#FFAA00'}),
+          (currentAction && { borderWidth: 1, borderColor: '#0092FF' }) ||
+          (finishedAction && { borderWidth: 1, borderColor: '#91F2D2' }) ||
+          (currentActionOrder && { borderWidth: 1, borderColor: '#FFAA00' }),
         ]}
         status={getCardStatus(item.status)}
         header={() => renderCardOrderName(item)}
@@ -916,7 +879,7 @@ const RouteScreen = (props: Props) => {
             name="bulb-outline"
             width={24}
             height={24}
-            style={{color: 'red'}}
+            style={{ color: 'red' }}
           />
         )}
       </View>
@@ -948,6 +911,8 @@ const RouteScreen = (props: Props) => {
   const startNextPoint = async item => {
     setPending(true);
 
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     let data = getDataPostRoute();
     data.screen = 2;
     data.type = 5;
@@ -955,24 +920,27 @@ const RouteScreen = (props: Props) => {
     data.uidPoint = item.uidPoint;
 
     updateDate(data, async () => {
-      console.log('AAAa');
+      //console.log('AAAa');
       const dataString = JSON.stringify(data);
 
       await postRoute(uid, dataString);
 
       await addGeofenceToNextPoint(item);
 
-      props.navigation.navigate('TaskScreen', {...item});
+      props.navigation.navigate('TaskScreen', { ...item });
 
       mutate();
-      setNextPointDrive(false);
-    });
 
-    setPending(false);
+      setNextPointDrive(false);
+
+      //setPending(false);
+    });
   };
 
   const startCurrentPoint = async () => {
     setPending(true);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     let data = getDataPostRoute();
     data.screen = 2;
@@ -981,19 +949,22 @@ const RouteScreen = (props: Props) => {
     data.uidPoint = point.uidPoint;
 
     updateDate(data, async () => {
-      console.log('bbbbb');
+      //console.log('bbbbb');
       const dataString = JSON.stringify(data);
       await postRoute(uid, dataString);
 
       await addGeofenceToNextPoint(point);
 
       mutate();
+
+      //setPending(false);
     });
-    setPending(false);
   };
 
   const finishCurrentPoint = async () => {
     setPending(true);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     let data = getDataPostRoute();
     data.screen = 2;
@@ -1002,21 +973,24 @@ const RouteScreen = (props: Props) => {
     data.uidPoint = point.uidPoint;
 
     updateDate(data, async () => {
-      console.log('ccccc');
+      //console.log('ccccc');
       const dataString = JSON.stringify(data);
       await postRoute(uid, dataString);
 
       setNextPointDrive(true);
 
       mutate();
-    });
 
-    setPending(false);
+      //setPending(false);
+    });
   };
 
   const putTimeCardToServer = async item => {
     setVisible(false);
+
     setPending(true);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     let data = getDataPostRoute();
     data.screen = 2;
@@ -1026,13 +1000,14 @@ const RouteScreen = (props: Props) => {
     data.uidOrder = item.uidOrder;
 
     updateDate(data, async () => {
-      console.log('DDDD');
+      //console.log('DDDD');
       const dataString = JSON.stringify(data);
       await postRoute(uid, dataString);
-      mutate();
-    });
 
-    setPending(false);
+      mutate();
+
+      //setPending(false);
+    });
   };
 
   // ---------- Модальное окно ----------
@@ -1049,7 +1024,7 @@ const RouteScreen = (props: Props) => {
   };
 
   const TasksScreen = () => (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{ flex: 1 }}>
       {pending && (
         <View style={styles.spinnerContainer}>
           <Spinner size="giant" />
@@ -1083,7 +1058,7 @@ const RouteScreen = (props: Props) => {
   const PhotoScreen = () => {
     if (point.status !== 0) {
       return (
-        <SafeAreaView style={{flex: 1}}>
+        <SafeAreaView style={{ flex: 1 }}>
           <Layout>
             <ScrollView contentContainerStyle={styles.wrap}>
               <Text category="label" style={styles.titleList}>
@@ -1101,7 +1076,7 @@ const RouteScreen = (props: Props) => {
       );
     } else {
       return (
-        <SafeAreaView style={{flex: 1}}>
+        <SafeAreaView style={{ flex: 1 }}>
           <Card style={styles.containerCard}>
             <Text category="label" style={styles.titleList}>
               <Icon
@@ -1122,17 +1097,17 @@ const RouteScreen = (props: Props) => {
       <Screen
         name="Действия"
         component={TasksScreen}
-        options={{headerShown: false}}
+        options={{ headerShown: false }}
       />
       <Screen
         name="Фото"
         component={PhotoScreen}
-        options={{headerShown: false}}
+        options={{ headerShown: false }}
       />
     </Navigator>
   );
 
-  const BottomTabBar = ({navigation, state}) => (
+  const BottomTabBar = ({ navigation, state }) => (
     <BottomNavigation
       selectedIndex={state.index}
       onSelect={index => navigation.navigate(state.routeNames[index])}>
