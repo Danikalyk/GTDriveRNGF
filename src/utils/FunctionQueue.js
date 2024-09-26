@@ -9,9 +9,11 @@ class FunctionQueue {
 
   // Метод для добавления функции в очередь
   enqueue(fn, ...args) {
-    console.log('enqueue', JSON.stringify(args));
+    console.log('enqueue', fn, args);
 
     this.queue.push(() => fn(...args));
+
+    console.log('queue', this.queue);
     // this.processQueue();
   }
 
@@ -26,6 +28,7 @@ class FunctionQueue {
     while (this.queue.length > 0) {
       const currentFunction = this.queue.shift();
       try {
+        console.log('currentFunction', currentFunction);
         await currentFunction(); // Выполняем текущую функцию
       } catch (error) {
         console.error('Ошибка при выполнении функции:', error);

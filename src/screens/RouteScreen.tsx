@@ -40,8 +40,11 @@ const { Navigator, Screen } = createBottomTabNavigator();
 
 type Props = {};
 
+
+const queue = new FunctionQueue();
+
 const RouteScreen = (props: Props) => {
-  const queue = new FunctionQueue();
+  
   const { cache } = useSWRConfig();
   const getCachedData = key => {
     return cache.get(key); // Получаем кэшированные данные по ключу
