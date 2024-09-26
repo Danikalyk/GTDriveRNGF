@@ -193,7 +193,7 @@ const RouteScreen = (props: Props) => {
         }
       }
 
-      console.log('updatedData', JSON.stringify(updatedData));
+      //console.log('updatedData', JSON.stringify(updatedData));
 
       return updatedData;
     }, false);
@@ -202,15 +202,23 @@ const RouteScreen = (props: Props) => {
     //const cachedData = getCachedData(`/route/${uid}`);
     //mutate(`/route/${uid}`, cachedData, true); // Возвращаем кэшированные данные
 
+    console.log('netInfo', JSON.stringify(netInfo));
+
     if (!netInfo.isConnected) {
+
+      console.log('!netInfo.isConnected');
+
       data.needJSON = false;
       // Если нет сети, добавляем в очередь
-      //queue.enqueue(callback);
+      queue.enqueue(callback);
     }
 
     if (netInfo.isConnected) {
+
+      console.log('netInfo.isConnected');
+
       // Если есть сеть, выполняем запрос
-      //callback();
+      callback();
     }
   };
 

@@ -105,9 +105,16 @@ const RouteScreen = (props: Props) => {
     // Проверяем состояние сети
     const netInfo = await NetInfo.fetch();
 
-    /*mutate((currentData: any) => {
+    mutate((currentData: any) => {
       const updatedData = { ...currentData };
-      
+
+      if (data.finish) {
+        updatedData.status = 3;
+      }else {
+        updatedData.status = 2;
+        updatedData.check = true;
+      }
+
       //const point = updatedData.points.find(point => point.uidPoint === data.uidPoint);
 
       //if (point) {
@@ -117,23 +124,25 @@ const RouteScreen = (props: Props) => {
 
       console.log('data', JSON.stringify(data));
 
+      
+
       return updatedData;
-    }, false);*/
+    }, false);
 
     // Обновляем данные на экране
     //const cachedData = getCachedData(`/route/${uid}`);
     //mutate(`/route/${uid}`, cachedData, true); // Возвращаем кэшированные данные
 
-    //if (!netInfo.isConnected) {
-     // data.needJSON = false;
+    if (!netInfo.isConnected) {
+      data.needJSON = false;
       // Если нет сети, добавляем в очередь
-      //queue.enqueue(callback);
-    //}
+      queue.enqueue(callback);
+    }
 
-    //if (netInfo.isConnected) {
+    if (netInfo.isConnected) {
       // Если есть сеть, выполняем запрос
       callback();
-    //}
+    }
   };
 
   const onRefresh = React.useCallback(() => {

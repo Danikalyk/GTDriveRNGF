@@ -1,3 +1,5 @@
+import { Alert } from 'react-native';
+
 // FunctionQueue.js
 class FunctionQueue {
   constructor() {
@@ -13,6 +15,9 @@ class FunctionQueue {
 
   // Метод для обработки очереди
   async processQueue() {
+    
+    console.log('Обработка очереди', JSON.stringify(this));
+
     if (this.isProcessing) return; // Если уже обрабатывается, выходим
     this.isProcessing = true;
 
