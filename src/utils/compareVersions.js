@@ -1,7 +1,7 @@
 function compareVersions(version1, version2) {
   // Разбиваем версии на массивы чисел
-  const v1 = version1.split('.').map(Number);
-  const v2 = version2.split('.').map(Number);
+  const v1 = version1?.split('.').map(Number);
+  const v2 = version2?.split('.').map(Number);
 
   // Делаем их одинаковой длины, добавляя недостающие нули
   while (v1.length < v2.length) v1.push(0);

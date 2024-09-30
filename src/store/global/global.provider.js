@@ -114,7 +114,7 @@ export const GlobalStateProvider = ({children}) => {
       return;
     }
 
-    const fileName = url.split('/').pop();
+    const fileName = url?.split('/').pop();
     const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
 
     RNFS.downloadFile({
