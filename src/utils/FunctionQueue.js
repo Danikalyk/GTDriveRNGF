@@ -1,10 +1,11 @@
-import { Alert } from 'react-native';
+import {Alert} from 'react-native';
 
 // FunctionQueue.js
 class FunctionQueue {
   constructor() {
     this.queue = [];
     this.isProcessing = false;
+    this.delay = 500; // Задержка между функциями в миллисекундах
   }
 
   // Метод для добавления функции в очередь
@@ -17,9 +18,13 @@ class FunctionQueue {
     // this.processQueue();
   }
 
+  // Функция для задержки (sleep)
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   // Метод для обработки очереди
   async processQueue() {
-    
     console.log('Обработка очереди', this);
 
     if (this.isProcessing) return; // Если уже обрабатывается, выходим
@@ -33,6 +38,9 @@ class FunctionQueue {
       } catch (error) {
         console.error('Ошибка при выполнении функции:', error);
       }
+
+      // Добавляем задержку между функциями
+      await this.sleep(this.delay);
     }
 
     this.isProcessing = false; // Устанавливаем статус обработки
