@@ -20,7 +20,8 @@ import DeviceInfo from 'react-native-device-info';
 import localStorage from '../store/localStorage';
 import Loader from '../components/Icons/Loader';
 import {appVersion} from '../version';
-import {getUpdate} from '../api/routes';
+
+import NetInfo from '@react-native-community/netinfo';
 
 const LoginScreen = ({navigation}: Props) => {
   const context = useContext(GlobalState);
@@ -56,43 +57,66 @@ const LoginScreen = ({navigation}: Props) => {
     setSubmit(true);
     setPending(true);
 
-    const jwtToken = await getDevTokens({isRefresh: true});
-    await saveTokens({id: userID, password, jwtToken});
+    const netInfo = await NetInfo.fetch();
+    if (!netInfo.isConnected) {
+      const LoginKey = await localStorage.getItem('LoginKey');
 
-    let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
-    let version = DeviceInfo.getVersion();
-    let instanceId = await DeviceInfo.getInstanceId();
-
-    const params = {
-      user: {
-        date: dayjs().format(),
-        id: userID,
-        password: password,
-      },
-      device: {
-        ID: instanceId,
-        ...deviceInfo,
-        version_gtdrive: version,
-      },
-    };
-
-    try {
-      const userAnswer = await userAuth(params);
-      
-      if (!userAnswer.error && userAnswer?.userUID) {
-        setUser(userAnswer.userUID);
-
-        context.login();
-        //context.enableGeo();
-        setPending(false);
-      } else {
-        Alert.alert(userAnswer.error || userAnswer.message || 'Error');
-        setPending(false);
-        return;
+      if (LoginKey) {
+        const {user, error} = LoginKey;
+        if (!error && user && LoginKey.userUID) {
+          console.log('LoginKey', LoginKey);
+          if (user?.code === userID && user?.password === password) {
+            setUser(LoginKey.userUID);
+            context.login();
+            setPending(false);
+          }
+        } else {
+          Alert.alert(LoginKey?.error || LoginKey.message || 'Error');
+          setPending(false);
+          return;
+        }
       }
-    } catch (error) {
-      console.error(error);
-      setPending(false);
+    } else {
+      const jwtToken = await getDevTokens({isRefresh: true});
+      await saveTokens({id: userID, password, jwtToken});
+
+      let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
+      let version = DeviceInfo.getVersion();
+      let instanceId = await DeviceInfo.getInstanceId();
+
+      const params = {
+        user: {
+          date: dayjs().format(),
+          id: userID,
+          password: password,
+        },
+        device: {
+          ID: instanceId,
+          ...deviceInfo,
+          version_gtdrive: version,
+        },
+      };
+
+      try {
+        const userAnswer = await userAuth(params);
+
+        if (!userAnswer.error && userAnswer?.userUID) {
+          setUser(userAnswer.userUID);
+
+          await localStorage.setItem('LoginKey', userAnswer || '');
+
+          context.login();
+          //context.enableGeo();
+          setPending(false);
+        } else {
+          Alert.alert(userAnswer.error || userAnswer.message || 'Error');
+          setPending(false);
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+        setPending(false);
+      }
     }
   };
 
@@ -110,7 +134,7 @@ const LoginScreen = ({navigation}: Props) => {
       <Layout style={styles.layout}>
         {pending && (
           <View style={styles.spinnerContainer}>
-            <Spinner size='giant'/>
+            <Spinner size="giant" />
           </View>
         )}
         <View style={styles.logoContainer}>
