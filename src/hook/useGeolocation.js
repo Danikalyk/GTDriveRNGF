@@ -1,12 +1,16 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
-import {getDevTokens, getTokens} from '../api/auth';
-import {getBaseUrl} from '../api/axios';
-import {GlobalState} from '../store/global/global.state';
-import {UserContext} from '../store/user/UserProvider';
-import {Alert} from 'react-native';
+import { getDevTokens, getTokens } from '../api/auth';
+import { getBaseUrl } from '../api/axios';
+import { GlobalState } from '../store/global/global.state';
+import { UserContext } from '../store/user/UserProvider';
+import { Alert } from 'react-native';
 import { LocationContext } from '../store/location/LocationProvider';
 import { Platform, ToastAndroid } from 'react-native';
+import { getDataPostRoute } from '../components/functions.js';
+import NetInfo from '@react-native-community/netinfo';
+import FunctionQueue from '../utils/FunctionQueue.js';
+import { postRoute } from '../api/routes';
 
 function useGeolocation(enabledGeo) {
   // const context = React.useContext(GlobalState);
@@ -17,7 +21,7 @@ function useGeolocation(enabledGeo) {
   const {currentUser, currentRoute} = useContext(UserContext);
   const [isAlertShown, setIsAlertShown] = useState(false);
 
-  console.log('enabledGeo', enabledGeo);
+  //console.log('enabledGeo', enabledGeo);
 
   useEffect(() => {
     setEnabled(enabledGeo);
@@ -30,11 +34,27 @@ function useGeolocation(enabledGeo) {
       return;
     }
 
+    const updateDate = async (data: any, callback = () => { }) => {
+      const netInfo = await NetInfo.fetch();
+  
+      const callbackFunc = async () => {
+        await callback(); // Ждем завершения колбэка
+      };
+  
+      if (!netInfo.isConnected) {
+        data.needJSON = false;
+        queue.enqueue(callbackFunc); // Добавляем в очередь, если нет сети
+      } else {
+        // Здесь мы вызываем callbackFunc без await, так как это не обязательно
+        callbackFunc(); // Выполняем колбэк, если есть сеть
+      }
+    };
+
     /// 1.  Subscribe to events.
     const onLocation: Subscription = BackgroundGeolocation.onLocation((location) => {
         Logger.debug('Location received in Javascript: ' + location.uuid);
 
-        console.log({location});
+        //console.log({location});
         setLocation(location);
         // context.setLocation(location);
       },
@@ -83,7 +103,49 @@ function useGeolocation(enabledGeo) {
 
     const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
       async (geofenceEvent) => {
+        if (!currentRoute) {
+          return; 
+        }
+
+        const uidPoint = geofenceEvent.identifier;
+
+        let data = getDataPostRoute();
+        data.screen = 5;
+        data.point = 3;
+        data.uid = currentRoute;
+        data.uidPoint = uidPoint;
+        data.user = currentUser;
+
         if (geofenceEvent.action === 'ENTER') {
+          console.log(`Вошли в геозону: ${geofenceEvent.identifier}`);
+          //Alert.alert(`Вошли в геозону: ${geofenceEvent.identifier}`);
+        } else if (geofenceEvent.action === 'EXIT') {
+          console.log(`Вышли из геозоны: ${geofenceEvent.identifier}`);
+          //Alert.alert(`Вышли из геозон: ${geofenceEvent.identifier}`);
+
+          data.type = 9; 
+          updateDate(data, async () => {
+            const dataString = JSON.stringify(data);
+            
+            await postRoute(currentRoute, dataString);
+
+            await BackgroundGeolocation.removeGeofence(geofenceEvent.identifier);
+          });
+        } else if (geofenceEvent.action === 'DWELL') {
+          console.log(`Находимся в геозоне: ${geofenceEvent.identifier} более ${geofenceEvent.dwellDelay / 1000} секунд`);
+          //Alert.alert(`Находимся в геозоне: ${geofenceEvent.identifier}`);
+
+          data.type = 8; 
+          updateDate(data, async () => {
+            const dataString = JSON.stringify(data);
+            
+            await postRoute(currentRoute, dataString);
+          });            
+        }
+        
+        
+
+        /*if (geofenceEvent.action === 'ENTER') {
           try {
             // Удаляем геозону
             await BackgroundGeolocation.removeGeofence(geofenceEvent.identifier);
@@ -100,7 +162,7 @@ function useGeolocation(enabledGeo) {
             
             setIsAlertShown(false);
           }, 1000);  
-        }
+        }*/
       }
     );
 

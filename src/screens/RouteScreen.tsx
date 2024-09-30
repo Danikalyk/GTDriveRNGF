@@ -591,6 +591,12 @@ const RouteScreen = (props: Props) => {
       mutate();
     });
 
+    if(route.lite) {
+      for (const point of points) {
+        await addGeofenceToNextPoint(point);
+      }
+    }
+
     setPending(false);
   };
 

@@ -46,7 +46,8 @@ export const getDataPostRoute = () => {
     images: images,                                     // Изображения
     accident: "",                                       // Происшествие
     finish: false,                                      // Завершено 
-    needJSON: true                                      // Требуется вернуть JSON 
+    needJSON: true,                                     // Требуется вернуть JSON 
+    user: "00000000-0000-0000-0000-000000000000"        // Юзер. Заполнять только при автоматическом оповещении
   };
 
   return data;
@@ -85,7 +86,7 @@ export async function deleteAllSavedPhotos() {
 //-- Установим подъезд на точку 
 export const addGeofenceToNextPoint = async (point) => {
 
-  if (point.uidPoint === "00000000-0000-0000-0000-000000000000"){
+  if (point.uidPoint === "00000000-0000-0000-0000-000000000000") {
     return;
   }
   // Получаем список геозон асинхронно
@@ -95,15 +96,17 @@ export const addGeofenceToNextPoint = async (point) => {
   const existingGeofence = geofences.find(geofence => geofence.identifier === point.uidPoint);
 
   if (!existingGeofence) {
+
+    console.log({point});
     await BackgroundGeolocation.addGeofence({
       identifier: point.uidPoint,
-      radius: 300, // радиус геозоны в метрах
+      radius: 50, // радиус геозоны в метрах
       latitude: point.lat,
       longitude: point.lon,
-      dwellDelay: 300,
-      notifyOnEntry: true,
-      notifyOnExit: false,
-      notifyOnDwell: false
+      dwellDelay: 2, //время для нахождения в геозоне в секундах 
+      notifyOnEntry: false,
+      notifyOnExit: true,
+      notifyOnDwell: true
     }).then(() => {
       console.log('[addGeofence] success');
     }).catch((error) => {
@@ -111,7 +114,20 @@ export const addGeofenceToNextPoint = async (point) => {
     });
   } else {
     // Если задача не существует, выводим сообщение в консоль
-    console.log(`Нет задачи с идентификатором ${point.uidPoint} в BackgroundGeolocation`);
+    console.log(`Задача с идентификатором ${point.uidPoint} в BackgroundGeolocation`);
+  }
+}
+
+
+export const deleteAllGeofences = async () => {
+  // Получаем список геозон асинхронно
+  const geofences = await BackgroundGeolocation.getGeofences();
+
+  // Удаляем каждую геозону
+  for (const geofence of geofences) {
+    await BackgroundGeolocation.removeGeofence(geofence.identifier);
+
+    console.log(`Задача с идентификатором ${geofence.identifier} в BackgroundGeolocation`);
   }
 }
 

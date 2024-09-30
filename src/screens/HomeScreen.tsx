@@ -1,26 +1,26 @@
-import React, {useContext, useCallback, useEffect, useState} from 'react';
-import {RefreshControl, View, Alert, FlatList} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {Card, Icon, Layout, Text, Button} from '@ui-kitten/components';
-import {GlobalState} from '../store/global/global.state';
-import {UserContext} from '../store/user/UserProvider';
-import {getRoutes} from '../api/routes';
-import {getCardStatus, addGeofenceToNextPoint} from '../components/functions';
-import {styles} from '../styles';
-import useSWR, {useSWRConfig} from 'swr';
+import React, { useContext, useCallback, useEffect, useState } from 'react';
+import { RefreshControl, View, Alert, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Card, Icon, Layout, Text, Button } from '@ui-kitten/components';
+import { GlobalState } from '../store/global/global.state';
+import { UserContext } from '../store/user/UserProvider';
+import { getRoutes } from '../api/routes';
+import { getCardStatus, addGeofenceToNextPoint, deleteAllGeofences } from '../components/functions';
+import { styles } from '../styles';
+import useSWR, { useSWRConfig } from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 
 const HomeScreen = props => {
-  const {cache} = useSWRConfig();
+  const { cache } = useSWRConfig();
   const getCachedData = key => {
     return cache.get(key); // Получаем кэшированные данные по ключу
   };
 
   const [startGeo, setStartGeo] = useState(false);
   const [renderComplete, setRenderComplete] = useState(false);
-  const {currentUser, currentRoute, setRoute} = useContext(UserContext);
+  const { currentUser, currentRoute, setRoute } = useContext(UserContext);
   const context = useContext(GlobalState);
   const {
     data: routes,
@@ -65,24 +65,32 @@ const HomeScreen = props => {
 
         setStartRoute(hasStartGeo);
 
-        /*if (!hasStartGeo) {
-          deleteAllSavedPhotos();
-        }*/
-
         if (hasStartGeo && !startGeo) {
           const startRoute = routes.find(route => route.start === true);
           const uid = startRoute.uid;
-
-          addGeofenceToNextPoint(startRoute.startGeo);
 
           setRoute(uid);
 
           context.enableGeo();
           setStartGeo(true);
+
+          // Добавляем задачу на подъезд к стартовой точке
+          (async () => {
+            await addGeofenceToNextPoint(startRoute.startGeo);
+
+            // Далее добавляем задачу на подъезд к остальным точкам
+            for (const point of startRoute.followingPoints) {
+              await addGeofenceToNextPoint(point);
+            }
+          })();
         } else {
           setRoute(null);
           setStartGeo(false);
           context.disableGeo();
+
+          (async () => {
+            deleteAllGeofences();
+          })();   
         }
       }
     }
@@ -131,8 +139,8 @@ const HomeScreen = props => {
       'Удаление элемента',
       'Вы уверены, что хотите удалить этот элемент?',
       [
-        {text: 'Отмена', style: 'cancel'},
-        {text: 'Удалить', onPress: () => handleDeleteItem(item)},
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Удалить', onPress: () => handleDeleteItem(item) },
       ],
     );
   };
@@ -168,7 +176,7 @@ const HomeScreen = props => {
     return status;
   };
 
-  const renderItemCard = ({item}) => {
+  const renderItemCard = ({ item }) => {
     const currentRoute = item.start;
     const finishRoute = item.status === 3;
 
@@ -177,12 +185,12 @@ const HomeScreen = props => {
         style={[
           styles.containerCards,
           (currentRoute &&
-            !finishRoute && {borderWidth: 1, borderColor: '#0092FF'}) ||
-            (finishRoute && {borderWidth: 1, borderColor: '#91F2D2'}),
+            !finishRoute && { borderWidth: 1, borderColor: '#0092FF' }) ||
+          (finishRoute && { borderWidth: 1, borderColor: '#91F2D2' }),
         ]}
         header={() => renderCardHeader(item)}
         status={getCardRouteStatus(item)}
-        onPress={() => props.navigation.navigate('RouteScreen', {...item})}
+        onPress={() => props.navigation.navigate('RouteScreen', { ...item })}
         onLongPress={() => handleLongPress(item)}>
         <View style={styles.textBodyCardWithLeftView}>
           {renderItemLeft(item)}
@@ -193,7 +201,7 @@ const HomeScreen = props => {
   };
 
   const renderCardHeader = item => (
-    <View style={[styles.textHeaderCard, {padding: 10}]}>
+    <View style={[styles.textHeaderCard, { padding: 10 }]}>
       <Icon
         name="car-outline"
         width={23}
@@ -201,7 +209,7 @@ const HomeScreen = props => {
         style={styles.textHeaderCardIcon}></Icon>
       <Text
         category="label"
-        style={{flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14}}>
+        style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}>
         {item.name}
       </Text>
     </View>
@@ -210,12 +218,12 @@ const HomeScreen = props => {
   const renderItemLeft = item => (
     <View style={styles.textTimeLeft}>
       <Layout>
-        <Text category="s1" style={{textAlign: 'center'}}>
+        <Text category="s1" style={{ textAlign: 'center' }}>
           {item?.loading_time}
         </Text>
       </Layout>
       <Layout>
-        <Text category="c2" style={{textAlign: 'center'}}>
+        <Text category="c2" style={{ textAlign: 'center' }}>
           {item?.loading_date}
         </Text>
       </Layout>
