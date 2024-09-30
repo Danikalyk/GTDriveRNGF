@@ -19,7 +19,7 @@ function useGeolocation(enabledGeo) {
   // const [location, setLocation] = React.useState('');
   const [enabled, setEnabled] = React.useState(enabledGeo);
   const {currentUser, currentRoute} = useContext(UserContext);
-  const [isAlertShown, setIsAlertShown] = useState(false);
+  //const [isAlertShown, setIsAlertShown] = useState(false);
 
   //console.log('enabledGeo', enabledGeo);
 
@@ -120,6 +120,8 @@ function useGeolocation(enabledGeo) {
           console.log(`Вошли в геозону: ${geofenceEvent.identifier}`);
           //Alert.alert(`Вошли в геозону: ${geofenceEvent.identifier}`);
         } else if (geofenceEvent.action === 'EXIT') {
+          await BackgroundGeolocation.setConfig({ autoSync: true });  //-- При выходе из геозоны вернем отправку координат
+
           console.log(`Вышли из геозоны: ${geofenceEvent.identifier}`);
           //Alert.alert(`Вышли из геозон: ${geofenceEvent.identifier}`);
 
@@ -132,6 +134,8 @@ function useGeolocation(enabledGeo) {
             await BackgroundGeolocation.removeGeofence(geofenceEvent.identifier);
           });
         } else if (geofenceEvent.action === 'DWELL') {
+          await BackgroundGeolocation.setConfig({ autoSync: false }); //-- Пока в геозоне остановим отправку координат
+
           console.log(`Находимся в геозоне: ${geofenceEvent.identifier} более ${geofenceEvent.dwellDelay / 1000} секунд`);
           //Alert.alert(`Находимся в геозоне: ${geofenceEvent.identifier}`);
 
@@ -142,27 +146,6 @@ function useGeolocation(enabledGeo) {
             await postRoute(currentRoute, dataString);
           });            
         }
-        
-        
-
-        /*if (geofenceEvent.action === 'ENTER') {
-          try {
-            // Удаляем геозону
-            await BackgroundGeolocation.removeGeofence(geofenceEvent.identifier);
-            
-            console.log(`Геозона с идентификатором ${geofenceEvent.identifier} удалена`);
-          } catch (error) {
-            console.log('Ошибка при удалении геозоны:', error);
-          }
-
-          setIsAlertShown(true);
-
-          setTimeout(() => {
-            Alert.alert(`Вы подъезжаете на точку!`);
-            
-            setIsAlertShown(false);
-          }, 1000);  
-        }*/
       }
     );
 
@@ -213,7 +196,7 @@ function useGeolocation(enabledGeo) {
             network: providerState?.network,
           },
         },
-        desiredOdometerAccuracy: 10, //-- точность выброса, по умолчанию = 100
+        desiredOdometerAccuracy: 100, //-- точность выброса, по умолчанию = 100
         elasticityMultiplier: 0.5 //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
         //geofenceProximityRadius: 300 //-- радиус геозоны
       })

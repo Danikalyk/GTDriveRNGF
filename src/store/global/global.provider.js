@@ -35,7 +35,9 @@ export const GlobalStateProvider = ({children}) => {
         .then(data => {
           setUpdateData(data);
 
-          if (compareVersions(appVersion, data.version) < 0) {
+          const compareVersion = compareVersions(appVersion, data.version);
+
+          if (compareVersion) {
             setShowInstaller(true);
           }
         })
@@ -100,11 +102,10 @@ export const GlobalStateProvider = ({children}) => {
   };
 
   async function downloadAndInstallAPK() {
-    const url = updateData.link;
-    console.log('Downloading APK...', {updateData});
-    // Linking.openURL(url); // TODO раскомментировать чтобы просто через хром закачать
-    // return
-
+    const url = "http://upd.gt-logistics.su/_GTDrive/gtdrive_110.apk";
+  
+    console.log('Downloading APK...', url);
+  
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
       Alert.alert(
@@ -113,36 +114,44 @@ export const GlobalStateProvider = ({children}) => {
       );
       return;
     }
-
-    const fileName = url?.split('/').pop();
-    const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-
-    RNFS.downloadFile({
-      fromUrl: url,
-      toFile: destPath,
-    })
-      .promise.then(async res => {
-        if (res.statusCode === 200) {
-          Alert.alert(
-            'Download Complete',
-            'The APK has been downloaded. Do you want to install it now?',
-            [
-              {text: 'Cancel', style: 'cancel'},
-              {text: 'Install', onPress: () => installAPK(destPath)},
-            ],
-            {cancelable: false},
-          );
-        } else {
-          Alert.alert('Download Failed', 'Failed to download the APK.');
-        }
-      })
-      .catch(err => {
-        console.error(err);
+  
+    const fileName = url.split('/').pop();
+    const destPath = `${RNFS.ExternalDirectoryPath}/${fileName}`; // Используем ExternalDirectoryPath
+  
+    // Проверяем, существует ли директория, если нет - создаем
+    const dirExists = await RNFS.exists(RNFS.ExternalDirectoryPath);
+    if (!dirExists) {
+      await RNFS.mkdir(RNFS.ExternalDirectoryPath);
+    }
+  
+    try {
+      const res = await RNFS.downloadFile({
+        fromUrl: url,
+        toFile: destPath,
+      }).promise;
+  
+      console.log('Download response:', res); // Отладочная информация
+  
+      if (res.statusCode === 200) {
         Alert.alert(
-          'Download Error',
-          'An error occurred while downloading the APK.',
+          'Download Complete',
+          'The APK has been downloaded. Do you want to install it now?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Install', onPress: () => installAPK(destPath) },
+          ],
+          { cancelable: false },
         );
-      });
+      } else {
+        Alert.alert('Download Failed', `Failed to download the APK. Status code: ${res.statusCode}`);
+      }
+    } catch (err) {
+      console.error('Download error:', err); // Отладочная информация
+      Alert.alert(
+        'Download Error',
+        'An error occurred while downloading the APK.',
+      );
+    }
   }
 
   function installAPK(filePath) {
@@ -152,6 +161,7 @@ export const GlobalStateProvider = ({children}) => {
   // Мемоизация для основных действий
   const actionsValue = useMemo(
     () => ({
+      
       login: () => dispatch({type: actions.LOGIN}),
       logout: () => {
         dispatch({type: actions.DISABLE_GEO});
