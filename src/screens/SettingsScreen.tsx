@@ -194,11 +194,11 @@ const SettingsScreen = ({ navigation }: Props) => {
                   accessoryLeft={!!token ? SuccessIcon : null}>
                   Обновить токен
                 </Button>
-                <Button
+                {!showInstaller && (<Button
                   style={{ margin: 5, marginTop: 10 }}
                   onPress={downloadAndInstallAPK}>
                   Установить версию {updateData?.version}
-                </Button>
+                </Button>)}
               </>
             )}
           </>

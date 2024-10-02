@@ -659,10 +659,10 @@ const RouteScreen = (props: Props) => {
           icon={<Icon {...props} name="pin" />}
         />
 
-        <BottomNavigationTab
+        {/*<BottomNavigationTab
           title="Карта"
           icon={<Icon {...props} name="globe" />}
-        />
+        />*/}
       </BottomNavigation>
     </SafeAreaView>
   );

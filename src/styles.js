@@ -56,11 +56,14 @@ export const styles = StyleSheet.create({
     },
 
     textHeaderCardRoute: {
-        flex: 1, 
+        /*flex: 1, 
         flexDirection: 'row', 
         alignItems: 'center',
         flexWrap: 'wrap', 
-        justifyContent: 'space-between'
+        justifyContent: 'space-between'*/
+        flexDirection: 'row', // Устанавливаем направление в строку
+        alignItems: 'center',  // Центрируем элементы по вертикали
+        justifyContent: 'flex-start', // Выравниваем элементы по началу
     },
     titleList: {
         margin: 10,    
@@ -75,6 +78,16 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    bottomSection: {
+        marginTop: 'auto',
+        padding: 16,
+        alignItems: 'center',
+    },
+    versionText: {
+        fontSize: 12,
+        color: '#888',
+        marginTop: 8,
     }
   }
 );
