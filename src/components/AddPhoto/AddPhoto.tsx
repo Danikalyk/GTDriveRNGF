@@ -5,43 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ImageBackground, View } from 'react-native';
 import { acceptImages } from '../../api/photo';
 import { getDataPostRoute } from '../functions.js';
+import NetInfo from '@react-native-community/netinfo';
+import FunctionQueue from '../../utils/FunctionQueue';
 
-// Отдельный блок стилей
-const styles = {
-  imageContainer: {
-    margin: 2,
-  },
-  imageBackground: {
-    height: 150,
-    width: 150,
-    overflow: 'hidden',
-    borderColor: 'rgba(0, 0, 0, 0)',
-    borderWidth: 1,
-  },
-  cardLayout: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  headerLayout: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerLayout: {
-    bottom: 0,
-    margin: 5
-  },
-  spinnerContainer: {
-    position: 'absolute',
-    zIndex: 999,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  }
-};
+const queue = new FunctionQueue();
 
 const AddPhoto = (props) => {
   const [images, setImages] = useState([]);
@@ -51,7 +18,24 @@ const AddPhoto = (props) => {
   const uidOrder = params?.uidOrder;
   const uidPoint = params?.uidPoint;
   const uidPointOrder = uidOrder ? uidOrder : uidPoint;
-  
+ 
+  const updateDate = async (data: any, callback = () => { }) => {
+    const netInfo = await NetInfo.fetch();
+
+    const callbackFunc = async () => {
+      await callback(); // Ждем завершения колбэка
+    };
+
+    if (!netInfo.isConnected) {
+      data.needJSON = false;
+      queue.enqueue(callbackFunc); // Добавляем в очередь, если нет сети
+    } else {
+      // Здесь мы вызываем callbackFunc без await, так как это не обязательно
+      callbackFunc(); // Выполняем колбэк, если есть сеть
+    }
+
+    //setPending(false); // Устанавливаем pending в false
+  };
 
   useEffect(() => {
     getSavedPhotos();
@@ -228,5 +212,43 @@ const AddPhoto = (props) => {
     </Layout>
   );
 };
+
+// Отдельный блок стилей
+const styles = {
+  imageContainer: {
+    margin: 2,
+  },
+  imageBackground: {
+    height: 150,
+    width: 150,
+    overflow: 'hidden',
+    borderColor: 'rgba(0, 0, 0, 0)',
+    borderWidth: 1,
+  },
+  cardLayout: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  headerLayout: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerLayout: {
+    bottom: 0,
+    margin: 5
+  },
+  spinnerContainer: {
+    position: 'absolute',
+    zIndex: 999,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  }
+};
+
 
 export default AddPhoto;

@@ -1,12 +1,35 @@
-import React, { useState } from 'react';
-import { Button, Layout, Text, Input, RadioGroup, Radio, Card, Modal, Icon } from '@ui-kitten/components';
+import React, { useState, useEffect } from 'react';
+import { Button, Layout, Text, Input, RadioGroup, Radio, Card, Modal, Icon, Spinner } from '@ui-kitten/components';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getDataPostRoute } from '../components/functions.js';
 import { postRoute } from '../api/routes';
+import NetInfo from '@react-native-community/netinfo';
+import FunctionQueue from '../utils/FunctionQueue.js';
+import { View } from 'react-native';
+import { styles } from '../styles';
+
+const queue = new FunctionQueue();
 
 const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
   const [text, setText] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    // Подписка на изменения состояния сети
+    const unsubscribe = NetInfo.addEventListener(state => {
+      //console.log('NetInfo', { state })
+      if (state.isConnected) {
+        //console.log('Сеть восстановлена');
+
+        queue.processQueue(); // Запускаем очередь при восстановлении сети
+      }
+    });
+
+    return () => {
+      unsubscribe(); // Отменяем подписку при размонтировании компонента
+    };
+  }, []);
 
   const options = [
     'Неоплата по прибытии',
@@ -21,6 +44,8 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
   const displayValue = options[selectedIndex];
 
   const handleSubmit = async () => {
+    setPending(true);
+
     const payload = displayValue === 'Другое' ? text : displayValue;
 
     let data = getDataPostRoute();
@@ -28,10 +53,29 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
     data.accident = payload;
     data.uidPoint = uidPoint;
 
-    data = JSON.stringify(data);
+    updateDate(data, async () => {
+      //console.log('AAAa');
+      const dataString = JSON.stringify(data);
 
-    await postRoute(uid, data);
+      await postRoute(uid, dataString);
+    });
+  };
 
+  const updateDate = async (data: any, callback = () => { }) => {
+    const netInfo = await NetInfo.fetch();
+    const callbackFunc = async () => {
+      await callback(); // Ждем завершения колбэка
+    };
+
+    if (!netInfo.isConnected) {
+      data.needJSON = false;
+      queue.enqueue(callbackFunc); // Добавляем в очередь, если нет сети
+    } else {
+      // Здесь мы вызываем callbackFunc без await, так как это не обязательно
+      callbackFunc(); // Выполняем колбэк, если есть сеть
+    }
+
+    setPending(false); // Устанавливаем pending в false
     onClose();
   };
 
@@ -63,6 +107,11 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
       backdropStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onBackdropPress={() => onClose()}
     >
+      {pending && (
+        <View style={styles.spinnerContainer}>
+          <Spinner size="giant" />
+        </View>
+      )}
       <Card
         style={{ margin: 20, borderWidth: 1, borderColor: "#FF3D72"}}
         status='danger'

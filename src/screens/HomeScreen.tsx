@@ -78,7 +78,7 @@ const HomeScreen = props => {
           (async () => {
             await addGeofenceToNextPoint(startRoute.startGeo);
 
-            // Далее добавляем задачу на подъезд к остальным точкам
+            // Далее добавляем задачу на подъезд к остальным точкам, если у нас разрешен режим lite
             for (const point of startRoute.followingPoints) {
               await addGeofenceToNextPoint(point);
             }

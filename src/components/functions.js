@@ -97,7 +97,8 @@ export const addGeofenceToNextPoint = async (point) => {
 
   if (!existingGeofence) {
 
-    console.log({point});
+    //console.log({point});
+    
     await BackgroundGeolocation.addGeofence({
       identifier: point.uidPoint,
       radius: 50, // радиус геозоны в метрах
