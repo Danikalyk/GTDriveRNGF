@@ -42,6 +42,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getReq, getRequest } from '../api/request.js';
 import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../utils/FunctionQueue.js';
+import localStorage from '../store/localStorage';
 
 //type Props = {};
 
@@ -170,27 +171,27 @@ const RouteScreen = (props: Props) => {
 
   const handleOrderStatus = (point, order) => {
     if (point.point === 1) { // Это Склад
-        if (order.type === 1) {
-            point.status = 2;
-            orders.find(o => o.type === 2).status = 2; // ТС Загружено
-        } else if (order.type === 2) {
-            orders.find(o => o.type === 3).status = 2; // Закрывающие документы получены
-        } else if (order.type === 7) {
-            point.status = 2; // Возврат на склад
-        }
-        order.status = 3;
+      if (order.type === 1) {
+        point.status = 2;
+        orders.find(o => o.type === 2).status = 2; // ТС Загружено
+      } else if (order.type === 2) {
+        orders.find(o => o.type === 3).status = 2; // Закрывающие документы получены
+      } else if (order.type === 7) {
+        point.status = 2; // Возврат на склад
+      }
+      order.status = 3;
     } else {
-        if (order.type === 1) {
-            order.status = 3;
-            point.status = 2;
-            point.orders.forEach(o => {
-                if (o.status === 0) o.status = 1;
-            });
-        } else {
-            order.status = 3;
-        }
+      if (order.type === 1) {
+        order.status = 3;
+        point.status = 2;
+        point.orders.forEach(o => {
+          if (o.status === 0) o.status = 1;
+        });
+      } else {
+        order.status = 3;
+      }
     }
-};
+  };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -211,6 +212,19 @@ const RouteScreen = (props: Props) => {
     uidPoint,
     points,
   };
+
+  let sortedOrders = orders;
+
+  console.log(JSON.stringify(orders));
+
+  if (point.status === 2) {
+    sortedOrders = orders.sort((a, b) => {
+      // Сначала сортируем по status (возрастание)
+      if (a.status !== b.status) {
+        return a.status - b.status; // Возрастание
+      }
+    });
+  }
 
   useEffect(() => {
     //console.log("point", JSON.stringify(point));
@@ -289,6 +303,9 @@ const RouteScreen = (props: Props) => {
   const renderMainCard = params => {
     const currentPoint = params?.status === 1 || params?.status === 2;
     const buttonShipment = checkButtonShipment();
+    //const LoginKey = localStorage.getItem('LoginKey');
+    //console.log({LoginKey});
+    const AllowAllShipments = true;
 
     return (
       <Layout>
@@ -339,7 +356,7 @@ const RouteScreen = (props: Props) => {
             </Text>
           </View>
 
-          {buttonShipment && (
+          {buttonShipment && AllowAllShipments && (
             <View>
               <Button
                 size="small"
@@ -1021,6 +1038,8 @@ const RouteScreen = (props: Props) => {
     );
   };
 
+
+
   const TasksScreen = () => (
     <SafeAreaView style={{ flex: 1 }}>
       {pending && (
@@ -1032,7 +1051,7 @@ const RouteScreen = (props: Props) => {
         style={{
           minHeight: '100%',
         }}
-        data={orders}
+        data={sortedOrders}
         ListHeaderComponent={renderMainCard(point)}
         renderItem={renderCardOrder}
         refreshControl={

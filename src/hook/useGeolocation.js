@@ -11,6 +11,7 @@ import { getDataPostRoute } from '../components/functions.js';
 import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../utils/FunctionQueue.js';
 import { postRoute } from '../api/routes';
+import localStorage from '../store/localStorage';
 
 function useGeolocation(enabledGeo) {
   // const context = React.useContext(GlobalState);
@@ -158,12 +159,15 @@ function useGeolocation(enabledGeo) {
       let providerState = await BackgroundGeolocation.getProviderState();
       console.log('- Provider state: ', providerState);
 
+      const LoginKey = await localStorage.getItem('LoginKey');
+      const parametrs = LoginKey.parametrs.bgGeo;
+
       /// 2. ready the plugin.
       BackgroundGeolocation.ready({
         // Geolocation Config
         enabled: false,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-        distanceFilter: 10, //-- Расстояние при котором идет отсылка координат между точками A и B
+        distanceFilter: parametrs.distanceFilter, //-- Расстояние при котором идет отсылка координат между точками A и B
         interval: 5000,
         // Activity Recognition
         stopTimeout: 5,
@@ -196,8 +200,8 @@ function useGeolocation(enabledGeo) {
             network: providerState?.network,
           },
         },
-        desiredOdometerAccuracy: 100, //-- точность выброса, по умолчанию = 100
-        elasticityMultiplier: 0.5 //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
+        desiredOdometerAccuracy: parametrs.desiredOdometerAccuracy, //-- точность выброса, по умолчанию = 100
+        elasticityMultiplier: parametrs.elasticityMultiplier //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
         //geofenceProximityRadius: 300 //-- радиус геозоны
       })
         .then(state => {

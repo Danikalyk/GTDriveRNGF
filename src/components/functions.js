@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackgroundGeolocation from 'react-native-background-geolocation';
+import localStorage from '../store/localStorage';
 
 // status - Статусы
 //
@@ -97,14 +98,17 @@ export const addGeofenceToNextPoint = async (point) => {
 
   if (!existingGeofence) {
 
+    const LoginKey = await localStorage.getItem('LoginKey');
+    const parametrs = LoginKey.parametrs.bgGeo;
+
     //console.log({point});
     
     await BackgroundGeolocation.addGeofence({
       identifier: point.uidPoint,
-      radius: 50, // радиус геозоны в метрах
+      radius: parametrs.entranceRadius, // радиус геозоны в метрах
       latitude: point.lat,
       longitude: point.lon,
-      dwellDelay: 2, //время для нахождения в геозоне в секундах 
+      dwellDelay: parametrs.dwellDelay, //время для нахождения в геозоне в секундах 
       notifyOnEntry: false,
       notifyOnExit: true,
       notifyOnDwell: true
