@@ -123,7 +123,7 @@ const SettingsScreen = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <TopNavigation title="Настройки" alignment="center" />
+      {/* <TopNavigation title="Настройки" alignment="center" /> */}
       <Layout
         style={{
           flex: 1,
