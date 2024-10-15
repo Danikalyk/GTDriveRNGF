@@ -21,7 +21,7 @@ export const HomeDrawer = (props: any) => {
 
   return (
     <View style={styles.container}>
-      <Drawer selectedIndex={selectedIndex} onSelect={onItemSelect}>
+      <Drawer selectedIndex={selectedIndex} onSelect={onItemSelect} style={{backgroundColor: "#DEE4ED"}}>
         <DrawerItem 
           key={1} 
           title={'Список маршрутов'} 
@@ -43,6 +43,8 @@ export const HomeDrawer = (props: any) => {
         <Button
           accessoryLeft={renderIcon('log-out-outline')}
           size='small'
+          appearance="filled"
+              status='basic'
           onPress={() => {
             logoutUser();
             props.navigation.navigate('Login');
@@ -59,11 +61,13 @@ export const HomeDrawer = (props: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#DEE4ED"
   },
   bottomSection: {
     padding: 16,
     alignItems: 'center',
     justifyContent: 'flex-end',
+    backgroundColor: "#DEE4ED"
   },
   versionText: {
     fontSize: 10,

@@ -18,7 +18,7 @@ const AddPhoto = (props) => {
   const uidOrder = params?.uidOrder;
   const uidPoint = params?.uidPoint;
   const uidPointOrder = uidOrder ? uidOrder : uidPoint;
- 
+
   const updateDate = async (data: any, callback = () => { }) => {
     const netInfo = await NetInfo.fetch();
 
@@ -146,21 +146,24 @@ const AddPhoto = (props) => {
 
   const renderCardHeader = () => {
     canAddPhoto = params.status !== 3;
-    
+
     return (
       canAddPhoto && (
         <Layout style={styles.headerLayout}>
           <Button
             accessoryLeft={ImageIcon}
             onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })}
-            status='primary'
+            appearance="filled"
+            status='basic'
             style={{ flex: 1, margin: 4 }}>
             Галерея
           </Button>
           <Button
             accessoryLeft={CameraIcon}
             onPress={launchCameraPicker}
-            status='success' style={{ flex: 1, margin: 4 }}>
+            appearance="filled"
+            status='basic'
+            style={{ flex: 1, margin: 4 }}>
             Камера
           </Button>
         </Layout>
@@ -175,6 +178,8 @@ const AddPhoto = (props) => {
       <Layout style={styles.footerLayout}>
         <Button
           accessoryLeft={SyncIcon}
+          appearance="filled"
+          status='basic'
           onPress={onSubmitPhoto}>
           Отправить фото
         </Button>
@@ -183,14 +188,14 @@ const AddPhoto = (props) => {
   };
 
   return (
-    <Layout>
+    <Layout style={{ flex: 1 }}>
       {pending && (
         <View style={styles.spinnerContainer}>
-          <Spinner size='giant'/>
+          <Spinner size='giant' />
         </View>
       )}
       <Card
-        style={styles.cardLayout}
+        style={[styles.cardLayout]}
         header={renderCardHeader}
         footer={renderCardFooter}
       >
@@ -204,7 +209,17 @@ const AddPhoto = (props) => {
                 style={styles.imageBackground}
                 source={{ uri: image.assets[0].uri }} />
 
-              {!image.uploaded && <Button accessoryLeft={TrashIcon} onPress={() => removeNewImage(index)}>Удалить</Button>}
+              {!image.uploaded && (
+                <Button
+                  accessoryLeft={TrashIcon}
+                  appearance='outline'
+                  status='basic'
+                  onPress={() => removeNewImage(index)}
+                  style={styles.deleteButton} 
+                  size='small'
+                >
+                </Button>
+              )}
             </View>
           ))}
         </View>
@@ -217,6 +232,7 @@ const AddPhoto = (props) => {
 const styles = {
   imageContainer: {
     margin: 2,
+    position: 'relative'
   },
   imageBackground: {
     height: 150,
@@ -224,6 +240,8 @@ const styles = {
     overflow: 'hidden',
     borderColor: 'rgba(0, 0, 0, 0)',
     borderWidth: 1,
+    justifyContent: 'flex-end', // Выравнивание содержимого
+    alignItems: 'flex-end',
   },
   cardLayout: {
     flex: 1,
@@ -247,6 +265,11 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  deleteButton: {
+    position: 'absolute', 
+    top: 5,
+    right: 5
   }
 };
 

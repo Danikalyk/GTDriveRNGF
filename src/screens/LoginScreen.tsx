@@ -1,28 +1,24 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Image, StyleSheet, Alert } from 'react-native';
-import {
-  Button,
-  Icon,
-  Input,
-  Layout,
-  Spinner,
-  Text,
-} from '@ui-kitten/components';
+import { View, Image, StyleSheet, Alert, Dimensions } from 'react-native';
+import { Button, Icon, Input, Layout, Spinner, Text } from '@ui-kitten/components';
 import { TouchableWithoutFeedback } from '@ui-kitten/components/devsupport';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { saveTokens, userAuth, getDevTokens } from '../api/auth';
 import { navigate } from '../RootNavigation';
 import { GlobalState } from '../store/global/global.state';
 import { UserContext } from '../store/user/UserProvider';
+import { appVersion } from '../version';
+import { LogoSVG } from '../img/logo';
 import dayjs from 'dayjs';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import DeviceInfo from 'react-native-device-info';
 import localStorage from '../store/localStorage';
 import Loader from '../components/Icons/Loader';
-import { appVersion } from '../version';
-import { SvgXml } from 'react-native-svg';
-
 import NetInfo from '@react-native-community/netinfo';
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider } from '@ui-kitten/components';
+import { default as mapping } from '../styles/mapping';
+
 
 const logoXml = `
   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 956.6 538.1" style="enable-background:new 0 0 956.6 538.1;" xml:space="preserve">
@@ -45,6 +41,8 @@ const LoginScreen = ({ navigation }: Props) => {
   const [isSubmit, setSubmit] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const { currentUser, setUser } = useContext(UserContext);
+  const backgroundImage = require('../img/pattern.png');
+  const ScreenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
     const init = async () => {
@@ -145,62 +143,78 @@ const LoginScreen = ({ navigation }: Props) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Layout style={styles.layout}>
-        {pending && (
-          <View style={styles.spinnerContainer}>
-            <Spinner size="giant" />
+    <ApplicationProvider {...eva} customMapping={mapping} theme={eva.light}>
+      <SafeAreaView style={styles.container}>
+        <Layout style={styles.layout}>
+          {pending && (
+            <View style={styles.spinnerContainer}>
+              <Spinner size="giant" status='basic' />
+            </View>
+          )}
+
+          <View style={styles.backgroundContainer}>
+            <Image source={backgroundImage} style={styles.background} />
           </View>
-        )}
-        <View style={styles.logoContainer}>
-          {/*<Image source={require('../logo.png')} style={styles.logo} />*/}
-          {<SvgXml xml={logoXml} width={300} height={150} />}
-        </View>
-        <View style={styles.formContainer}>
-          <Input
-            style={styles.input}
-            value={userID}
-            label="ID водителя"
-            placeholder="Введите ID водителя"
-            onChangeText={handleTextChange}
-            keyboardType="numeric"
-          />
 
-          <Input
-            style={styles.input}
-            value={password}
-            label="Пароль"
-            placeholder="Введите пароль"
-            status={!!(isSubmit && !password) ? 'danger' : 'primary'}
-            accessoryRight={renderIcon}
-            secureTextEntry={secureTextEntry}
-            onChangeText={nextValue => setPassword(nextValue)}
-          />
-        </View>
+          <Layout style={{ justifyContent: 'center', alignItems: 'center', position: 'relative', backgroundColor: 'transparent' }}>
+            <View style={styles.settingsButtonContainer}>
+              <Button
+                style={styles.settingsButton}
+                onPress={gotoSettings}
+                accessoryLeft={<Icon name="settings-2-outline" fill="#3E3346" />}
+                appearance="ghost"
+              />
+            </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            style={styles.settingsButton}
-            onPress={gotoSettings}
-            accessoryLeft={<Icon name="settings-2-outline" />}
-            appearance="outline">
-            Настройки
-          </Button>
-          <Button
-            onPress={onLogin}
-            //disabled={pending}
-            accessoryLeft={pending ? Loader : false}>
-            Войти
-          </Button>
+            <View style={styles.logoContainer}>
+              <LogoSVG />
+            </View>
+          </Layout>
 
-          <View style={{ alignItems: 'center', marginTop: 10 }}>
-            <Text appearance="hint" style={{ fontSize: 10 }}>
-              ver. {appVersion}
-            </Text>
+          <View style={styles.formContainer}>
+            <Input
+              style={styles.input}
+              value={userID}
+              size='medium'
+              label="ID водителя"
+              placeholder=""
+              onChangeText={handleTextChange}
+              keyboardType="numeric"
+            />
+
+            <Input
+              style={styles.input}
+              value={password}
+              label="Пароль"
+              size='medium'
+              placeholder=""
+              //status={!!(isSubmit && !password) ? 'danger' : 'primary'}
+              accessoryRight={renderIcon}
+              secureTextEntry={secureTextEntry}
+              onChangeText={nextValue => setPassword(nextValue)}
+            />
           </View>
-        </View>
-      </Layout>
-    </SafeAreaView>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              onPress={onLogin}
+              //disabled={pending}
+              appearance="filled"
+              status='basic'
+              accessoryLeft={pending ? Loader : <Icon name="log-in-outline" width={23} height={23} fill="#FFFFFF" />}
+            >
+              Войти
+            </Button>
+
+            <View style={{ alignItems: 'center', marginTop: 10 }}>
+              <Text appearance="hint" style={{ fontSize: 10 }}>
+                ver. {appVersion}
+              </Text>
+            </View>
+          </View>
+        </Layout>
+      </SafeAreaView>
+    </ApplicationProvider>
   );
 };
 
@@ -212,10 +226,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'stretch',
+    position: 'relative',
     padding: 20,
   },
+  backgroundContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    flexWrap: 'wrap', // Позволяет изображению заполнять пространство
+  },
+  background: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    opacity: 0.3
+  },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: 'center', // Центрируем логотип по горизонтали
+    marginTop: '40%',
   },
   logo: {
     // styles for logo image
@@ -239,10 +272,17 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 10,
+    borderRadius: 0
   },
   buttonContainer: {},
   settingsButton: {
-    marginBottom: 20,
+    textColor: "#3E3346",
+  },
+  settingsButtonContainer: {
+    position: 'absolute', // Позволяет разместить кнопку в правом верхнем углу
+    top: 0, // Отступ сверху
+    right: 0, // Отступ справа
+    zIndex: 1, // Убедитесь, что кнопка находится поверх других элементов
   },
 });
 

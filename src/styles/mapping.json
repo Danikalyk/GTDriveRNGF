@@ -1,0 +1,189 @@
+{
+  "components": {
+    "Spinner": {
+      "appearances": {
+        "default": {
+          "variantGroups": {
+            "status": {
+              "basic": {
+                "borderColor": "#3E3346"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Button": {
+      "appearances": {
+        "filled": {
+          "variantGroups": {
+            "status": {
+              "basic": {
+                "borderColor": "#3E3346",
+                "backgroundColor": "#3E3346",
+                "textColor": "#FFFFFF",
+                "iconTintColor": "#FFFFFF"
+              }
+            },
+            "size": {
+              "tiny": {
+                "borderRadius": 0
+              },
+              "small": {
+                "borderRadius": 0
+              },
+              "medium": {
+                "borderRadius": 0
+              },
+              "large": {
+                "borderRadius": 0
+              },
+              "giant": {
+                "borderRadius": 0
+              }
+            }
+          }
+        },
+        "outline": {
+          "variantGroups": {
+            "status": {
+              "basic": {
+                "borderColor": "#DEE4ED",
+                "textColor": "#3E3346",
+                "iconTintColor": "#3E3346",
+                "backgroundColor": "#F0F0F0"
+              },
+              "primary": {
+                "borderColor": "#AFC0DA",
+                "textColor": "#3E3346",
+                "iconTintColor": "#3E3346"
+              },
+              "success": {
+                "borderColor": "#00990D",
+                "textColor": "#00990D"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Input": {
+      "appearances": {
+        "default": {
+          "variantGroups": {
+            "status": {
+              "basic": {
+                "state": {
+                  "focused": {
+                    "borderColor": "#3E3346"
+                  }
+                }
+              }
+            },
+            "size": {
+              "small": {
+                "borderRadius": 0
+              },
+              "medium": {
+                "borderRadius": 0
+              },
+              "large": {
+                "borderRadius": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "Card": {
+      "appearances": {
+        "outline": {
+          "mapping": {
+            "borderRadius": 0,
+            "bodyPaddingHorizontal": 0,
+            "bodyPaddingVertical": 0,
+            "borderColor": "#DEE4DE"
+          },
+          "variantGroups": {
+            "status": {
+              "warning": {
+                "accentBackgroundColor": "#3E3346"
+              },
+              "success": {
+                "accentBackgroundColor": "#00990D"
+              },
+              "primary": {
+                "accentBackgroundColor": "#afc0da"
+              },
+              "info": {
+                "accentBackgroundColor": "#3699FE"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Toggle": {
+      "appearances": {
+        "default": {
+          "variantGroups": {
+            "status": {
+              "basic": {
+                "state": {
+                  "checked": {
+                    "borderColor": "#3E3346",
+                    "backgroundColor": "#3E3346",
+                    "iconTintColor": "#3E3346"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "BottomNavigationTab": {
+      "appearances": {
+        "default": {
+          "mapping": {
+            "state": {
+              "selected": {
+                "textColor": "#3E3346",
+                "iconTintColor": "#3E3346"
+              }
+            }
+          }
+        }
+      }
+    },
+    "BottomNavigation": {
+      "appearances": {
+        "default": {
+          "mapping": {
+            "indicatorBackgroundColor": "#3E3346"
+          }
+        }
+      }
+    },
+    "Radio": {
+      "appearances": {
+        "default": {
+          "variantGroups": {
+            "status": {
+              "basic": {
+                "borderColor": "#3E3346",
+                "state": {
+                  "checked": {
+                    "borderColor": "#3E3346",
+                    "backgroundColor": "transparent",
+                    "iconTintColor": "#3E3346"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

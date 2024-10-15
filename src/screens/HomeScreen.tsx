@@ -1,5 +1,5 @@
 import React, { useContext, useCallback, useEffect, useState } from 'react';
-import { RefreshControl, View, Alert, FlatList } from 'react-native';
+import { RefreshControl, View, Alert, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Icon, Layout, Text, Button } from '@ui-kitten/components';
 import { GlobalState } from '../store/global/global.state';
@@ -10,14 +10,17 @@ import { styles } from '../styles';
 import useSWR, { useSWRConfig } from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import BackgroundGeolocation from 'react-native-background-geolocation';
+
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider } from '@ui-kitten/components';
+import { default as mapping } from '../styles/mapping';
+
 
 const HomeScreen = props => {
   const { cache } = useSWRConfig();
   const getCachedData = key => {
     return cache.get(key); // Получаем кэшированные данные по ключу
   };
-
   const [startGeo, setStartGeo] = useState(false);
   const [renderComplete, setRenderComplete] = useState(false);
   const { currentUser, currentRoute, setRoute } = useContext(UserContext);
@@ -32,6 +35,7 @@ const HomeScreen = props => {
   const [startRoute, setStartRoute] = useState(null);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = React.useState(false);
+  const backgroundImage = require('../img/pattern.png');
 
   if (error && !routes) {
     mutate(
@@ -90,43 +94,13 @@ const HomeScreen = props => {
 
           (async () => {
             deleteAllGeofences();
-          })();   
+          })();
         }
       }
     }
 
     const unsubscribe = navigation.addListener('focus', () => {
       mutate();
-
-      /*const hasStartGeo =
-        routes &&
-        Array.isArray(routes) &&
-        routes?.some(route => route && route.start === true);
-      setStartRoute(hasStartGeo);
-
-      if (!hasStartGeo) {
-        deleteAllSavedPhotos();
-      }
-
-      //context.enableGeo();
-
-      if (hasStartGeo && !startGeo) {
-        console.log("@@@ +++ hasStartGeo && !startGeo");
-
-        const startRoute = routes.find(route => route.start === true);
-        const uid = startRoute.uid;
-
-        setRoute(uid);
-
-        context.enableGeo();
-        setStartGeo(true);
-      } else {
-        console.log("@@@ --- hasStartGeo && !startGeo");
-
-        setRoute(null);
-        setStartGeo(false);
-        context.disableGeo();
-      }*/
     });
 
     return unsubscribe;
@@ -183,10 +157,7 @@ const HomeScreen = props => {
     return (
       <Card
         style={[
-          styles.containerCards,
-          (currentRoute &&
-            !finishRoute && { borderWidth: 1, borderColor: '#0092FF' }) ||
-          (finishRoute && { borderWidth: 1, borderColor: '#91F2D2' }),
+          styles.containerCards
         ]}
         header={() => renderCardHeader(item)}
         status={getCardRouteStatus(item)}
@@ -194,7 +165,12 @@ const HomeScreen = props => {
         onLongPress={() => handleLongPress(item)}>
         <View style={styles.textBodyCardWithLeftView}>
           {renderItemLeft(item)}
-          <Text category="c2">{item?.description}</Text>
+
+          <View style={styles.containerCardText}>
+            {Object.values(item.descriptions).map((description, index) => (
+              <Text key={index} category="c2" style={{ fontSize: 11 }}> • {description}</Text>
+            ))}
+          </View>
         </View>
       </Card>
     );
@@ -204,9 +180,10 @@ const HomeScreen = props => {
     <View style={[styles.textHeaderCard, { padding: 10 }]}>
       <Icon
         name="car-outline"
-        width={23}
-        height={23}
-        style={styles.textHeaderCardIcon}></Icon>
+        width={20}
+        height={20}
+        style={styles.textHeaderCardIcon}>
+      </Icon>
       <Text
         category="label"
         style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontSize: 14 }}>
@@ -218,12 +195,12 @@ const HomeScreen = props => {
   const renderItemLeft = item => (
     <View style={styles.textTimeLeft}>
       <Layout>
-        <Text category="s1" style={{ textAlign: 'center' }}>
+        <Text category="s1" style={{ textAlign: 'center', fontSize: 12 }}>
           {item?.loading_time}
         </Text>
       </Layout>
       <Layout>
-        <Text category="c2" style={{ textAlign: 'center' }}>
+        <Text category="c2" style={{ textAlign: 'center', fontSize: 10 }}>
           {item?.loading_date}
         </Text>
       </Layout>
@@ -240,7 +217,7 @@ const HomeScreen = props => {
 
     // Находим ключи, которые нужно удалить
     const keysToRemove = savedPhotosKeys.filter(key => {
-      const uid = key.replace('savedPhotos_', ''); // Извлекаем uid из ключа
+      const uid = key.replace('savedPhotos_', ''); // Извлекаем uid из ключафви
       return !validUids.includes(uid); // Проверяем, есть ли uid в validUids
     });
 
@@ -248,31 +225,42 @@ const HomeScreen = props => {
     await AsyncStorage.multiRemove(keysToRemove);
   }
 
-  return (
-    <SafeAreaView>
-      {startRoute && (
-        <Text category="label" style={styles.titleList}>
-          <Icon
-            name="corner-right-down-outline"
-            width={20}
-            height={20}
-            style={styles.textHeaderCardIcon}></Icon>
-          Текущий маршрут
-        </Text>
-      )}
-
-      <FlatList
-        refreshControl={
-          <RefreshControl refreshing={false} onRefresh={onRefresh} />
-        }
-        style={{
-          minHeight: '100%',
-        }}
-        data={data}
-        renderItem={renderItemCard}
-        keyExtractor={item => item.uid}
+  // Вынесение логики отображения текущего маршрута в отдельную функцию
+  const renderCurrentRouteTextIcon = () => (
+    <View style={styles.currentRouteContainer}>
+      <Icon
+        name="corner-right-down-outline"
+        width={20}
+        height={20}
+        style={styles.textHeaderCardIcon}
       />
-    </SafeAreaView>
+      <Text category="label" style={styles.titleList}>
+        Текущий маршрут
+      </Text>
+    </View>
+  );
+
+  return (
+    <ApplicationProvider {...eva} customMapping={mapping} theme={eva.light}>
+      <SafeAreaView>
+        {/*<Layout style={styles.layout}>*/}
+        <View style={styles.backgroundContainer}>
+          <Image source={backgroundImage} style={styles.background} />
+        </View>
+
+        {startRoute && renderCurrentRouteTextIcon()}
+        <FlatList
+          refreshControl={
+            <RefreshControl refreshing={false} onRefresh={onRefresh} />
+          }
+          style={styles.containerFlatList}
+          data={data}
+          renderItem={renderItemCard}
+          keyExtractor={item => item.uid}
+        />
+        {/*</Layout>*/}
+      </SafeAreaView>
+    </ApplicationProvider>
   );
 };
 

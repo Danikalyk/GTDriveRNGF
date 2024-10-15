@@ -28,56 +28,64 @@ type Props = {};
 const {Navigator, Screen} = createDrawerNavigator();
 
 const RoutesNavigation = () => (
-  <Stack.Navigator initialRouteName="Home">
-    <Stack.Screen
-      name="Home"
-      component={HomeScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} />,
-        title: 'Список документов',
-      }}
-    />
-    <Stack.Screen
-      name="RouteScreen"
-      component={RouteScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Маршрутный документ',
-      }}
-    />
-    <Stack.Screen
-      name="TaskScreen"
-      component={TaskScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Точка доставки',
-      }}
-    />
-    <Stack.Screen
-      name="TaskPhotoScreen"
-      component={TaskPhotoScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Фото',
-      }}
-    />
-    <Stack.Screen
-      name="TaskOrderScreen"
-      component={TaskOrderScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Задачи по заказу',
-      }}
-    />
-    <Stack.Screen
-      name="AccidentScreen"
-      component={AccidentScreen}
-      options={{
-        header: props => <TopNavigationHeader {...props} isBack />,
-        title: 'Проишествие',
-      }}
-    />
-  </Stack.Navigator>
+    <Stack.Navigator initialRouteName="Home">
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} />,
+          title: 'Список документов',
+        }}
+      />
+      <Stack.Screen
+        name="RouteScreen"
+        component={RouteScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} isBack />,
+          title: 'Маршрутный документ',
+        }}
+      />
+      <Stack.Screen
+        name="TaskScreen"
+        component={TaskScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} isBack />,
+          title: 'Точка доставки',
+        }}
+      />
+      <Stack.Screen
+        name="TaskPhotoScreen"
+        component={TaskPhotoScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} isBack />,
+          title: 'Фото',
+        }}
+      />
+      <Stack.Screen
+        name="TaskOrderScreen"
+        component={TaskOrderScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} isBack />,
+          title: 'Задачи по заказу',
+        }}
+      />
+      <Stack.Screen
+        name="AccidentScreen"
+        component={AccidentScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} isBack />,
+          title: 'Проишествие',
+        }}
+      />
+      <Stack.Screen
+        name="SettingsScreen"
+        component={SettingsScreen}
+        options={{
+          header: props => <TopNavigationHeader {...props} isBack />,
+          title: 'Настройки',
+        }}
+      />
+    </Stack.Navigator>
 );
 
 const ChatsNavigation = () => (

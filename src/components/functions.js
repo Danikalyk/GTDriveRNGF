@@ -14,13 +14,13 @@ import localStorage from '../store/localStorage';
 
 export const getCardStatus = status => {
   if (status === 1) {
-    return 'info';
+    return 'info'; //-- Синий цвет
   } else if (status === 2) {
-    return 'warning';
+    return 'primary'; //-- Текущее задание
   } else if (status === 3) {
-    return 'success';
+    return 'success'; //-- Зеленый цвет
   } else {
-    return 'basic';
+    return 'basic'; //-- Серый цвет
   }
 };
 

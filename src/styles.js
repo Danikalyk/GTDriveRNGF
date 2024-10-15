@@ -2,7 +2,9 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
     containerCards: {
-        margin: 5
+        //margin: 5,
+        padding: 0,
+        marginBottom: 5 
     },
     containerCard: {
         flex: 1,
@@ -15,28 +17,37 @@ export const styles = StyleSheet.create({
         marginLeft: 25
     },
     containerCardText: {
-        flex: 1,
         flexDirection: 'column',
-        paddingLeft: 20
+        justifyContent: 'flex-start'
     },
     backdrop: { 
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
 
 
+    currentRouteContainer: {
+        flexDirection: 'row', 
+        alignItems: 'center',  
+        justifyContent: 'flex-start', 
+        height: 40, 
+    },
     textHeaderCard: {
         flex: 1, 
         flexDirection: 'row', 
         alignItems: 'center',
         flexWrap: 'wrap', 
-        //justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        textAlign: 'center',
+        fontWeight: 'bold'
     },
-
     textHeaderCardIcon: {
-        marginRight: 10, 
+        opacity: 0.85,
+        color: '#8F9BB3',
+        marginHorizontal: 5
     },
     textTimeLeft: {
-        marginRight: 10,
+        marginLeft: 5,
+        paddingHorizontal: 5,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     textBodyCardWithLeftView: {
@@ -45,6 +56,7 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-start',
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        paddingVertical: 10
     },
     textHeaderCardOrder: {
         flex: 1, 
@@ -56,17 +68,14 @@ export const styles = StyleSheet.create({
     },
 
     textHeaderCardRoute: {
-        /*flex: 1, 
-        flexDirection: 'row', 
+        flexDirection: 'row',
         alignItems: 'center',
-        flexWrap: 'wrap', 
-        justifyContent: 'space-between'*/
-        flexDirection: 'row', // Устанавливаем направление в строку
-        alignItems: 'center',  // Центрируем элементы по вертикали
-        justifyContent: 'flex-start', // Выравниваем элементы по началу
+        justifyContent: 'space-between', // Выравнивание элементов по ширине
+        textAlign: 'justify', // Выравнивание текста по ширине
+        width: '100%', // Убедитесь, что контейнер занимает всю ширину
     },
     titleList: {
-        margin: 10,    
+        marginVertical: 5   
     },
     spinnerContainer: {
         position: 'absolute',
@@ -88,6 +97,47 @@ export const styles = StyleSheet.create({
         fontSize: 12,
         color: '#888',
         marginTop: 8,
-    }
+    },
+
+    container: {
+        flex: 1,
+        padding: 16, // Отступы от границ экрана
+    },
+
+    containerFlatList: {
+        minHeight: '100%',
+        marginLeft: 5,
+        marginRight: 5,
+        backgroundColor: 'transparent',
+    },
+    layout: {
+        flex: 1,
+        justifyContent: 'space-between',
+        alignItems: 'stretch',
+        position: 'relative',
+        padding: 20,
+      },
+      backgroundContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        flexDirection: 'row',
+        flexWrap: 'wrap', // Позволяет изображению заполнять пространство
+      },
+      background: {
+        width: 1081, // Ширина одного изображения
+        height: 1081, // Высота одного изображения
+        opacity: 0.3, // Прозрачность
+      },
+      bottonNavigatorText: {
+        color: "#3E3346",
+        fontSize: 11
+      },
+      bottonNavigatorIcon: {
+        color: "#3E3346",
+        fontSize: 11
+      }
   }
 );

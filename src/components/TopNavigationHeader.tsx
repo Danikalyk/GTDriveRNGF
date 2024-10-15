@@ -1,50 +1,43 @@
-import {DrawerActions} from '@react-navigation/native';
-import {
-  Icon,
-  Layout,
-  TopNavigation,
-  TopNavigationAction,
-} from '@ui-kitten/components';
-import {TouchableWebElement} from '@ui-kitten/components/devsupport';
-import React from 'react';
-import {TouchableOpacity} from 'react-native-gesture-handler';
+import { DrawerActions } from '@react-navigation/native';
+import { Icon, Layout, TopNavigation, TopNavigationAction } from '@ui-kitten/components';
+import React, { useEffect, useState } from 'react';
+import { Text } from 'react-native';
 
 type Props = {
   navigation: any;
   options: any;
+  isBack?: boolean;
 };
 
-const TopNavigationHeader = ({navigation, route, options, isBack}: Props) => {
-  const renderBackAction = (): TouchableWebElement => (
+const TopNavigationHeader = ({ navigation, options, isBack }: Props) => {
+  const [title, setTitle] = useState(options?.title || 'GTDrive');
+
+  useEffect(() => {
+    setTitle(options?.title || 'GTDrive');
+  }, [options?.title]);
+
+  const renderBackAction = () => (
     <TopNavigationAction
-      icon={props => <Icon name="arrow-back" {...props} />}
-      onPress={() => {
-        navigation.goBack();
-      }}
+      icon={(props) => <Icon name="arrow-back" {...props} fill="#FFFFFF" />}
+      onPress={navigation.goBack}
     />
   );
 
-  const renderRightActions = (): TouchableWebElement => (
+  const renderRightActions = () => (
     <TopNavigationAction
-      icon={props => <Icon name="menu-outline" {...props} />}
-      onPress={() => {
-        navigation.dispatch(DrawerActions.openDrawer());
-      }}
+      icon={(props) => <Icon name="menu-outline" {...props} fill="#FFFFFF" />}
+      onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
     />
   );
 
   return (
-    <Layout style={{}} level="1">
+    <Layout>
       <TopNavigation
         alignment="center"
-        title={options?.title || 'GTDrive'}
-        // subtitle="Subtitle"
-        // accessoryLeft={renderBackAction}
-        accessoryLeft={isBack ? renderBackAction : renderRightActions}
+        title={() => <Text style={{ color: '#FFFFFF' }}>{title}</Text>}
+        accessoryLeft={isBack ? renderBackAction() : renderRightActions()}
+        style={{ backgroundColor: "#3E3346" }}
       />
-
-      <TouchableOpacity
-        onPress={() => navigation.openDrawer()}></TouchableOpacity>
     </Layout>
   );
 };
