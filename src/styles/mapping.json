@@ -23,6 +23,12 @@
                 "backgroundColor": "#3E3346",
                 "textColor": "#FFFFFF",
                 "iconTintColor": "#FFFFFF"
+              },
+              "warning": {
+                "borderColor": "#BC4055",
+                "backgroundColor": "#BC4055",
+                "textColor": "#FFFFFF",
+                "iconTintColor": "#FFFFFF"
               }
             },
             "size": {
@@ -106,8 +112,11 @@
           },
           "variantGroups": {
             "status": {
-              "warning": {
+              "basic": {
                 "accentBackgroundColor": "#3E3346"
+              },
+              "warning": {
+                "accentBackgroundColor": "#BC4055 "
               },
               "success": {
                 "accentBackgroundColor": "#00990D"
@@ -117,6 +126,9 @@
               },
               "info": {
                 "accentBackgroundColor": "#3699FE"
+              },
+              "control": {
+                "accentBackgroundColor": "#F0F0F0"
               }
             }
           }

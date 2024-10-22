@@ -2,7 +2,7 @@
 
 import map_scripts from '../map_scripts';
 import useSWR, { useSWRConfig } from 'swr';
-import { Layout, List, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab, Spinner } from '@ui-kitten/components';
+import { Layout, List, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab, Spinner, Divider } from '@ui-kitten/components';
 import React, { useEffect, useContext, useRef, useCallback, useState } from 'react';
 import { View, Alert, RefreshControl, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import { RouterListItem } from '../types';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { GlobalState } from '../store/global/global.state';
-import { getCardStatus, getDataPostRoute, addGeofenceToNextPoint } from '../components/functions.js';
+import { getCardStatus, getDataPostRoute, addGeofenceToNextPoint, getDateFromJSON } from '../components/functions.js';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { styles } from '../styles';
 import { UserContext } from '../store/user/UserProvider';
@@ -107,7 +107,7 @@ const RouteScreen = (props: Props) => {
   if (!routeItem || !routeItem.points) return null;
 
   let points = [...route.points].sort((a, b) => a.sort - b.sort); //-- Сортируем по статусу маршурта
-  points = points.filter(point => point.status !== 3);
+  //points = points.filter(point => point.status !== 3);
 
   if (!route.check) points[0].status = 0; //-- Если маршрут не взят в работу, то нужно у первой точки склада проставить статус 0 
 
@@ -187,11 +187,7 @@ const RouteScreen = (props: Props) => {
         {isCurrentPoint && renderStatusText("corner-right-down-outline", "Текущая точка следования")}
         {isRoutePoint && renderStatusText("navigation-2", "Точки Маршрута")}
         <Card
-          style={[
-            styles.containerCards,
-            isCurrentPoint && { borderWidth: 1, borderColor: '#0092FF' },
-            finishedPoint && { borderWidth: 1, borderColor: '#91F2D2' },
-          ]}
+          style={[styles.containerCards]}
           status={getCardStatus(status)}
           header={() => renderCardHeader(item)}
           onPress={() => handleOpenTaskScreen(item)}
@@ -210,20 +206,32 @@ const RouteScreen = (props: Props) => {
     }
   };
 
-  const renderCardPointText = (item: RouterListItem) => (
-    <View style={styles.textBodyCardWithLeftView}>
-      {renderCardPointTextLeft(item)}
-      {item.type === 1 || item.type === 7 ? renderWarehouseText(item) : renderPointText(item)}
-    </View>
-  );
+  function renderCardPointText(item: RouterListItem) {
+    const time_finish = item.status === 3 ? getDateFromJSON(item.time_finish) : null;
 
-  const renderWarehouseText = (item: RouterListItem) => (
-    <View style={styles.containerCardText}>
-      <Text category="c2">
-        {item.type === 1 ? 'Точка погрузки машины на складе' : 'Точка завершения маршрута'}
-      </Text>
-    </View>
-  );
+    return (
+      <View style={styles.textBodyCardWithLeftView}>
+        {renderCardPointTextLeft(item)}
+        {time_finish ? (
+          <Text category="c2">Дата завершения: {time_finish}</Text>
+        ) : (
+          (item.type === 1 || item.type === 7) ? renderWarehouseText(item) : renderPointText(item)
+        )}
+      </View>
+    );
+  }
+
+  function renderWarehouseText(item: RouterListItem) {
+    console.log({ item });
+
+    return (
+      <View style={styles.containerCardText}>
+        <Text category="c2">
+          {item.type === 1 ? 'Точка погрузки машины на складе' : 'Точка завершения маршрута'}
+        </Text>
+      </View>
+    );
+  }
 
   const renderPointText = (item: RouterListItem) => {
     const showAddress = item.address !== item.client_name;
@@ -263,29 +271,30 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Таб Точки ----------
 
-  const PointsScreen = () => (
-    <SafeAreaView style={{}}>
-      {pending && (
-        <View style={styles.spinnerContainer}>
-          <Spinner size="giant" />
+  function PointsScreen() {
+    const unfinishedPoints = points.filter((item) => item.status !== 3);
+
+    return (
+      <SafeAreaView style={{}}>
+        {pending && (
+          <View style={styles.spinnerContainer}>
+            <Spinner size="giant" />
+          </View>
+        )}
+
+        <View style={styles.backgroundContainer}>
+          <Image source={backgroundImage} style={styles.background} />
         </View>
-      )}
 
-      <View style={styles.backgroundContainer}>
-        <Image source={backgroundImage} style={styles.background} />
-      </View>
-
-      <FlatList
-        refreshControl={
-          <RefreshControl refreshing={false} onRefresh={onRefresh} />
-        }
-        style={styles.containerFlatList}
-        data={points}
-        renderItem={renderItemCard}
-        ListHeaderComponent={renderMainCard}
-      />
-    </SafeAreaView>
-  );
+        <FlatList
+          refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+          style={styles.containerFlatList}
+          data={unfinishedPoints}
+          renderItem={renderItemCard}
+          ListHeaderComponent={renderMainCard} />
+      </SafeAreaView>
+    );
+  }
 
   // ----------- Таб Информация ----------
 
@@ -310,10 +319,15 @@ const RouteScreen = (props: Props) => {
     );
   };
 
+
+
   function InformationScreen() {
     const pointsComplete = points.filter(point => point.status === 3);
-    const timeStart = points[0]?.time_start; // Используем опциональную цепочку для предотвращения ошибок
+    const timeStart = points[0]?.time_start;
 
+    console.log(timeStart);
+
+    //-- Точки и завершенные точки
     const lengthPoints = points.length;
     const lengthPointsComplete = pointsComplete.length;
 
@@ -325,13 +339,40 @@ const RouteScreen = (props: Props) => {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
-        timeZoneName: 'short'
+        second: '2-digit'
       };
       return date.toLocaleString('ru-RU', options);
     };
 
     const readableDate = timeStart ? formatDate(timeStart) : '';
+
+    //-- Время в пути
+    const timeInRoad = parseFloat(((new Date() - new Date(timeStart)) / 36e5).toFixed(2));
+
+    //-- Требуется возврат на склад
+    const returnToWarehouse = (routeItem.returnToWarehouse ? 'Требуется возврат на склад!' : 'Возврат на склад не требуется!');
+
+    //-- Заказы и завершенные заказы
+    const unfinishedOrders = points.reduce((count, item) => {
+      return count + item.orders.filter(order => order.type === 4 && order.status !== 3).length;
+    }, 0);
+
+    const finishedOrders = points.reduce((count, item) => {
+      return count + item.orders.filter(order => order.type === 4 && order.status === 3).length;
+    }, 0);
+
+    //-- одометр
+    const odometerValue = BackgroundGeolocation.getOdometer();
+    const odometer = isNaN(odometerValue) ? 0 : odometerValue / 1000;
+
+    const renderTextWithDivider = (text) => (
+  <>
+    <Text category="c2" style={styles.textInfoCard}>
+      • {text}
+    </Text>
+    <Divider />
+  </>
+);
 
     return (
       <SafeAreaView style={styles.containerFlatList}>
@@ -346,40 +387,42 @@ const RouteScreen = (props: Props) => {
         </View>
 
         <Card
+          status="warning"
           style={[styles.containerCards, { marginTop: 5 }]}
         >
           <View style={{ paddingVertical: 4, paddingHorizontal: 10 }}>
+            {renderTextWithDivider(returnToWarehouse)}
+
             {routeItem.check && (
-              <Text category="c2" style={{ fontSize: 11 }}>
-                • Время начала {readableDate}
-              </Text>
+              <>
+                {renderTextWithDivider(`Время начала ${readableDate}`)}
+                {renderTextWithDivider(`Время в пути ~ ${timeInRoad} ч.`)}
+              </>
             )}
 
-            {Object.values(mainDesription).map((description, index) => (
-              <Text key={index} category="c2" style={{ fontSize: 11 }}>
+            {renderTextWithDivider(`Пройдено ~ ${odometer} км.`)}
+            {renderTextWithDivider(`Посещено точек ${lengthPointsComplete} из ${lengthPoints}`)}
+            {renderTextWithDivider(`Отгружено заказов ${finishedOrders} из ${unfinishedOrders}`)}
+
+            {/*Object.values(mainDesription).map((description, index) => (
+              <Text key={index} category="c2" >
                 • {description}
               </Text>
-            ))}
-
-            <Text category="c2" style={{ fontSize: 11 }}>
-              • Точек {lengthPoints}  / {lengthPointsComplete}
-            </Text>
+            ))*/}
           </View>
         </Card>
 
-        {/*pointsComplete.length > 0 && (
+        {pointsComplete.length > 0 && (
           <>
             {renderStatusText("code-download-outline", "Завершенные точки")}
             <FlatList
               data={pointsComplete}
               refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
-              style={styles.containerFlatList}
-              data={pointsComplete}
+              style={{}}
               renderItem={renderItemCard}
-              renderItem={renderInfoCard}
             />
           </>
-        )*/}
+        )}
       </SafeAreaView>
     );
   }

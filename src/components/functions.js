@@ -20,7 +20,7 @@ export const getCardStatus = status => {
   } else if (status === 3) {
     return 'success'; //-- Зеленый цвет
   } else {
-    return 'basic'; //-- Серый цвет
+    return 'control'; //-- Серый цвет
   }
 };
 

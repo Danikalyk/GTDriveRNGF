@@ -101,7 +101,7 @@ export const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        padding: 16, // Отступы от границ экрана
+        //padding: 16, // Отступы от границ экрана
     },
 
     containerFlatList: {
@@ -131,6 +131,14 @@ export const styles = StyleSheet.create({
         height: 1081, // Высота одного изображения
         opacity: 0.3, // Прозрачность
       },
+      /*background: {
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        opacity: 0.3
+      },*/
       bottonNavigatorText: {
         color: "#3E3346",
         fontSize: 11
@@ -138,6 +146,29 @@ export const styles = StyleSheet.create({
       bottonNavigatorIcon: {
         color: "#3E3346",
         fontSize: 11
-      }
+      },
+      textInfoCard: {
+        paddingVertical: 3
+      },
+      settingsButtonContainer: {
+        position: 'absolute', // Позволяет разместить кнопку в правом верхнем углу
+        top: 0, // Отступ сверху
+        right: 0, // Отступ справа
+        zIndex: 1, // Убедитесь, что кнопка находится поверх других элементов
+      },
+      settingsButton: {
+        textColor: "#3E3346",
+      },
+      loginSelect: {
+        marginBottom: 10,
+      },
+      loginInput: {
+        marginBottom: 10,
+        borderRadius: 0
+      },
+      logoContainer: {
+        alignItems: 'center', // Центрируем логотип по горизонтали
+        marginTop: '40%',
+      },
   }
 );

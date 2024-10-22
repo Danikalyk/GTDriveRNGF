@@ -220,8 +220,6 @@ const TaskOrderScreen = (props: Props) => {
   };
 
   function TasksOrderScreen() {
-    console.log({tasks});
-
     return (
       <SafeAreaView style={{ flex: 1 }}>
         {pending && (

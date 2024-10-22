@@ -129,22 +129,14 @@ const HomeScreen = props => {
     //console.log('Элемент успешно удален', routes);
   };
 
-  const data =
-    routes &&
-    Array.isArray(routes) &&
-    routes?.slice().sort((a, b) => {
-      if (a.start !== b.start) {
-        return b.start - a.start;
-      } else {
-        return a.status - b.status;
-      }
-    });
+  const data = routes?.filter(route => route.start || route.status)
+                     .sort((a, b) => (b.start - a.start) || (a.status - b.status));
 
   const getCardRouteStatus = item => {
     let status = getCardStatus(item.status);
 
     if (status === 'info' && item.start === false) {
-      status = 'basic';
+      status = 'control';
     }
 
     return status;

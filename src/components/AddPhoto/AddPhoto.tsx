@@ -18,6 +18,8 @@ const AddPhoto = (props) => {
   const uidOrder = params?.uidOrder;
   const uidPoint = params?.uidPoint;
   const uidPointOrder = uidOrder ? uidOrder : uidPoint;
+  
+  if (!params) return null;
 
   const updateDate = async (data: any, callback = () => { }) => {
     const netInfo = await NetInfo.fetch();
