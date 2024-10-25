@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, Icon, Layout, Spinner } from '@ui-kitten/components';
+import { Button, Card, Icon, Layout, Spinner, Text } from '@ui-kitten/components';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ImageBackground, View } from 'react-native';
@@ -7,19 +7,50 @@ import { acceptImages } from '../../api/photo';
 import { getDataPostRoute } from '../functions.js';
 import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../../utils/FunctionQueue';
+import { styles } from '../../styles';
+import localStorage from '../../store/localStorage';
 
 const queue = new FunctionQueue();
 
 const AddPhoto = (props) => {
   const [images, setImages] = useState([]);
   const [pending, setPending] = useState(false);
-  const params = props?.route?.params;
-  const uid = params?.uid;
-  const uidOrder = params?.uidOrder;
-  const uidPoint = params?.uidPoint;
-  const uidPointOrder = uidOrder ? uidOrder : uidPoint;
-  
+  const [parameters, setParameters] = useState([]);
+  const { route } = props;
+  const params = route ? route.params : props.params;
+
   if (!params) return null;
+
+  useEffect(() => {
+    const fetchStorageKey = async () => {
+      try {
+        const storageKey = await localStorage.getItem('LoginKey');
+
+        setParameters(storageKey.parametrs.photo);
+      } catch (error) {
+        console.error('Error retrieving storage key:', error);
+      }
+    };
+
+    fetchStorageKey();
+  }, []);
+
+  
+  console.log(parameters);
+
+  const currentStatus = params?.status;
+  const screen = params?.screen;
+  const uid = params?.uid;
+
+  //-- Фотография может придти с разных screen
+  //-- 1 - Точка
+  //-- 2 - Заказ
+  //-- 3 - Задание
+
+  const uidOrder = screen === 1 || screen === 3 ? params?.uidOrder : "00000000-0000-0000-0000-000000000000";
+  const uidPoint = screen === 1 ? params?.uidPoint : "00000000-0000-0000-0000-000000000000";
+  //const uidTask = screen === 3 ? params?.uidTask : "00000000-0000-0000-0000-000000000000";
+
 
   const updateDate = async (data: any, callback = () => { }) => {
     const netInfo = await NetInfo.fetch();
@@ -36,7 +67,7 @@ const AddPhoto = (props) => {
       callbackFunc(); // Выполняем колбэк, если есть сеть
     }
 
-    //setPending(false); // Устанавливаем pending в false
+    setPending(false);
   };
 
   useEffect(() => {
@@ -45,9 +76,21 @@ const AddPhoto = (props) => {
 
   const getSavedPhotos = async () => {
     try {
-      const savedPhotos = await AsyncStorage.getItem('savedPhotos_' + uidPointOrder);
-
-      savedPhotos && setImages(JSON.parse(savedPhotos));
+      const savedPhotos = await AsyncStorage.getItem('savedPhotos_' + uid);
+  
+      if (savedPhotos) {
+        const parsedPhotos = JSON.parse(savedPhotos);
+  
+        // Фильтруем фотографии по uidOrder, uidPoint и screen
+        const filteredPhotos = parsedPhotos.filter(photo => 
+          photo.uid === uid &&
+          photo.uidOrder === uidOrder &&
+          photo.uidPoint === uidPoint &&
+          photo.screen === screen
+        );
+  
+        setImages(filteredPhotos);
+      }
     } catch (error) {
       console.error('Error getting saved photos:', error);
     }
@@ -55,7 +98,18 @@ const AddPhoto = (props) => {
 
   const savePhotos = async (photosToSave) => {
     try {
-      await AsyncStorage.setItem('savedPhotos_' + uidPointOrder, JSON.stringify(photosToSave));
+      const photosWithMetadata = photosToSave.map(photo => ({
+        ...photo,
+        uid,
+        uidOrder,
+        uidPoint,
+        screen
+      }));
+
+      await AsyncStorage.setItem(
+        'savedPhotos_' + uid, 
+        JSON.stringify(photosWithMetadata)
+      );
     } catch (error) {
       console.error('Error saving photos:', error);
     }
@@ -79,9 +133,12 @@ const AddPhoto = (props) => {
       saveToPhotos: true,
       mediaType: 'photo',
       includeBase64: true,
-      selectionLimit: 10,
-      maxWidth: 2560,
-      maxHeight: 1440,
+      selectionLimit: parameters.selectionLimit,
+      maxWidth: parameters.maxWidth,
+      maxHeight: parameters.maxHeight,
+      quality: parameters.quality,
+      saveToPhotos: true,
+      cameraType: 'back'
     };
 
     launchCamera(options, onImagePress);
@@ -100,10 +157,9 @@ const AddPhoto = (props) => {
     data.screen = 3;
     data.uid = uid;
     data.uidPoint = uidPoint;
-
-    if (uidOrder !== "Undefined") {
-      data.uidOrder = uidOrder;
-    }
+    data.uidOrder = uidOrder;
+    //data.uidTask = uidTask;
+    data.type = screen; //-- Используем существующий Type для передачи на сервер Screen, чтоб отпределить к какому документу привязывать фотографию
 
     // Отправляем только новые фотографии на сервер
     const newImages = images.filter(image => !image.uploaded);
@@ -111,23 +167,26 @@ const AddPhoto = (props) => {
     //data.images = newImages.map(image => image.assets[0].base64);
 
     data.images = newImages;
-    data = JSON.stringify(data);
 
-    await acceptImages(data);
+    updateDate(data, async () => {
+      const dataString = JSON.stringify(data);
 
-    // Пометить отправленные фотографии как загруженные
-    const updatedImages = images.map(image => {
-      if (newImages.includes(image)) {
-        return { ...image, uploaded: true };
-      }
-      return image;
-    });
+      await acceptImages(data);
 
-    savePhotos(updatedImages);
+      // Пометить отправленные фотографии как загруженные
+      const updatedImages = images.map(image => {
+        if (newImages.includes(image)) {
+          return { ...image, uploaded: true };
+        }
+        return image;
+      });
 
-    setImages(updatedImages);
+      savePhotos(updatedImages);
 
-    setPending(false);
+      setImages(updatedImages);
+
+      //setPending(false);
+    })
   };
 
   const CameraIcon = (props): IconElement => (
@@ -151,7 +210,7 @@ const AddPhoto = (props) => {
 
     return (
       canAddPhoto && (
-        <Layout style={styles.headerLayout}>
+        <Layout style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <Button
             accessoryLeft={ImageIcon}
             onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })}
@@ -190,12 +249,41 @@ const AddPhoto = (props) => {
   };
 
   return (
-    <Layout style={{ flex: 1 }}>
+    <>
       {pending && (
         <View style={styles.spinnerContainer}>
-          <Spinner size='giant' />
+          <Spinner size='giant' status='basic' />
         </View>
       )}
+
+      <Layout style={{ backgroundColor: 'transparent' }}>
+        {currentStatus === 3 && (
+          <View style={styles.currentRouteContainer}>
+            <Icon
+              name="camera-outline"
+              width={20}
+              height={20}
+              style={styles.textHeaderCardIcon}
+            />
+            <Text category="label" style={styles.titleList}>
+              Добавить фото можно только на активном задании
+            </Text>
+          </View>
+        ) || (
+            <View style={styles.currentRouteContainer}>
+              <Icon
+                name="camera-outline"
+                width={20}
+                height={20}
+                style={styles.textHeaderCardIcon}
+              />
+              <Text category="label" style={styles.titleList}>
+
+                Добавить фото
+              </Text>
+            </View>
+          )}
+      </Layout>
       <Card
         style={[styles.cardLayout]}
         header={renderCardHeader}
@@ -217,7 +305,7 @@ const AddPhoto = (props) => {
                   appearance='outline'
                   status='basic'
                   onPress={() => removeNewImage(index)}
-                  style={styles.deleteButton} 
+                  style={styles.deleteButton}
                   size='small'
                 >
                 </Button>
@@ -226,54 +314,8 @@ const AddPhoto = (props) => {
           ))}
         </View>
       </Card>
-    </Layout>
+    </>
   );
 };
-
-// Отдельный блок стилей
-const styles = {
-  imageContainer: {
-    margin: 2,
-    position: 'relative'
-  },
-  imageBackground: {
-    height: 150,
-    width: 150,
-    overflow: 'hidden',
-    borderColor: 'rgba(0, 0, 0, 0)',
-    borderWidth: 1,
-    justifyContent: 'flex-end', // Выравнивание содержимого
-    alignItems: 'flex-end',
-  },
-  cardLayout: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  headerLayout: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerLayout: {
-    bottom: 0,
-    margin: 5
-  },
-  spinnerContainer: {
-    position: 'absolute',
-    zIndex: 999,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  deleteButton: {
-    position: 'absolute', 
-    top: 5,
-    right: 5
-  }
-};
-
 
 export default AddPhoto;

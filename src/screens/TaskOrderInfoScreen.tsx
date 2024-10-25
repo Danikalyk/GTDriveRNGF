@@ -106,10 +106,17 @@ const TaskOrderInfoScreen = ({ route }) => {
       <View style={styles.backgroundContainer}>
         <Image source={require('../img/pattern.png')} style={styles.background} />
       </View>
-      {!params.taskFinished && (
+
+      <Layout>
+          <ScrollView contentContainerStyle={styles.wrap}>
+            <AddPhoto {...route}/>
+          </ScrollView>
+      </Layout>
+
+      {/*!params.taskFinished && (
         <Layout>
           <ScrollView contentContainerStyle={styles.wrap}>
-            <AddPhoto />
+            <AddPhoto {...route}/>
           </ScrollView>
           <Card style={styles.containerCard}>
             <Text category="label" style={styles.titleList}>
@@ -118,7 +125,7 @@ const TaskOrderInfoScreen = ({ route }) => {
             </Text>
           </Card>
         </Layout>
-      )}
+      )*/}
     </SafeAreaView>
   );
 

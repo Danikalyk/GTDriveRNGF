@@ -58,12 +58,13 @@ export const getDateFromJSON = dateString => {
   const date = new Date(dateString);
   const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
-  const hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, '0');;
-  const day = date.getDate();
-  const month = monthNames[date.getMonth()]; // Месяцы в JavaScript начинаются с 0, поэтому добавляем 1
+  // Используем getUTCHours() и getUTCMinutes() для получения значений в UTC
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const day = date.getUTCDate();
+  const month = monthNames[date.getUTCMonth()]; // Месяцы в JavaScript начинаются с 0
 
-  const formattedDate = `${day} ${month} ${hours}:${minutes} `;
+  const formattedDate = `${day} ${month} ${hours}:${minutes}`;
 
   return formattedDate;
 }

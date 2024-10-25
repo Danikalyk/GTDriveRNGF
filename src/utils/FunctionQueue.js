@@ -25,7 +25,7 @@ class FunctionQueue {
 
   // Метод для обработки очереди
   async processQueue() {
-    console.log('Обработка очереди', this);
+    //console.log('Обработка очереди', this);
 
     if (this.isProcessing) return; // Если уже обрабатывается, выходим
     this.isProcessing = true;

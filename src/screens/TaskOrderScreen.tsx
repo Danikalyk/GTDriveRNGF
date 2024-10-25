@@ -1,29 +1,53 @@
-import { Card, Layout, Text, Toggle, BottomNavigation, BottomNavigationTab, Icon, Modal, Button, Spinner } from '@ui-kitten/components';
+import { Card, Layout, Text, Toggle, BottomNavigation, BottomNavigationTab, Icon, Modal, Button, Spinner, Divider } from '@ui-kitten/components';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { View, Alert, Image, FlatList } from 'react-native';
 import { RouterListItem } from '../types';
-import { getToggleCardStatus, getDataPostRoute } from '../components/functions.js';
+import { getToggleCardStatus, getDataPostRoute, getDateFromJSON } from '../components/functions.js';
 import { styles } from '../styles';
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { postRoute } from '../api/routes';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import find from 'lodash/find';
 import { getReq } from '../api/request';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import NetInfo from '@react-native-community/netinfo';
+import FunctionQueue from '../utils/FunctionQueue.js';
 
 type Props = {};
 
+const queue = new FunctionQueue();
+
 const TaskOrderScreen = (props: Props) => {
   const backgroundImage = require('../img/pattern.png');
+  const { cache } = useSWRConfig();
+  const getCachedData = key => {
+    return cache.get(key); // Получаем кэшированные данные по ключу
+  };
   const navigation = useNavigation();
   const [visible, setVisible] = useState(false);
   const { Navigator, Screen } = createBottomTabNavigator();
   const [pending, setPending] = useState(true);
   const [modalContent, setModalContent] = useState(null);
-  const { data: route, mutate, error } = useSWR(`/route/${uid}`, getReq);
+
+  const {
+    data: route,
+    mutate,
+    error
+  } = useSWR(
+    `/route/${uid}`,
+    () => getReq(`/route/${uid}`).then(res => res.data),
+    {
+      fallbackData: getCachedData(`/route/${uid}`),
+    },
+  );
+
+  if (error && (!route)) {
+    mutate(`/route/${uid}`, getCachedData(`/route/${uid}`), false); // Возвращаем кэшированные данные
+  }
+
   const { uid, uidOrder, uidPoint } = props.route.params || {};
   const [title, setTitle] = useState('');
   const goBack = () => {
@@ -38,15 +62,54 @@ const TaskOrderScreen = (props: Props) => {
     setPending(false);
   }, []);
 
+  /*useEffect(() => {
+    // Подписка на изменения состояния сети
+    const unsubscribe = NetInfo.addEventListener(state => {
+      if (state.isConnected) {
+        queue.processQueue(); // Запускаем очередь при восстановлении сети
+      }
+    });
+
+    return () => {
+      unsubscribe(); // Отменяем подписку при размонтировании компонента
+    };
+  }, []);*/
+
   useLayoutEffect(() => {
     navigation.setOptions({ title });
   }, [navigation, title]);
 
   let newTitle = 'Задачи по заказу' + (order?.name ? ` ${order.name}` : '');
-  
+
   React.useLayoutEffect(() => {
-      navigation.setOptions({ title: newTitle });
+    navigation.setOptions({ title: newTitle });
   }, [navigation, newTitle]);
+
+  const updateDate = async (data: any, callback = () => { }) => {
+    const netInfo = await NetInfo.fetch();
+
+    mutate((currentData: any) => {
+      const updatedData = { ...currentData };
+
+      //-- код для изменения 
+
+      return updatedData;
+    }, false);
+
+    const callbackFunc = async () => {
+      await callback(); // Ждем завершения колбэка
+    };
+
+    if (!netInfo.isConnected) {
+      data.needJSON = false;
+      queue.enqueue(callbackFunc); // Добавляем в очередь, если нет сети
+    } else {
+      // Здесь мы вызываем callbackFunc без await, так как это не обязательно
+      callbackFunc(); // Выполняем колбэк, если есть сеть
+    }
+
+    setPending(false); // Устанавливаем pending в false
+  };
 
   // ---------- Запросы ----------
 
@@ -68,68 +131,78 @@ const TaskOrderScreen = (props: Props) => {
       uidPoint: uidPoint,
     });
 
-    await postRoute(uid, data);
-    goBack();
+    updateDate(data, async () => {
+      await postRoute(uid, data);
+
+      goBack();
+    })
   };
 
   const putTimeCardToServer = async (item) => {
+    setVisible(false);
+    setPending(true);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     const data = createPostData(3, {
       uidTask: item.uidTask,
     });
 
-    await postRoute(uid, data);
-    setVisible(false);
-    mutate();
+    updateDate(data, async () => {
+      await postRoute(uid, data);
+
+      mutate();
+    })
   };
 
   // ---------- Задачи ----------
 
   const renderCardHeader = item => {
     return (
-      <View style={[styles.textHeaderCardOrder]}>
-        <View style={styles.textHeaderCard}>
-          <Icon
-            name="bulb-outline"
-            width={23}
-            height={23}
-            style={{marginRight: 5}}
-          />
-          <Text
-            category="label"
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              fontSize: 14,
-            }}>
-            {item?.name}
-          </Text>
+      <Layout>
+        <View style={[styles.textHeaderCardOrder]}>
+          <View style={styles.textHeaderCard}>
+            <Icon
+              name="bulb-outline"
+              width={23}
+              height={23}
+              style={{ marginRight: 5 }}
+            />
+            <Text
+              category="label"
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                fontSize: 14,
+              }}>
+              {item?.name}
+            </Text>
+          </View>
         </View>
-      </View>
+      </Layout>
     );
   };
 
   const renderFinishOrderCard = () => {
     return (
-      <Layout style={{ marginHorizontal: 5}}>
+      <Layout style={{ marginHorizontal: 5, marginTop: 5 }}>
         <Card
           style={[
-            styles.containerCards
+            styles.containerCards, { paddingHorizontal: 25, paddingVertical: 15 }
           ]}
           appearance='outline'
           status='basic'
         >
-          <View>
-            <Button
-              style={{}}
-              accessoryLeft={<Icon name="checkmark-square-outline"></Icon>}
-              onPress={() => finishCurrentOrder()}
-              appearance="filled"
-              status='basic'
-            >
-              Зафиксировать время заказа
-            </Button>
-          </View>
+          <Button
+            style={{}}
+            accessoryLeft={<Icon name="checkmark-square-outline"></Icon>}
+            onPress={() => finishCurrentOrder()}
+            appearance="filled"
+            status='basic'
+          >
+            Зафиксировать время заказа
+          </Button>
         </Card>
       </Layout>
     );
@@ -202,6 +275,7 @@ const TaskOrderScreen = (props: Props) => {
 
   const renderCardTaskText = item => {
     const statusToggle = getToggleCardStatus(item);
+    const time_fix = item.status === 3 ? getDateFromJSON(item.date) : null;
 
     return (
       <Layout style={styles.textBodyCardWithLeftView}>
@@ -214,17 +288,27 @@ const TaskOrderScreen = (props: Props) => {
 
         <View style={styles.containerCardText}>
           <Text category="c2">{item.description}</Text>
+
+          {item?.status === 3 && (
+            <View style={{ paddingTop: 5 }}>
+              <Divider />
+              <Text category="c2">Дата фиксации: {time_fix}</Text>
+            </View>
+          )}
         </View>
       </Layout>
     );
   };
 
-  function TasksOrderScreen() {
+  const TasksOrderScreen = () => {
+    const isLoading = pending && !taskFinished;
+    const shouldRenderFinishOrderCard = canFinishOrder && !taskFinished;
+
     return (
       <SafeAreaView style={{ flex: 1 }}>
-        {pending && (
+        {isLoading && (
           <View style={styles.spinnerContainer}>
-            <Spinner size="giant" />
+            <Spinner size="giant" status='basic' />
           </View>
         )}
 
@@ -232,17 +316,18 @@ const TaskOrderScreen = (props: Props) => {
           <Image source={backgroundImage} style={styles.background} />
         </View>
 
-        {canFinishOrder && !taskFinished && renderFinishOrderCard()}
+        {shouldRenderFinishOrderCard && renderFinishOrderCard()}
 
         <FlatList
-          style={[styles.containerFlatList, { marginTop: 5}]}
+          style={[styles.containerFlatList, { marginTop: 5 }]}
           data={tasks}
-          renderItem={renderCardTask}/>
+          renderItem={renderCardTask}
+        />
 
         {renderModalWindow()}
       </SafeAreaView>
     );
-  }
+  };
 
   // ---------- Модальное окно ----------
 

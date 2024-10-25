@@ -1,5 +1,6 @@
+//-- 20241021 
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Image, StyleSheet, Alert, Dimensions } from 'react-native';
+import { View, Image, Alert } from 'react-native';
 import { Button, Icon, Input, Layout, Spinner, Text } from '@ui-kitten/components';
 import { TouchableWithoutFeedback } from '@ui-kitten/components/devsupport';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,118 +15,92 @@ import dayjs from 'dayjs';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import DeviceInfo from 'react-native-device-info';
 import localStorage from '../store/localStorage';
-import Loader from '../components/Icons/Loader';
 import NetInfo from '@react-native-community/netinfo';
-import * as eva from '@eva-design/eva';
-import { ApplicationProvider } from '@ui-kitten/components';
-import { default as mapping } from '../styles/mapping';
 
-const LoginScreen = ({ navigation }: Props) => {
+const LoginScreen = ({ navigation }) => {
   const context = useContext(GlobalState);
+  const { currentUser, setUser } = useContext(UserContext);
   const [userID, setUserID] = useState('');
   const [password, setPassword] = useState('');
   const [pending, setPending] = useState(false);
-  const [isSubmit, setSubmit] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-  const { currentUser, setUser } = useContext(UserContext);
   const backgroundImage = require('../img/pattern.png');
 
+  // Инициализация данных пользователя из локального хранилища
   useEffect(() => {
     const init = async () => {
       const authInfo = await localStorage.getItem('tokens');
-
       setUserID(authInfo?.id || '');
       setPassword(authInfo?.password || '');
     };
-
     init();
   }, []);
 
-  const toggleSecureEntry = (): void => {
+  // Переключение видимости пароля
+  const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
   };
 
-  const renderIcon = (props): React.ReactElement => (
+  // Иконка для переключения видимости пароля
+  const renderIcon = (props) => (
     <TouchableWithoutFeedback onPress={toggleSecureEntry}>
       <Icon {...props} name={secureTextEntry ? 'eye-off' : 'eye'} />
     </TouchableWithoutFeedback>
   );
 
+  // Обработка входа в систему
   const onLogin = async () => {
-    setSubmit(true);
     setPending(true);
 
     const netInfo = await NetInfo.fetch();
     if (!netInfo.isConnected) {
+      // Оффлайн режим: проверка сохраненного ключа входа
       const LoginKey = await localStorage.getItem('LoginKey');
-
-      if (LoginKey) {
-        const { user, error } = LoginKey;
-        if (!error && user && LoginKey.userUID) {
-          console.log('LoginKey', LoginKey);
-          if (user?.code === userID && user?.password === password) {
-            setUser(LoginKey.userUID);
-            context.login();
-            setPending(false);
-          }
-        } else {
-          Alert.alert(LoginKey?.error || LoginKey.message || 'Error');
-          setPending(false);
-          return;
-        }
+      if (LoginKey && LoginKey.user?.code === userID && LoginKey.user?.password === password) {
+        setUser(LoginKey.userUID);
+        context.login();
+      } else {
+        Alert.alert(LoginKey?.error || 'Ошибка');
       }
     } else {
-      const jwtToken = await getDevTokens({ isRefresh: true });
-      await saveTokens({ id: userID, password, jwtToken });
-
-      let deviceInfo = await BackgroundGeolocation.getDeviceInfo();
-      let version = DeviceInfo.getVersion();
-      let instanceId = await DeviceInfo.getInstanceId();
-
-      const params = {
-        user: {
-          date: dayjs().format(),
-          id: userID,
-          password: password,
-        },
-        device: {
-          ID: instanceId,
-          ...deviceInfo,
-          version_gtdrive: version,
-        },
-      };
-
+      // Онлайн режим: аутентификация через сервер
       try {
+        const jwtToken = await getDevTokens({ isRefresh: true });
+        await saveTokens({ id: userID, password, jwtToken });
+
+        const deviceInfo = await BackgroundGeolocation.getDeviceInfo();
+        const version = DeviceInfo.getVersion();
+        const instanceId = await DeviceInfo.getInstanceId();
+
+        const params = {
+          user: { date: dayjs().format(), id: userID, password },
+          device: { ID: instanceId, ...deviceInfo, version_gtdrive: version },
+        };
+
         const userAnswer = await userAuth(params);
-
-        if (!userAnswer.error && userAnswer?.userUID) {
+             
+        if (userAnswer?.userUID !== '00000000-0000-0000-0000-000000000000') {
           setUser(userAnswer.userUID);
-
-          await localStorage.setItem('LoginKey', userAnswer || '');
-
+          await localStorage.setItem('LoginKey', userAnswer);
           context.login();
-          //context.enableGeo();
-          setPending(false);
         } else {
-          Alert.alert(userAnswer.error || userAnswer.message || 'Error');
-
-          setPending(false);
-          return;
+          Alert.alert(userAnswer.error || 'Ошибка');
         }
       } catch (error) {
         console.error(error);
-        setPending(false);
       }
     }
+    setPending(false);
   };
 
+  // Переход к настройкам
   const gotoSettings = () => {
     navigate('SettingsScreen');
   };
 
-  const handleTextChange = text => {
-    const formattedText = text.replace(/[^0-9]/g, '');
-    setUserID(formattedText);
+  // Обработка изменения текста в поле ID
+  const handleTextChange = (text) => {
+    setUserID(text.replace(/[^0-9]/g, ''));
   };
 
   return (
@@ -141,7 +116,7 @@ const LoginScreen = ({ navigation }: Props) => {
           <Image source={backgroundImage} style={styles.background} />
         </View>
 
-        <Layout style={{ justifyContent: 'center', alignItems: 'center', position: 'relative', backgroundColor: 'transparent' }}>
+        <Layout style={styles.centeredLayout}>
           <View style={styles.settingsButtonContainer}>
             <Button
               style={styles.settingsButton}
@@ -162,7 +137,6 @@ const LoginScreen = ({ navigation }: Props) => {
             value={userID}
             size='medium'
             label="ID водителя"
-            placeholder=""
             onChangeText={handleTextChange}
             keyboardType="numeric"
           />
@@ -172,18 +146,15 @@ const LoginScreen = ({ navigation }: Props) => {
             value={password}
             label="Пароль"
             size='medium'
-            placeholder=""
-            //status={!!(isSubmit && !password) ? 'danger' : 'primary'}
             accessoryRight={renderIcon}
             secureTextEntry={secureTextEntry}
-            onChangeText={nextValue => setPassword(nextValue)}
+            onChangeText={setPassword}
           />
         </View>
 
         <View style={styles.buttonContainer}>
           <Button
             onPress={onLogin}
-            //disabled={pending}
             appearance="filled"
             status='basic'
             accessoryLeft={<Icon name="log-in-outline" width={23} height={23} fill="#FFFFFF" />}
@@ -191,8 +162,8 @@ const LoginScreen = ({ navigation }: Props) => {
             Войти
           </Button>
 
-          <View style={{ alignItems: 'center', marginTop: 10 }}>
-            <Text appearance="hint" style={{ fontSize: 10 }}>
+          <View style={styles.versionContainer}>
+            <Text appearance="hint" style={styles.versionText}>
               ver. {appVersion}
             </Text>
           </View>

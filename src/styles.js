@@ -170,5 +170,26 @@ export const styles = StyleSheet.create({
         alignItems: 'center', // Центрируем логотип по горизонтали
         marginTop: '40%',
       },
+      imageContainer: {
+        margin: 2,
+        position: 'relative'
+      },
+      imageBackground: {
+        height: 150,
+        width: 150,
+        overflow: 'hidden',
+        borderColor: 'rgba(0, 0, 0, 0)',
+        borderWidth: 1,
+        justifyContent: 'flex-end', // Выравнивание содержимого
+        alignItems: 'flex-end',
+      },
+      deleteButton: {
+        position: 'absolute',
+        top: 5,
+        right: 5
+      },
+      cardFooterButton: {
+        padding: 50
+      }
   }
 );

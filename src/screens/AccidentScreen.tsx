@@ -16,8 +16,6 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
   const [pending, setPending] = useState(false);
   const [accidents, setAccidents] = useState([]);
   const [keyboardSize, setKeyboardSize] = useState(0);
-
-  console.log({visibleAccident});
  
   //-- При открытии клавиатуры нам надо изменить положение модального окна
   useEffect(() => { 
