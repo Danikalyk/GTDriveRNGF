@@ -10,12 +10,15 @@ import localStorage from '../store/localStorage';
 
 const queue = new FunctionQueue();
 
-const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
+const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) => {
   const [text, setText] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pending, setPending] = useState(false);
   const [accidents, setAccidents] = useState([]);
   const [keyboardSize, setKeyboardSize] = useState(0);
+
+  console.log(uidOrder);
+  
  
   //-- При открытии клавиатуры нам надо изменить положение модального окна
   useEffect(() => { 
@@ -136,7 +139,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
         <Card
           disabled={true}
           style={[styles.containerCards, { borderWidth: 0, width: 350, marginBottom: keyboardSize  }]}
-          status='warning'
+          status='basic'
           header={renderCardHeader}
           footer={renderCardFooter}
         >
