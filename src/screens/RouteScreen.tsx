@@ -2,7 +2,7 @@
 
 import map_scripts from '../map_scripts';
 import useSWR, { useSWRConfig } from 'swr';
-import { Layout, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab, Spinner, Divider, Menu, MenuItem } from '@ui-kitten/components';
+import { Layout, Text, Button, Card, Icon, BottomNavigation, BottomNavigationTab, Spinner, Menu, MenuItem } from '@ui-kitten/components';
 import React, { useEffect, useContext, useRef, useCallback, useState } from 'react';
 import { View, Alert, RefreshControl, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

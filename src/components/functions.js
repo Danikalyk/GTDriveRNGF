@@ -14,9 +14,9 @@ import localStorage from '../store/localStorage';
 
 export const getCardStatus = status => {
   if (status === 1) {
-    return 'info'; //-- Синий цвет
+    return 'basic'; //-- Синий цвет
   } else if (status === 2) {
-    return 'primary'; //-- Текущее задание
+    return 'basic'; //-- Текущее задание
   } else if (status === 3) {
     return 'success'; //-- Зеленый цвет
   } else {

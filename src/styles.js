@@ -175,8 +175,6 @@ export const styles = StyleSheet.create({
         position: 'relative'
       },
       imageBackground: {
-        height: 150,
-        width: 150,
         overflow: 'hidden',
         borderColor: 'rgba(0, 0, 0, 0)',
         borderWidth: 1,

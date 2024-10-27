@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Card, Icon, Layout, Spinner, Text } from '@ui-kitten/components';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ImageBackground, View } from 'react-native';
+import { ImageBackground, View, Dimensions } from 'react-native';
 import { acceptImages } from '../../api/photo';
 import { getDataPostRoute } from '../functions.js';
 import NetInfo from '@react-native-community/netinfo';
@@ -13,11 +13,16 @@ import localStorage from '../../store/localStorage';
 const queue = new FunctionQueue();
 
 const AddPhoto = (props) => {
+
+  
+
   const [images, setImages] = useState([]);
   const [pending, setPending] = useState(false);
   const [parameters, setParameters] = useState([]);
   const { route } = props;
   const params = route ? route.params : props.params;
+  const windowWidth = Dimensions.get('window').width;
+  const imageSize = (windowWidth / 2) - 20; // Вычисляем размер изображения для двух колонок с учетом отступов
 
   if (!params) return null;
 
@@ -35,7 +40,7 @@ const AddPhoto = (props) => {
     fetchStorageKey();
   }, []);
 
-  
+
   console.log(parameters);
 
   const currentStatus = params?.status;
@@ -77,18 +82,18 @@ const AddPhoto = (props) => {
   const getSavedPhotos = async () => {
     try {
       const savedPhotos = await AsyncStorage.getItem('savedPhotos_' + uid);
-  
+
       if (savedPhotos) {
         const parsedPhotos = JSON.parse(savedPhotos);
-  
+
         // Фильтруем фотографии по uidOrder, uidPoint и screen
-        const filteredPhotos = parsedPhotos.filter(photo => 
+        const filteredPhotos = parsedPhotos.filter(photo =>
           photo.uid === uid &&
           photo.uidOrder === uidOrder &&
           photo.uidPoint === uidPoint &&
           photo.screen === screen
         );
-  
+
         setImages(filteredPhotos);
       }
     } catch (error) {
@@ -107,7 +112,7 @@ const AddPhoto = (props) => {
       }));
 
       await AsyncStorage.setItem(
-        'savedPhotos_' + uid, 
+        'savedPhotos_' + uid,
         JSON.stringify(photosWithMetadata)
       );
     } catch (error) {
@@ -206,7 +211,7 @@ const AddPhoto = (props) => {
   );
 
   const renderCardHeader = () => {
-    canAddPhoto = params.status !== 3;
+    canAddPhoto = currentStatus === 1 || currentStatus === 2;
 
     return (
       canAddPhoto && (
@@ -214,7 +219,7 @@ const AddPhoto = (props) => {
           <Button
             accessoryLeft={ImageIcon}
             onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })}
-            appearance="filled"
+            appearance="outline"
             status='basic'
             style={{ flex: 1, margin: 4 }}>
             Галерея
@@ -248,6 +253,12 @@ const AddPhoto = (props) => {
     ) : null;
   };
 
+  let cardPhoto = true;
+
+  if ((params.status === 3 && images.length !== 0) || params.status === 0) {
+    cardPhoto = false;
+  } 
+
   return (
     <>
       {pending && (
@@ -257,7 +268,7 @@ const AddPhoto = (props) => {
       )}
 
       <Layout style={{ backgroundColor: 'transparent' }}>
-        {currentStatus === 3 && (
+        {(currentStatus === 3 || currentStatus === 0) && (
           <View style={styles.currentRouteContainer}>
             <Icon
               name="camera-outline"
@@ -265,55 +276,45 @@ const AddPhoto = (props) => {
               height={20}
               style={styles.textHeaderCardIcon}
             />
-            <Text category="label" style={styles.titleList}>
+            <Text category="label" style={[styles.titleList, {}]}>
               Добавить фото можно только на активном задании
             </Text>
           </View>
-        ) || (
-            <View style={styles.currentRouteContainer}>
-              <Icon
-                name="camera-outline"
-                width={20}
-                height={20}
-                style={styles.textHeaderCardIcon}
-              />
-              <Text category="label" style={styles.titleList}>
-
-                Добавить фото
-              </Text>
-            </View>
-          )}
+        )}
       </Layout>
-      <Card
-        style={[styles.cardLayout]}
-        header={renderCardHeader}
-        footer={renderCardFooter}
-      >
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          {images.map((image, index) => (
-            <View
-              style={styles.imageContainer}
-              key={index}
-            >
-              <ImageBackground
-                style={styles.imageBackground}
-                source={{ uri: image.assets[0].uri }} />
 
-              {!image.uploaded && (
-                <Button
-                  accessoryLeft={TrashIcon}
-                  appearance='outline'
-                  status='basic'
-                  onPress={() => removeNewImage(index)}
-                  style={styles.deleteButton}
-                  size='small'
-                >
-                </Button>
-              )}
-            </View>
-          ))}
-        </View>
-      </Card>
+      {cardPhoto && (
+        <Card
+          style={{}}
+          header={renderCardHeader}
+          footer={renderCardFooter}
+        >
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {images.map((image, index) => (
+              <View
+                style={styles.imageContainer}
+                key={index}  
+              >
+                <ImageBackground
+                  style={[styles.imageBackground, { width: imageSize, height: imageSize }]}
+                  source={{ uri: image.assets[0].uri }} />
+
+                {!image.uploaded && (
+                  <Button
+                    accessoryLeft={TrashIcon}
+                    appearance='outline'
+                    status='basic'
+                    onPress={() => removeNewImage(index)}
+                    style={styles.deleteButton}
+                    size='small'
+                  >
+                  </Button>
+                )}
+              </View>
+            ))}
+          </View>
+        </Card>
+      )}
     </>
   );
 };

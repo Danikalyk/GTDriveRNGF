@@ -1,3 +1,25 @@
+/**
+ * AccidentScreen - компонент, предназначенный для отображения модального окна, в котором пользователи могут сообщать о происшествиях.
+ * 
+ * Основные функции:
+ * - Выбор типа происшествия из списка радио-кнопок, загружаемого из локального хранилища.
+ * - Возможность ввода дополнительного текста при выборе определенного типа происшествия.
+ * - Отправка данных о происшествии на сервер с учетом текущего состояния подключения к интернету.
+ * - Поддержка адаптивного интерфейса, который учитывает открытие клавиатуры для удобства пользователей.
+ * 
+ * Входные параметры:
+ * - visibleAccident: Булевое значение, определяющее, отображается ли модальное окно.
+ * - onClose: Функция, вызываемая для закрытия модального окна.
+ * - uidPoint: Уникальный идентификатор точки, связанной с происшествием.
+ * - uid: Уникальный идентификатор текущего пользователя или сессии.
+ * - uidOrder: Уникальный идентификатор текущего заказа (если происшествие вызвано заказом)
+ * 
+ * Внутренние компоненты:
+ * - renderCardHeader: Функция, отображающая заголовок карточки.
+ * - renderCardFooter: Функция, отображающая подвал карточки с кнопкой подтверждения.
+ * 
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Button, Layout, Text, Input, RadioGroup, Radio, Card, Modal, Icon, Spinner } from '@ui-kitten/components';
 import { KeyboardAvoidingView, Platform, View, Keyboard } from 'react-native';
@@ -11,92 +33,88 @@ import localStorage from '../store/localStorage';
 const queue = new FunctionQueue();
 
 const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) => {
-  const [text, setText] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [pending, setPending] = useState(false);
-  const [accidents, setAccidents] = useState([]);
-  const [keyboardSize, setKeyboardSize] = useState(0);
+  const [text, setText] = useState(''); // Состояние для текстового ввода
+  const [selectedIndex, setSelectedIndex] = useState(0); // Индекс выбранного радио-кнопки
+  const [pending, setPending] = useState(false); // Состояние загрузки
+  const [accidents, setAccidents] = useState([]); // Список происшествий
+  const [keyboardSize, setKeyboardSize] = useState(0); // Высота клавиатуры
 
-  console.log(uidOrder);
-  
- 
-  //-- При открытии клавиатуры нам надо изменить положение модального окна
-  useEffect(() => { 
-    const showListener = Keyboard.addListener("keyboardDidShow", e => {
-      setKeyboardSize(e.endCoordinates.height)
-    });
-    const hideListener = Keyboard.addListener("keyboardDidHide", e => {
-      setKeyboardSize(e.endCoordinates.height)
-    });
+  // Слушатели событий для изменения положения модального окна при открытии клавиатуры
+  useEffect(() => {
+    const showListener = Keyboard.addListener("keyboardDidShow", e => setKeyboardSize(e.endCoordinates.height));
+    const hideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardSize(0));
+    
     return () => {
       showListener.remove();
       hideListener.remove();
     };
   }, []);
 
+  // Проверка подключения к интернету
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       if (state.isConnected) {
-        queue.processQueue();
+        queue.processQueue(); // Обработка очереди, если есть интернет
       }
     });
-
+    
     return () => unsubscribe();
   }, []);
 
+  // Загрузка данных о происшествиях из локального хранилища
   useEffect(() => {
     const fetchStorageKey = async () => {
       try {
         const StorageKey = await localStorage.getItem('LoginKey');
         if (StorageKey) {
-          const accidents = StorageKey.parametrs.accidents;
-
-          accidents.sort((a, b) => {
-            return b.code.localeCompare(a.code, undefined, { numeric: true });
-          });
-
-          setAccidents(accidents);
+          const sortedAccidents = StorageKey.parametrs.accidents.sort((a, b) => 
+            b.code.localeCompare(a.code, undefined, { numeric: true })
+          );
+          setAccidents(sortedAccidents);
         }
       } catch (error) {
-        console.error('Error retrieving storage key:', error);
+        console.error('Ошибка при получении ключа:', error);
       }
     };
-
     fetchStorageKey();
   }, []);
 
-  const displayValue = accidents[selectedIndex];
-
   const handleSubmit = async () => {
     setPending(true);
-    const payload = displayValue.code;
+    let payload = accidents[selectedIndex]?.code; // Получаем код выбранного происшествия
+
+    if (payload === '000000001') {
+      payload = text;    
+    }
 
     const data = {
       ...getDataPostRoute(),
       screen: 4,
       accident: payload,
       uidPoint,
+      uidOrder
     };
 
-    await updateData(data);
+    await updateData(data); // Обновляем данные
   };
 
   const updateData = async (data) => {
     const netInfo = await NetInfo.fetch();
     const callback = async () => {
-      await postRoute(uid, JSON.stringify(data));
+      await postRoute(uid, JSON.stringify(data)); // Отправка данных на сервер
       setPending(false);
-      onClose();
+      onClose(); // Закрытие модального окна
     };
 
     if (!netInfo.isConnected) {
       data.needJSON = false;
-      queue.enqueue(callback);
+      queue.enqueue(callback); // Добавление в очередь, если нет подключения
     } else {
       await callback();
     }
   };
 
+  // Заголовок карточки
   const renderCardHeader = () => (
     <Layout style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
       <Icon name="alert-triangle-outline" width={23} height={23} />
@@ -104,6 +122,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
     </Layout>
   );
 
+  // Подвал карточки с кнопкой подтверждения
   const renderCardFooter = () => (
     <Layout level="1">
       <Layout style={{ flexDirection: 'row', justifyContent: 'space-between', margin: 10 }}>
@@ -120,6 +139,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
     </Layout>
   );
 
+  // Основная разметка модального окна
   return (
     <Modal
       visible={visibleAccident}
@@ -128,7 +148,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
     >
       {pending && (
         <View style={styles.spinnerContainer}>
-          <Spinner size="giant" />
+          <Spinner size="giant" status='basic'/>
         </View>
       )}
 
@@ -138,7 +158,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
       >
         <Card
           disabled={true}
-          style={[styles.containerCards, { borderWidth: 0, width: 350, marginBottom: keyboardSize  }]}
+          style={[styles.containerCards, { borderWidth: 0, width: 350, marginBottom: keyboardSize }]}
           status='basic'
           header={renderCardHeader}
           footer={renderCardFooter}
@@ -154,7 +174,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
             ))}
           </RadioGroup>
 
-          {displayValue?.code === '000000001' && (
+          {accidents[selectedIndex]?.code === '000000001' && (
             <View style={{ padding: 10 }}>
               <Input
                 multiline

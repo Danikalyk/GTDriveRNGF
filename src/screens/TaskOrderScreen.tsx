@@ -264,7 +264,7 @@ const TaskOrderScreen = (props: Props) => {
             styles.containerCards
           ]}
           header={renderCardHeader(item)}
-          status={(finishedTask && 'success') || 'info'}
+          status={(finishedTask && 'success') || 'primary'}
           onPress={() => onPressCardOrder(item)}
         >
           {renderCardTaskText(item)}
@@ -321,6 +321,10 @@ const TaskOrderScreen = (props: Props) => {
         <FlatList
           style={[styles.containerFlatList, { marginTop: 5 }]}
           data={tasks}
+          keyExtractor={(item, index) => item.uidTask || index.toString()}
+          initialNumToRender={10}
+          maxToRenderPerBatch={5}
+          windowSize={5}
           renderItem={renderCardTask}
         />
 
@@ -405,7 +409,7 @@ const TaskOrderScreen = (props: Props) => {
       if (nameTab === 'Задачи') {
         newTitle = `Задачи по заказу ${order?.name || 'Задачи по заказу'}`;
       } else {
-        newTitle = `Фото по заказу ${order?.name || ''}`;
+        newTitle = `Фото по задачам заказа ${order?.name || ''}`;
       }
 
       setTitle(newTitle);

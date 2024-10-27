@@ -96,7 +96,8 @@ const HomeScreen = (props) => {
   // Функция для получения статуса маршрута
   const getCardRouteStatus = (item) => {
     let status = getCardStatus(item.status);
-    return (status === 'info' && !item.start) ? 'control' : status;
+    
+    return (status === 'basic' && !item.start) ? 'control' : status;
   };
 
   // Функция для рендеринга карточки маршрута 

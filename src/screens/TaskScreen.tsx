@@ -60,6 +60,7 @@ const RouteScreen = (props: Props) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { Navigator, Screen } = createBottomTabNavigator();
   const [nextPointDrive, setNextPointDrive] = useState(false);
+  const [uidOrderAccident, setUidOrderAccident] = useState('00000000-0000-0000-0000-000000000000');
   const propsParams = props?.route?.params;
   const uid = propsParams.uid;
   const uidPoint = propsParams.uidPoint;
@@ -285,6 +286,7 @@ const RouteScreen = (props: Props) => {
 
   const handleCloseAccidentModal = () => {
     setVisibleAccident(false);
+    setUidOrderAccident('00000000-0000-0000-0000-000000000000');
   };
 
   // ---------- Открытие навигатора ----------
@@ -531,8 +533,8 @@ const RouteScreen = (props: Props) => {
             style={{}}
             accessoryLeft={<Icon {...props} name="clock-outline" />}
             appearance="outline"
-            status="warning"
-            onPress={{}}>
+            status="basic"
+            onPress={() => Alert.alert('К этой точке можно будет перейти после завершения активной')}>
             В следовании другая точка
           </Button>
         </View>
@@ -548,6 +550,7 @@ const RouteScreen = (props: Props) => {
           appearance='outline'
           status='basic'
           accessoryLeft={<Icon name="star" fill="#3E3346" />}
+          onPress={() => Alert.alert('Для получения информации по точке перейдите на вкладку Информация')}
         >
           Вы на точке
         </Button>
@@ -858,13 +861,15 @@ const RouteScreen = (props: Props) => {
     currentActionOrder = item.status === 2;
     finishedAction = item.status === 3;
 
+    const cardStatus = (item.status === 1 || item.status === 2) ? 'primary' : getCardStatus(item.status);
+  
     return (
       <View>
         <Card
           style={[
             styles.containerCards
           ]}
-          status={getCardStatus(item.status)}
+          status={cardStatus}
           header={() => renderItemCardName(item)}
           onPress={() => onPressCardOrder(item)}
         >
@@ -947,6 +952,11 @@ const RouteScreen = (props: Props) => {
       setMenuVisible(!menuVisible);
     };
 
+    const handlePress = () => {
+      setUidOrderAccident(item.uidOrder); // Установите новый UID
+      setVisibleAccident(true); // Установите видимость в true
+    };
+
     return (
       <View style={styles.textHeaderCardOrder}>
         <View style={styles.textHeaderCard}>
@@ -996,7 +1006,7 @@ const RouteScreen = (props: Props) => {
           <MenuItem
             title={() => (<Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Происшествие</Text>)}
             accessoryLeft={<Icon name="alert-triangle-outline" fill="#D2475E" />}
-            onPress={() => setVisibleAccident(true)}
+            onPress={handlePress}
           />
         </OverflowMenu>)}
       </View>
@@ -1162,7 +1172,8 @@ const RouteScreen = (props: Props) => {
           visibleAccident={visibleAccident}
           onClose={handleCloseAccidentModal}
           uidPoint={uidPoint}
-          uid={uid} />
+          uid={uid}
+          uidOrder={uidOrderAccident} />
       </SafeAreaView>
     );
   }
@@ -1186,7 +1197,7 @@ const RouteScreen = (props: Props) => {
     const renderContent = () => {
       return (
         <>
-          <ScrollView contentContainerStyle={styles.wrap}>
+          <ScrollView contentContainerStyle={[styles.wrap, {padding: 5}]}>
             <AddPhoto {...props} />
           </ScrollView>
         </>
@@ -1327,8 +1338,8 @@ const RouteScreen = (props: Props) => {
     const handleTabSelect = (index) => {
       const titleMap = {
         "Действия": point.status === 1 || point.status === 2 ? "Текущая точка следования" : point.status === 1 ? "Точка завершена" : "Точка следования",
-        "Информация": "Информация",
-        "Фото": "Фото",
+        "Информация": "Информация по точке",
+        "Фото": point.status === 1 || point.status === 2 ? "Добавить фотографию" : "Фото",
       };
       setTitle(titleMap[state.routeNames[index]]);
       navigation.navigate(state.routeNames[index]);
