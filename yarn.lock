@@ -5724,6 +5724,11 @@ react-native-background-geolocation@^4.12.1:
   dependencies:
     react-native-background-fetch "~4.1.10"
 
+react-native-battery-optimization-check@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.npmjs.org/react-native-battery-optimization-check/-/react-native-battery-optimization-check-1.0.8.tgz"
+  integrity sha512-OXACVlMho/rmTg3YS2GQ0juGb7YKJTrvUnD7BMDNGpAUm6ykcgkU0i3vML76ZHRYTO1rB5Pdh4re+LeKSvVWsQ==
+
 react-native-chatty@^0.4.3:
   version "0.4.3"
   resolved "https://registry.npmjs.org/react-native-chatty/-/react-native-chatty-0.4.3.tgz"
@@ -5748,8 +5753,10 @@ react-native-communications@^2.2.1, react-native-communications@2.2.1:
 react-native-context-menu-view@^1.11.0:
   version "1.11.0"
 
-react-native-device-info@^10.6.0:
-  version "10.6.0"
+react-native-device-info@^10.14.0:
+  version "10.14.0"
+  resolved "https://registry.npmjs.org/react-native-device-info/-/react-native-device-info-10.14.0.tgz"
+  integrity sha512-9NnTGfhEU4UgQtz4p6COk2Gbqly0dpSWrJtp+dw5rNAi96KtYbaNnO5yoOHDlJ1SVIzh8+hFu3WxVbnWkFU9gA==
 
 react-native-drawer-layout@^3.2.0:
   version "3.2.0"
@@ -5895,7 +5902,7 @@ react-native-webview@^11.26.1:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
 
-react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", "react-native@>= 0.30.0", react-native@>=0.28.0, react-native@>=0.42.0, react-native@>=0.46, react-native@>=0.48.4, react-native@>=0.59, react-native@>=0.60.0, "react-native@>=0.60.0-rc.0 <1.0.x", react-native@>=0.61.0, react-native@>=0.61.3, react-native@0.71.8:
+react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", "react-native@>= 0.30.0", react-native@>=0.28.0, react-native@>=0.42.0, react-native@>=0.46, react-native@>=0.48.4, react-native@>=0.59, react-native@>=0.60.0, "react-native@>=0.60.0-rc.0 <1.0.x", react-native@>=0.61.0, react-native@>=0.61.3, react-native@>=0.63.3, react-native@0.71.8:
   version "0.71.8"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.71.8.tgz"
   integrity sha512-ftMAuhpgTkbHU9brrqsEyxcNrpYvXKeATY+if22Nfhhg1zW+6wn95w9otwTnA3xHkljPCbng8mUhmmERjGEl7g==

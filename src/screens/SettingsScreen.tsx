@@ -193,7 +193,7 @@ const SettingsScreen = ({ navigation }: Props) => {
 
         <Button
           style={{ margin: 5, marginTop: 10 }}
-          onPress={requestPermissions}>
+          onPress={downloadAndInstallAPK}>
           Установить версию {updateData?.version}
         </Button>
 

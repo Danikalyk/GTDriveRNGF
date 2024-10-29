@@ -1,6 +1,7 @@
 import { ApplicationProvider } from '@ui-kitten/components';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import RNFS from 'react-native-fs';
+//import IntentLauncher, { IntentConstant } from 'react-native-intent-launcher';
 
 import React from 'react';
 import { Alert, PermissionsAndroid, Platform, Linking, Intent , Uri, LauncherActivity } from 'react-native';
@@ -50,50 +51,6 @@ export const GlobalStateProvider = ({ children }) => {
     init();
   }, []);
 
-  async function requestStoragePermission() {
-    try {
-      if (Number(Platform.Version) >= 33) {
-        return true;
-      }
-
-      const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
-
-      const hasPermission = await PermissionsAndroid.check(permission);
-      if (hasPermission) {
-        return true;
-      }
-
-      const granted = await PermissionsAndroid.request(permission, {
-        title: 'Storage Permission Required',
-        message:
-          'App needs access to your storage to download and install the update.',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      });
-
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the camera');
-      } else if (granted === PermissionsAndroid.RESULTS.DENIED) {
-        console.log('Camera permission denied');
-      } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-        console.log("Camera permission denied and don't ask again selected");
-        // openAppSettings();
-        Alert.alert(
-          'Permission needed',
-          'To use this feature, you need to grant camera permission from settings.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => openAppSettings() },
-          ],
-        );
-      }
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    } catch (err) {
-      console.warn(err);
-      return false;
-    }
-  }
 
   const openAppSettings = () => {
     Linking.openSettings().catch(() => {
@@ -105,15 +62,6 @@ export const GlobalStateProvider = ({ children }) => {
     const url = "http://upd.gt-logistics.su/_GTDrive/123.apk";
 
     console.log('Downloading APK...', url);
-
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      Alert.alert(
-        'Permission Denied',
-        'You need to give storage permission to download the update.',
-      );
-      return;
-    }
 
     const fileName = url.split('/').pop();
     const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`; // Используем ExternalDirectoryPath
@@ -157,26 +105,24 @@ export const GlobalStateProvider = ({ children }) => {
   function installAPK(filePath) {
     const uri = "file:///storage/emulated/0/Download/123.apk";
 
-    /*RNFS.openFile(filePath, "application/vnd.android.package-archive")
-      .then(success => {
-        console.log("File opened:", success);
-      })
-      .catch(err => {
-        console.error("Error opening file:", err);
-        // Покажите сообщение об ошибке пользователю
-        Alert.alert('Ошибка установки', 'Не удалось открыть APK-файл для установки.');
-      });*/
-
-      /*const intent = new Intent();
-      intent.setAction(android.content.Intent.ACTION_VIEW);
-      intent.setDataAndType(Uri.parse(filePath), "application/vnd.android.package-archive");
-      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Дать разрешение на чтение
-    
-      // Запустить Intent
-      // Вызывает приложение для установки APK
-      // Это может привести к использованию менеджера файлов или
-      // другому приложению для обработки установки APK-файла
-      LauncherActivity.startActivityForResult(intent, 0); // Запустите Activity для открытия */
+    /*try {
+      // Проверьте, существует ли файл
+      const exists = await RNFS.exists(uri.replace('file://', ''));
+      if (!exists) {
+        Alert.alert('Ошибка', 'Файл APK не найден');
+        return;
+      }
+  
+      IntentLauncher.startActivity({
+        action: IntentConstant.ACTION_VIEW,
+        data: uri,
+        type: 'application/vnd.android.package-archive',
+        flags: IntentConstant.FLAG_ACTIVITY_NEW_TASK,
+      });
+    } catch (error) {
+      console.error('Ошибка при установке APK:', error);
+      Alert.alert('Ошибка', 'Не удалось установить APK');
+    }*/
   }
 
   // Мемоизация для основных действий
