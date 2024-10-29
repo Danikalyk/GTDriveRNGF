@@ -1,6 +1,6 @@
 import { PermissionsAndroid, Platform, Alert, Linking } from 'react-native';
 
-async function requestPermissions() {св 
+async function requestPermissions() { 
 
   if (Platform.OS !== 'android') {
     console.log('Not an Android platform, skipping permissions request');
