@@ -1,19 +1,20 @@
-import {ApplicationProvider} from '@ui-kitten/components';
-import {useEffect, useMemo, useReducer, useState} from 'react';
+import { ApplicationProvider } from '@ui-kitten/components';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import RNFS from 'react-native-fs';
 
 import React from 'react';
-import {Alert, PermissionsAndroid, Platform, Linking} from 'react-native';
+import { Alert, PermissionsAndroid, Platform, Linking, Intent , Uri, LauncherActivity } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
-import {globalActionTypes as actions} from './global.actions';
-import {globalReducer} from './global.reducer';
-import {GlobalState} from './global.state';
+import { globalActionTypes as actions } from './global.actions';
+import { globalReducer } from './global.reducer';
+import { GlobalState } from './global.state';
 
 import * as eva from '@eva-design/eva';
-import {getUpdate} from '../../api/routes';
+import { getUpdate } from '../../api/routes';
 import compareVersions from '../../utils/compareVersions';
-import {appVersion} from '../../version';
+import { appVersion } from '../../version';
+
 
 const GLOBAL_STATE = {
   isLoggedIn: undefined,
@@ -23,7 +24,7 @@ const GLOBAL_STATE = {
   location: null,
 };
 
-export const GlobalStateProvider = ({children}) => {
+export const GlobalStateProvider = ({ children }) => {
   const [state, dispatch] = useReducer(globalReducer, GLOBAL_STATE);
 
   const [showInstaller, setShowInstaller] = useState(false);
@@ -51,10 +52,9 @@ export const GlobalStateProvider = ({children}) => {
 
   async function requestStoragePermission() {
     try {
-      // if (Number(Platform.Version) >= 33) {
-
-      //   return true;
-      // }
+      if (Number(Platform.Version) >= 33) {
+        return true;
+      }
 
       const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
 
@@ -83,8 +83,8 @@ export const GlobalStateProvider = ({children}) => {
           'Permission needed',
           'To use this feature, you need to grant camera permission from settings.',
           [
-            {text: 'Cancel', style: 'cancel'},
-            {text: 'Open Settings', onPress: () => openAppSettings()},
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => openAppSettings() },
           ],
         );
       }
@@ -102,10 +102,10 @@ export const GlobalStateProvider = ({children}) => {
   };
 
   async function downloadAndInstallAPK() {
-    const url = "http://upd.gt-logistics.su/_GTDrive/gtdrive_110.apk";
-  
+    const url = "http://upd.gt-logistics.su/_GTDrive/123.apk";
+
     console.log('Downloading APK...', url);
-  
+
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
       Alert.alert(
@@ -114,31 +114,31 @@ export const GlobalStateProvider = ({children}) => {
       );
       return;
     }
-  
+
     const fileName = url.split('/').pop();
-    const destPath = `${RNFS.ExternalDirectoryPath}/${fileName}`; // Используем ExternalDirectoryPath
-  
+    const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`; // Используем ExternalDirectoryPath
+
     // Проверяем, существует ли директория, если нет - создаем
     const dirExists = await RNFS.exists(RNFS.ExternalDirectoryPath);
     if (!dirExists) {
       await RNFS.mkdir(RNFS.ExternalDirectoryPath);
     }
-  
+
     try {
       const res = await RNFS.downloadFile({
         fromUrl: url,
         toFile: destPath,
       }).promise;
-  
+
       console.log('Download response:', res); // Отладочная информация
-  
+
       if (res.statusCode === 200) {
         Alert.alert(
-          'Download Complete',
-          'The APK has been downloaded. Do you want to install it now?',
+          'Загрузка завершена',
+          'Установить обновление?',
           [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Install', onPress: () => installAPK(destPath) },
+            { text: 'Отмена', style: 'cancel' },
+            { text: 'Установить', onPress: () => installAPK(destPath) },
           ],
           { cancelable: false },
         );
@@ -155,26 +155,47 @@ export const GlobalStateProvider = ({children}) => {
   }
 
   function installAPK(filePath) {
-    Linking.openURL(`file://${filePath}`);
+    const uri = "file:///storage/emulated/0/Download/123.apk";
+
+    /*RNFS.openFile(filePath, "application/vnd.android.package-archive")
+      .then(success => {
+        console.log("File opened:", success);
+      })
+      .catch(err => {
+        console.error("Error opening file:", err);
+        // Покажите сообщение об ошибке пользователю
+        Alert.alert('Ошибка установки', 'Не удалось открыть APK-файл для установки.');
+      });*/
+
+      /*const intent = new Intent();
+      intent.setAction(android.content.Intent.ACTION_VIEW);
+      intent.setDataAndType(Uri.parse(filePath), "application/vnd.android.package-archive");
+      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Дать разрешение на чтение
+    
+      // Запустить Intent
+      // Вызывает приложение для установки APK
+      // Это может привести к использованию менеджера файлов или
+      // другому приложению для обработки установки APK-файла
+      LauncherActivity.startActivityForResult(intent, 0); // Запустите Activity для открытия */
   }
 
   // Мемоизация для основных действий
   const actionsValue = useMemo(
     () => ({
-      
-      login: () => dispatch({type: actions.LOGIN}),
+
+      login: () => dispatch({ type: actions.LOGIN }),
       logout: () => {
-        dispatch({type: actions.DISABLE_GEO});
-        dispatch({type: actions.LOGOUT});
+        dispatch({ type: actions.DISABLE_GEO });
+        dispatch({ type: actions.LOGOUT });
       },
-      setLightTheme: () => dispatch({type: actions.LIGHT_THEME}),
-      setDarkTheme: () => dispatch({type: actions.DARK_THEME}),
-      openModal: () => dispatch({type: actions.OPEN_MODAL}),
-      closeModal: () => dispatch({type: actions.CLOSE_MODAL}),
-      enableGeo: () => dispatch({type: actions.ENABLE_GEO}),
-      disableGeo: () => dispatch({type: actions.DISABLE_GEO}),
+      setLightTheme: () => dispatch({ type: actions.LIGHT_THEME }),
+      setDarkTheme: () => dispatch({ type: actions.DARK_THEME }),
+      openModal: () => dispatch({ type: actions.OPEN_MODAL }),
+      closeModal: () => dispatch({ type: actions.CLOSE_MODAL }),
+      enableGeo: () => dispatch({ type: actions.ENABLE_GEO }),
+      disableGeo: () => dispatch({ type: actions.DISABLE_GEO }),
       setLocation: location =>
-        dispatch({type: actions.SET_LOCATION, payload: location}),
+        dispatch({ type: actions.SET_LOCATION, payload: location }),
     }),
     [dispatch],
   );
@@ -190,7 +211,7 @@ export const GlobalStateProvider = ({children}) => {
   const enabledGeoValue = useMemo(() => state.enabledGeo, [state.enabledGeo]);
 
 
-  
+
   // Wrap the context provider around our component
   return (
     <ApplicationProvider {...eva} theme={eva[themeValue]}>

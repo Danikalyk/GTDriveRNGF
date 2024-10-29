@@ -7,6 +7,10 @@ import { pingServer } from '../api/request';
 import { navigate } from '../RootNavigation';
 import localStorage from '../store/localStorage';
 import { GlobalState } from '../store/global/global.state';
+import { PermissionsAndroid } from 'react-native';
+import { Linking, Platform } from 'react-native';
+import requestPermissions  from '../utils/PermissionHandler';
+
 
 const SettingsScreen = ({ navigation }: Props) => {
   const [server, setServer] = React.useState('');
@@ -36,6 +40,7 @@ const SettingsScreen = ({ navigation }: Props) => {
 
     init();
   }, []);
+
 
   const SettingIcon = (props): IconElement => (
     <Icon {...props} name="arrow-back-outline" />
@@ -128,6 +133,15 @@ const SettingsScreen = ({ navigation }: Props) => {
     };
   }, [token]);
 
+  useEffect(() => {
+    //requestAllPermissions();
+  }, []);
+
+  useEffect(() => {
+    // Запрашиваем разрешения при монтировании компонента
+    requestPermissions();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <Layout style={styles.layout}>
@@ -174,6 +188,14 @@ const SettingsScreen = ({ navigation }: Props) => {
           </View>
         </View>
 
+        {/*downloadAndInstallAPK*/}
+        {/*requestAllPermissions*/}
+
+        <Button
+          style={{ margin: 5, marginTop: 10 }}
+          onPress={requestPermissions}>
+          Установить версию {updateData?.version}
+        </Button>
 
         {/*server && port && database && (
             <Button
@@ -245,11 +267,11 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     flexDirection: 'row',
-    flexWrap: 'wrap', 
+    flexWrap: 'wrap',
   },
   formContainer: {
-    flex:1,
-    justifyContent: 'center'  
+    flex: 1,
+    justifyContent: 'center'
   },
   rowContainer: {
     alignItems: 'flex-end',
