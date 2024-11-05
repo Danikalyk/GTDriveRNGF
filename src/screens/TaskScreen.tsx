@@ -596,8 +596,8 @@ const RouteScreen = (props: Props) => {
         <Button
           style={{}}
           appearance="outline"
-          status="success"
-          accessoryLeft={<Icon name="checkmark-circle-2-outline" fill="#00990D" />}
+          status="basic"
+          accessoryLeft={<Icon name="checkmark-outline"/>}
           onPress={() =>
             Alert.alert(
               'Точка завершена в ' + point.time_fact + ' / ' + point.date_fact,

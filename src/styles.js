@@ -188,6 +188,22 @@ export const styles = StyleSheet.create({
       },
       cardFooterButton: {
         padding: 50
+      },
+      inputSettings: {
+        flex: 1,
+        //margin: 5,
+        marginBottom: 10,
+        borderRadius: 0
+      },
+      formContainer: {
+        flex: 1,
+        justifyContent: 'center'
+      },
+      rowContainer: {
+        alignItems: 'flex-end',
+        flexDirection: 'row', // Расположение элементов в ряд
+        justifyContent: 'space-between', // Распределение пространства между элементами
+        alignItems: 'center', // Выравнивание по центру по вертикали
       }
   }
 );

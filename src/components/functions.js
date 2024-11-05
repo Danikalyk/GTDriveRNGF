@@ -46,6 +46,7 @@ export const getDataPostRoute = () => {
     date: currentDate.toJSON(),                         // Дата
     images: images,                                     // Изображения
     accident: "",                                       // Происшествие
+    accidentText: "",                                   // Описание происшествия
     finish: false,                                      // Завершено 
     needJSON: true,                                     // Требуется вернуть JSON 
     user: "00000000-0000-0000-0000-000000000000"        // Юзер. Заполнять только при автоматическом оповещении

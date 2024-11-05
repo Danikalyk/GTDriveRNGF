@@ -1,10 +1,8 @@
 import { ApplicationProvider } from '@ui-kitten/components';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import RNFS from 'react-native-fs';
-//import IntentLauncher, { IntentConstant } from 'react-native-intent-launcher';
-
 import React from 'react';
-import { Alert, PermissionsAndroid, Platform, Linking, Intent , Uri, LauncherActivity } from 'react-native';
+import { Alert, PermissionsAndroid, Platform, Linking, Intent, Uri, LauncherActivity } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
 import { globalActionTypes as actions } from './global.actions';
@@ -59,70 +57,48 @@ export const GlobalStateProvider = ({ children }) => {
   };
 
   async function downloadAndInstallAPK() {
+    if (Platform.OS !== 'android') {
+      Alert.alert('Недоступно', 'Установка APK доступна только на Android');
+      return;
+    }
+  
     const url = "http://upd.gt-logistics.su/_GTDrive/123.apk";
-
-    console.log('Downloading APK...', url);
-
     const fileName = url.split('/').pop();
-    const destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`; // Используем ExternalDirectoryPath
-
-    // Проверяем, существует ли директория, если нет - создаем
-    const dirExists = await RNFS.exists(RNFS.ExternalDirectoryPath);
-    if (!dirExists) {
-      await RNFS.mkdir(RNFS.ExternalDirectoryPath);
-    }
-
+    const downloadDest = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+  
     try {
-      const res = await RNFS.downloadFile({
-        fromUrl: url,
-        toFile: destPath,
-      }).promise;
-
-      console.log('Download response:', res); // Отладочная информация
-
-      if (res.statusCode === 200) {
-        Alert.alert(
-          'Загрузка завершена',
-          'Установить обновление?',
-          [
-            { text: 'Отмена', style: 'cancel' },
-            { text: 'Установить', onPress: () => installAPK(destPath) },
-          ],
-          { cancelable: false },
-        );
-      } else {
-        Alert.alert('Download Failed', `Failed to download the APK. Status code: ${res.statusCode}`);
-      }
-    } catch (err) {
-      console.error('Download error:', err); // Отладочная информация
-      Alert.alert(
-        'Download Error',
-        'An error occurred while downloading the APK.',
-      );
-    }
-  }
-
-  function installAPK(filePath) {
-    const uri = "file:///storage/emulated/0/Download/123.apk";
-
-    /*try {
-      // Проверьте, существует ли файл
-      const exists = await RNFS.exists(uri.replace('file://', ''));
+      // Конфигурируем и запускаем загрузку
+      const res = await RNFetchBlob.config({
+        addAndroidDownloads: {
+          useDownloadManager: true,
+          title: fileName,
+          description: "Загрузка APK для установки",
+          mime: "application/vnd.android.package-archive",
+          path: downloadDest,
+          mediaScannable: true,
+          notification: true,
+        }
+      }).fetch("GET", url);
+  
+      console.log('APK загружен в:', res.path());
+  
+      // Проверяем, существует ли файл, прежде чем пытаться его установить
+      const exists = await RNFetchBlob.fs.exists(res.path());
       if (!exists) {
-        Alert.alert('Ошибка', 'Файл APK не найден');
+        Alert.alert('Ошибка', 'Файл не найден после загрузки');
         return;
       }
   
-      IntentLauncher.startActivity({
-        action: IntentConstant.ACTION_VIEW,
-        data: uri,
-        type: 'application/vnd.android.package-archive',
-        flags: IntentConstant.FLAG_ACTIVITY_NEW_TASK,
-      });
+      // Запускаем установку APK
+      RNFetchBlob.android.actionViewIntent(
+        res.path(),
+        "application/vnd.android.package-archive"
+      );
+  
     } catch (error) {
-      console.error('Ошибка при установке APK:', error);
-      Alert.alert('Ошибка', 'Не удалось установить APK');
-    }*/
+      console.error('Ошибка при загрузке или установке APK:', error);
+      Alert.alert('Ошибка', 'Не удалось загрузить или установить APK');
+    }
   }
 
   // Мемоизация для основных действий
@@ -155,9 +131,7 @@ export const GlobalStateProvider = ({ children }) => {
     [state.isModalOpen],
   );
   const enabledGeoValue = useMemo(() => state.enabledGeo, [state.enabledGeo]);
-
-
-
+  
   // Wrap the context provider around our component
   return (
     <ApplicationProvider {...eva} theme={eva[themeValue]}>

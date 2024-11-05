@@ -105,7 +105,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Layout style={styles.layout}>
+      <Layout style={[styles.layout, {backgroundColor: "transparent"}]} >
         {pending && (
           <View style={styles.spinnerContainer}>
             <Spinner size="giant" status='basic' />
@@ -116,7 +116,7 @@ const LoginScreen = ({ navigation }) => {
           <Image source={backgroundImage} style={styles.background} />
         </View>
 
-        <Layout style={styles.centeredLayout}>
+        <Layout style={[styles.centeredLayout, {backgroundColor: "transparent"}]}>
           <View style={styles.settingsButtonContainer}>
             <Button
               style={styles.settingsButton}
@@ -131,7 +131,7 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </Layout>
 
-        <View style={styles.formContainer}>
+        <View style={{}}>
           <Input
             style={styles.loginInput}
             value={userID}
@@ -142,7 +142,7 @@ const LoginScreen = ({ navigation }) => {
           />
 
           <Input
-            style={styles.input}
+            style={styles.loginInput}
             value={password}
             label="Пароль"
             size='medium'
@@ -162,7 +162,7 @@ const LoginScreen = ({ navigation }) => {
             Войти
           </Button>
 
-          <View style={styles.versionContainer}>
+          <View style={[styles.versionContainer, {alignItems: 'center'}]}>
             <Text appearance="hint" style={styles.versionText}>
               ver. {appVersion}
             </Text>

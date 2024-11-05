@@ -200,6 +200,25 @@
           }
         }
       }
+    },
+    "MenuItem": {
+      "appearances": {
+        "default": {
+          "mapping": {
+            "titleColor": "#3E3346",
+            "iconTintColor": "#3E3346",
+            "state": {
+              "selected": {
+                "indicatorBackgroundColor":"#3E3346",
+                "titleColor": "#3E3346",
+                "iconTintColor": "#3E3346",
+                "backgroundColor": "#DEE4ED"
+              }
+            }  
+          }  
+        }  
+      }  
     }
   }
 }
+

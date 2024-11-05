@@ -46,11 +46,12 @@ const HomeScreen = (props) => {
     if (routes) {
       deleteSavedPhotos();
 
+      const hasStartGeo = routes.some(route => route.start === true);
+      setStartGeo(hasStartGeo);
+
       if (!renderComplete) {
         setRenderComplete(true);
-        const hasStartGeo = routes.some(route => route.start === true);
-        setStartGeo(hasStartGeo);
-
+        
         if (hasStartGeo) {
           const startRoute = routes.find(route => route.start === true);
           setRoute(startRoute.uid);
@@ -68,9 +69,6 @@ const HomeScreen = (props) => {
 
     return unsubscribe;
   }, [navigation, routes, context, startGeo, renderComplete]);
-
- 
-  
 
   // Функция для добавления геозон
   const addGeofencesToRoute = async (startRoute) => {

@@ -1,4 +1,4 @@
-import { Button, Icon, Input, Layout, TopNavigation } from '@ui-kitten/components';
+import { Button, Icon, Input, Layout, TopNavigation, Tooltip, Card, Text } from '@ui-kitten/components';
 import React, { useContext, useEffect } from 'react';
 import { StyleSheet, View, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,10 +7,8 @@ import { pingServer } from '../api/request';
 import { navigate } from '../RootNavigation';
 import localStorage from '../store/localStorage';
 import { GlobalState } from '../store/global/global.state';
-import { PermissionsAndroid } from 'react-native';
-import { Linking, Platform } from 'react-native';
-import requestPermissions  from '../utils/PermissionHandler';
-
+import requestPermissions from '../utils/PermissionHandler';
+import { styles } from '../styles';
 
 const SettingsScreen = ({ navigation }: Props) => {
   const [server, setServer] = React.useState('');
@@ -142,6 +140,34 @@ const SettingsScreen = ({ navigation }: Props) => {
     requestPermissions();
   }, []);
 
+  const renderCardUpdate = () => {
+
+    const renderCardUpdateHeader = () => {
+      return (
+        <View style={{ padding: 10, alignItems: 'center' }}>
+          <Text category="label" style={{ fontSize: 14 }}>Доступна новая версия {updateData?.version}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <Card
+        status="basic"
+        style={{marginTop: 40}}
+        header={() => renderCardUpdateHeader()}
+      >
+        <Button
+          style={{ margin: 5, marginTop: 5 }}
+          status="basic"
+          onPress={downloadAndInstallAPK}
+          accessoryLeft={<Icon name="download-outline" />}
+          >
+          Скачать
+        </Button>
+      </Card>
+    )
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Layout style={styles.layout}>
@@ -178,41 +204,17 @@ const SettingsScreen = ({ navigation }: Props) => {
             />
 
             <Button
-              style={{}}
+              style={{ marginTop: 7 }}
               onPress={onCheckServer}
-              accessoryLeft={serverStatus ? QuestionIcon : SuccessIcon}
+              accessoryLeft={serverStatus ? SuccessIcon : QuestionIcon}
               appearance='ghost'
               size='medium'
             >
             </Button>
           </View>
+
+          {!showInstaller && renderCardUpdate()}
         </View>
-
-        {/*downloadAndInstallAPK*/}
-        {/*requestAllPermissions*/}
-
-        <Button
-          style={{ margin: 5, marginTop: 10 }}
-          onPress={downloadAndInstallAPK}>
-          Установить версию {updateData?.version}
-        </Button>
-
-        {/*server && port && database && (
-            <Button
-              style={{ margin: 5, marginTop: 10 }}
-              onPress={refreshToken}
-              status={token ? 'success' : 'primary'}
-              accessoryLeft={token ? SuccessIcon : null}>
-              Обновить токен
-            </Button>
-            {!showInstaller && (
-              <Button
-                style={{ margin: 5, marginTop: 10 }}
-                onPress={downloadAndInstallAPK}>
-                Установить версию {updateData?.version}
-              </Button>
-            )}
-          )*/}
 
         <View>
           <Button
@@ -235,39 +237,12 @@ const SettingsScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
-  layout: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'stretch',
-    position: 'relative',
-    padding: 20,
-  },
-  container: {
-    flex: 1,
-  },
+const styles1 = StyleSheet.create({
   input: {
     flex: 1,
     //margin: 5,
     marginBottom: 10,
     borderRadius: 0
-  },
-  background: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    opacity: 0.3
-  },
-  backgroundContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
   },
   formContainer: {
     flex: 1,

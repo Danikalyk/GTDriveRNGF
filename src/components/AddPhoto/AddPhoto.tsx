@@ -13,9 +13,6 @@ import localStorage from '../../store/localStorage';
 const queue = new FunctionQueue();
 
 const AddPhoto = (props) => {
-
-  
-
   const [images, setImages] = useState([]);
   const [pending, setPending] = useState(false);
   const [parameters, setParameters] = useState([]);
@@ -40,9 +37,6 @@ const AddPhoto = (props) => {
     fetchStorageKey();
   }, []);
 
-
-  console.log(parameters);
-
   const currentStatus = params?.status;
   const screen = params?.screen;
   const uid = params?.uid;
@@ -52,10 +46,15 @@ const AddPhoto = (props) => {
   //-- 2 - Заказ
   //-- 3 - Задание
 
-  const uidOrder = screen === 1 || screen === 3 ? params?.uidOrder : "00000000-0000-0000-0000-000000000000";
-  const uidPoint = screen === 1 ? params?.uidPoint : "00000000-0000-0000-0000-000000000000";
+  //const uidOrder = screen === 1 || screen === 2 ? params?.uidOrder : "00000000-0000-0000-0000-000000000000";
+  //const uidPoint = screen === 1 ? params?.uidPoint : "00000000-0000-0000-0000-000000000000";
   //const uidTask = screen === 3 ? params?.uidTask : "00000000-0000-0000-0000-000000000000";
 
+  const uidOrder = params?.uidOrder || "00000000-0000-0000-0000-000000000000";
+  const uidPoint = params?.uidPoint;
+
+  console.log({screen});
+  
 
   const updateDate = async (data: any, callback = () => { }) => {
     const netInfo = await NetInfo.fetch();
@@ -138,10 +137,14 @@ const AddPhoto = (props) => {
       saveToPhotos: true,
       mediaType: 'photo',
       includeBase64: true,
-      selectionLimit: parameters.selectionLimit,
-      maxWidth: parameters.maxWidth,
-      maxHeight: parameters.maxHeight,
-      quality: parameters.quality,
+      //selectionLimit: parameters?.selectionLimit,
+      //maxWidth: parameters?.maxWidth,
+      //maxHeight: parameters?.maxHeight,
+      //quality: parameters?.quality,
+      selectionLimit: 10,
+      maxWidth: 2560,
+      maxHeight: 1440,
+      quality: 1,
       saveToPhotos: true,
       cameraType: 'back'
     };
@@ -159,12 +162,12 @@ const AddPhoto = (props) => {
     setPending(true);
 
     let data = getDataPostRoute();
-    data.screen = 3;
+    data.screen = screen;
     data.uid = uid;
     data.uidPoint = uidPoint;
     data.uidOrder = uidOrder;
     //data.uidTask = uidTask;
-    data.type = screen; //-- Используем существующий Type для передачи на сервер Screen, чтоб отпределить к какому документу привязывать фотографию
+    //data.type = screen; //-- Используем существующий Type для передачи на сервер Screen, чтоб отпределить к какому документу привязывать фотографию
 
     // Отправляем только новые фотографии на сервер
     const newImages = images.filter(image => !image.uploaded);

@@ -138,13 +138,13 @@ export const DrawerNavigator = () => (
       }}
     />
 
-    <Screen
+    {/*<Screen
       name="MapScreen"
       component={MapScreen}
       options={{
         header: props => <TopNavigationHeader {...props} />,
       }}
-    />
+    />*/}
 
     <Screen
       name="SettingsScreen"

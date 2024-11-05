@@ -83,16 +83,18 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
     setPending(true);
     let payload = accidents[selectedIndex]?.code; // Получаем код выбранного происшествия
 
-    if (payload === '000000001') {
+    /*if (payload === '000000001') {
       payload = text;    
-    }
+    }*/
 
     const data = {
       ...getDataPostRoute(),
       screen: 4,
       accident: payload,
+      accidentText: text,
       uidPoint,
-      uidOrder
+      uidOrder,
+      uid
     };
 
     await updateData(data); // Обновляем данные
