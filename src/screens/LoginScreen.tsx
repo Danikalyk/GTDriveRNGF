@@ -69,7 +69,9 @@ const LoginScreen = ({ navigation }) => {
         await saveTokens({ id: userID, password, jwtToken });
 
         const deviceInfo = await BackgroundGeolocation.getDeviceInfo();
-        const version = DeviceInfo.getVersion();
+        //const version = DeviceInfo.getVersion();
+        const version =  appVersion;
+
         const instanceId = await DeviceInfo.getInstanceId();
 
         const params = {

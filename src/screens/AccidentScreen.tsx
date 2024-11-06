@@ -22,7 +22,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button, Layout, Text, Input, RadioGroup, Radio, Card, Modal, Icon, Spinner } from '@ui-kitten/components';
-import { KeyboardAvoidingView, Platform, View, Keyboard } from 'react-native';
+import { KeyboardAvoidingView, Platform, View, Keyboard, Dimensions } from 'react-native';
 import { getDataPostRoute } from '../components/functions.js';
 import { postRoute } from '../api/routes';
 import NetInfo from '@react-native-community/netinfo';
@@ -39,11 +39,15 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
   const [accidents, setAccidents] = useState([]); // Список происшествий
   const [keyboardSize, setKeyboardSize] = useState(0); // Высота клавиатуры
 
+  // Получаем ширину экрана - 20 пикселей
+  const screenWidth = Dimensions.get('window').width;
+  const modalWidth = screenWidth - 20;
+
   // Слушатели событий для изменения положения модального окна при открытии клавиатуры
   useEffect(() => {
     const showListener = Keyboard.addListener("keyboardDidShow", e => setKeyboardSize(e.endCoordinates.height));
     const hideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardSize(0));
-    
+
     return () => {
       showListener.remove();
       hideListener.remove();
@@ -57,7 +61,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
         queue.processQueue(); // Обработка очереди, если есть интернет
       }
     });
-    
+
     return () => unsubscribe();
   }, []);
 
@@ -67,7 +71,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
       try {
         const StorageKey = await localStorage.getItem('LoginKey');
         if (StorageKey) {
-          const sortedAccidents = StorageKey.parametrs.accidents.sort((a, b) => 
+          const sortedAccidents = StorageKey.parametrs.accidents.sort((a, b) =>
             b.code.localeCompare(a.code, undefined, { numeric: true })
           );
           setAccidents(sortedAccidents);
@@ -150,7 +154,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
     >
       {pending && (
         <View style={styles.spinnerContainer}>
-          <Spinner size="giant" status='basic'/>
+          <Spinner size="giant" status='basic' />
         </View>
       )}
 
@@ -160,7 +164,7 @@ const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid, uidOrder }) =
       >
         <Card
           disabled={true}
-          style={[styles.containerCards, { borderWidth: 0, width: 350, marginBottom: keyboardSize }]}
+          style={[styles.containerCards, { borderWidth: 0, width: modalWidth, marginBottom: keyboardSize }]}
           status='basic'
           header={renderCardHeader}
           footer={renderCardFooter}

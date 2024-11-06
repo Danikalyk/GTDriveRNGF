@@ -4,7 +4,7 @@ import {
   Modal, Button, Spinner, Divider
 } from '@ui-kitten/components';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import { View, Alert, Image, FlatList } from 'react-native';
+import { View, Alert, Image, FlatList, Dimensions  } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -33,6 +33,10 @@ const TaskOrderScreen = ({ route, navigation  }) => {
   const [pending, setPending] = useState(true);
   const [modalContent, setModalContent] = useState(null);
   const [title, setTitle] = useState('');
+
+  // Получаем ширину экрана - 20 пикселей
+  const screenWidth = Dimensions.get('window').width;
+  const modalWidth = screenWidth - 20;
 
   // Деструктуризация параметров маршрута
   const { uid, uidOrder, uidPoint } = route.params || {};
@@ -186,7 +190,7 @@ const TaskOrderScreen = ({ route, navigation  }) => {
 
     setModalContent(
       <Card
-        style={[styles.containerCards, { borderWidth: 0, width: 350 }]}
+        style={[styles.containerCards, { borderWidth: 0, width: modalWidth }]}
         disabled={true}
         status="basic"
         header={headerModal}

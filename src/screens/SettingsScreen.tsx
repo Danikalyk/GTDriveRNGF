@@ -1,5 +1,5 @@
-import { Button, Icon, Input, Layout, TopNavigation, Tooltip, Card, Text } from '@ui-kitten/components';
-import React, { useContext, useEffect } from 'react';
+import { Button, Icon, Input, Layout, TopNavigation, Tooltip, Card, Text, Spinner } from '@ui-kitten/components';
+import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, View, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDevTokens } from '../api/auth';
@@ -19,8 +19,9 @@ const SettingsScreen = ({ navigation }: Props) => {
   const [isSubmit, setSubmit] = React.useState(false);
   const [token, setToken] = React.useState('');
   const backgroundImage = require('../img/pattern.png');
+  const [pending, setPending] = useState(false);
 
-  const { showInstaller, updateData, downloadAndInstallAPK } = useContext(GlobalState);
+  const { showInstaller, updateData, downloadAndInstallAPK, loadingApp } = useContext(GlobalState);
 
   React.useEffect(() => {
     const init = async () => {
@@ -53,7 +54,7 @@ const SettingsScreen = ({ navigation }: Props) => {
   );
 
   const QuestionIcon = (props): IconElement => (
-    <Icon {...props} fill="#3E3346" name="question-mark-circle-outline" />
+    <Icon {...props} fill="#BC4055" name="question-mark-circle-outline" />
   )
 
   const onCancel = () => {
@@ -91,20 +92,27 @@ const SettingsScreen = ({ navigation }: Props) => {
   const onCheckServer = async () => {
     onSave(false);
     setCheckStatus(false); // Сброс статуса перед проверкой
+    setPending(true);
 
     try {
       const result = await pingServer();
       if (result?.status === 200) {
         setServerStatus(true);
+        
+        Alert.alert("Сервер доступен");
       } else {
         Alert.alert("Сервер отдал статус: " + result?.status);
       }
+
+      setPending(false);
     } catch (error) {
       Alert.alert("Сервер недоступен");
 
       setServerStatus(false); // Установите статус 0 или другой, чтобы обозначить ошибку
+      setPending(false);
     } finally {
       setCheckStatus(false); // Устанавливаем статус проверки в true в любом случае
+      setPending(false);
     }
   };
 
@@ -170,16 +178,28 @@ const SettingsScreen = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Layout style={styles.layout}>
+      <Layout style={[styles.layout, {padding: 10}]}>
         <View style={styles.backgroundContainer}>
           <Image source={backgroundImage} style={styles.background} />
         </View>
 
+        {loadingApp && (
+          <View style={styles.spinnerContainer}>
+            <Spinner size="giant" status='basic' />
+          </View>
+        )}
+
+        {pending && (
+          <View style={styles.spinnerContainer}>
+            <Spinner size="giant" status='basic' />
+          </View>
+        )}
+        
         <View style={styles.formContainer}>
           <View style={styles.rowContainer}>
             <Input
               label="Сервер"
-              style={[styles.input, { flex: 0.7 }]}
+              style={[styles.loginInput, { flex: 0.7 }]}
               value={server}
               size='medium'
               onChangeText={(text) => setServer(text.replace(/\s+/g, ''))}
@@ -188,7 +208,7 @@ const SettingsScreen = ({ navigation }: Props) => {
             <Input
               label="Порт"
               size='medium'
-              style={[styles.input, { flex: 0.25 }]}
+              style={[styles.loginInput, { flex: 0.25 }]}
               value={port}
               onChangeText={(text) => setPort(text.replace(/\s+/g, ''))}
             />
@@ -198,13 +218,13 @@ const SettingsScreen = ({ navigation }: Props) => {
             <Input
               label="База данных"
               size='medium'
-              style={styles.input}
+              style={[styles.loginInput, {flex: 0.99}]}
               value={database}
               onChangeText={(text) => setDatabase(text.replace(/\s+/g, ''))}
             />
 
             <Button
-              style={{ marginTop: 7 }}
+              style={{ marginTop: 10 }}
               onPress={onCheckServer}
               accessoryLeft={serverStatus ? SuccessIcon : QuestionIcon}
               appearance='ghost'

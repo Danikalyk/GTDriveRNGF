@@ -28,6 +28,7 @@ export const GlobalStateProvider = ({ children }) => {
 
   const [showInstaller, setShowInstaller] = useState(false);
   const [updateData, setUpdateData] = useState(null);
+  const [loadingApp, setLoadingApp] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -49,23 +50,40 @@ export const GlobalStateProvider = ({ children }) => {
     init();
   }, []);
 
-
-  const openAppSettings = () => {
+  // Функция для открытия настроек приложения
+  function openAppSettings() {
     Linking.openSettings().catch(() => {
-      console.warn('Cannot open settings');
+      Alert.alert('Ошибка', 'Не удалось открыть настройки приложения');
     });
-  };
+  }
 
   async function downloadAndInstallAPK() {
     if (Platform.OS !== 'android') {
       Alert.alert('Недоступно', 'Установка APK доступна только на Android');
       return;
     }
-  
+
+    Alert.alert(
+      'Проверка разрешений',
+      'Пожалуйста, убедитесь, что предоставлены все необходимые разрешения для приложения.',
+      [
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Открыть настройки', onPress: openAppSettings },
+        { text: 'Продолжить', onPress: proceedWithDownloadAndInstall }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  async function proceedWithDownloadAndInstall() {
+    setLoadingApp(true);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     const url = "http://upd.gt-logistics.su/_GTDrive/123.apk";
     const fileName = url.split('/').pop();
     const downloadDest = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
-  
+
     try {
       // Конфигурируем и запускаем загрузку
       const res = await RNFetchBlob.config({
@@ -79,23 +97,32 @@ export const GlobalStateProvider = ({ children }) => {
           notification: true,
         }
       }).fetch("GET", url);
-  
+
       console.log('APK загружен в:', res.path());
-  
+
+      setLoadingApp(false);
+
+      await new Promise(resolve => setTimeout(resolve, 1));
+
       // Проверяем, существует ли файл, прежде чем пытаться его установить
       const exists = await RNFetchBlob.fs.exists(res.path());
       if (!exists) {
         Alert.alert('Ошибка', 'Файл не найден после загрузки');
         return;
       }
-  
-      // Запускаем установку APK
-      RNFetchBlob.android.actionViewIntent(
-        res.path(),
-        "application/vnd.android.package-archive"
-      );
-  
+
+      try {
+        RNFetchBlob.android.actionViewIntent(
+          res.path(),
+          "application/vnd.android.package-archive"
+        );
+      } catch (installError) {
+        console.error('Ошибка при установке APK:', installError);
+        Alert.alert('Ошибка', 'Не удалось открыть APK для установки');
+      }
+
     } catch (error) {
+      setLoadingApp(false);
       console.error('Ошибка при загрузке или установке APK:', error);
       Alert.alert('Ошибка', 'Не удалось загрузить или установить APK');
     }
@@ -131,7 +158,7 @@ export const GlobalStateProvider = ({ children }) => {
     [state.isModalOpen],
   );
   const enabledGeoValue = useMemo(() => state.enabledGeo, [state.enabledGeo]);
-  
+
   // Wrap the context provider around our component
   return (
     <ApplicationProvider {...eva} theme={eva[themeValue]}>
@@ -145,6 +172,7 @@ export const GlobalStateProvider = ({ children }) => {
           isLoggedIn: isLoggedInValue,
           isModalOpen: isModalOpenValue,
           enabledGeo: enabledGeoValue,
+          loadingApp
         }}>
         {children}
       </GlobalState.Provider>

@@ -16,11 +16,13 @@ async function requestPermissions() {
     PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
     PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
     PermissionsAndroid.PERMISSIONS.ACTIVITY_RECOGNITION,
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
   ];
 
   const sdkVersion = Platform.Version;
   if (sdkVersion >= 33) {
-    permissions.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    ermissions.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
     permissions.push(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES);
     permissions.push(PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO);
     permissions.push(PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO);
@@ -30,6 +32,8 @@ async function requestPermissions() {
     const granted = await PermissionsAndroid.requestMultiple(permissions);
     const deniedPermissions = [];
     const neverAskAgainPermissions = [];
+
+    console.log({granted});
 
     for (const [permission, status] of Object.entries(granted)) {
       if (status === PermissionsAndroid.RESULTS.DENIED) {
@@ -64,7 +68,8 @@ async function requestPermissions() {
     }
 
     console.log("Well done!");
-    return true; // Все условия выполнены
+
+    return true;
   } catch (err) {
     console.warn('Error requesting permissions:', err);
     Alert.alert('Ошибка', 'Произошла ошибка при запросе разрешений');

@@ -16,7 +16,7 @@ import React, { useEffect, useCallback, useState, useRef, useLayoutEffect } from
 import AddPhoto from '../components/AddPhoto/AddPhoto';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { RefreshControl, Alert, Linking, View, Image, FlatList } from 'react-native';
+import { RefreshControl, Alert, Linking, View, Image, FlatList, Dimensions } from 'react-native';
 import { openAddressOnMap } from '../utils/openAddressOnMap';
 import { RouterListItem } from '../types';
 import { postRoute } from '../api/routes';
@@ -73,6 +73,10 @@ const RouteScreen = (props: Props) => {
   let currentPoint = false;
   const [isInsideGeofence, setIsInsideGeofence] = useState(false);
   const [storageKey, setStorageKey] = useState(null);
+  
+  // Получаем ширину экрана - 20 пикселей
+  const screenWidth = Dimensions.get('window').width;
+  const modalWidth = screenWidth - 20;
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -226,7 +230,7 @@ const RouteScreen = (props: Props) => {
   }
 
   if (typePoint === 1) {
-    unfinishedOrders.sort((a, b) => a.type - b.type); 
+    unfinishedOrders.sort((a, b) => a.type - b.type);
   }
 
   useEffect(() => {
@@ -597,7 +601,7 @@ const RouteScreen = (props: Props) => {
           style={{}}
           appearance="outline"
           status="basic"
-          accessoryLeft={<Icon name="checkmark-outline"/>}
+          accessoryLeft={<Icon name="checkmark-outline" />}
           onPress={() =>
             Alert.alert(
               'Точка завершена в ' + point.time_fact + ' / ' + point.date_fact,
@@ -651,7 +655,7 @@ const RouteScreen = (props: Props) => {
 
     //-- Первое условие закомментируй
     return (
-      (!allPointsFinished && !nextPoint && pointStatus && (
+      (!allPointsFinished && !nextPoint && pointStatus &&  (
         <Layout>
           <Text category="label" style={styles.titleList}>
             <Icon
@@ -675,7 +679,7 @@ const RouteScreen = (props: Props) => {
           </Card>
         </Layout>
       )) ||
-      (allPointsFinished && nextPoint && !hasDrivePoint && (
+      (allPointsFinished && nextPoint && !hasDrivePoint && point.status !== 0 && (
         <>
           <Text category="label" style={styles.titleList}>
             <Icon
@@ -838,7 +842,7 @@ const RouteScreen = (props: Props) => {
       // Установка модального контента
       setModalContent(
         <Card
-          style={[styles.containerCards, { borderWidth: 0, width: 350 }]}
+          style={[styles.containerCards, { borderWidth: 0, width: modalWidth }]}
           disabled={true}
           status="basic"
           header={headerModal}
@@ -862,7 +866,7 @@ const RouteScreen = (props: Props) => {
     finishedAction = item.status === 3;
 
     const cardStatus = (item.status === 1 || item.status === 2) ? 'primary' : getCardStatus(item.status);
-  
+
     return (
       <View>
         <Card
@@ -887,9 +891,9 @@ const RouteScreen = (props: Props) => {
     if (item.status < 2 && item.type === 1) {
       typeName = 'План прибытия:';
       formattedDate = getDateFromJSON(timePlan);
-    } 
+    }
 
-    if(item.status === 0) {
+    if (item.status === 0) {
       formattedDate = getDateFromJSON(timePlan);
     }
 
@@ -1197,7 +1201,7 @@ const RouteScreen = (props: Props) => {
     const renderContent = () => {
       return (
         <>
-          <ScrollView contentContainerStyle={[styles.wrap, {padding: 5}]}>
+          <ScrollView contentContainerStyle={[styles.wrap, { padding: 5 }]}>
             <AddPhoto {...props} />
           </ScrollView>
         </>
@@ -1240,10 +1244,10 @@ const RouteScreen = (props: Props) => {
 
     //-- Время на точке
     let timeOnPoint = '';
-    if(pointStatus === 2 || pointStatus === 1) {
+    if (pointStatus === 2 || pointStatus === 1) {
       timeOnPoint = parseFloat(((new Date() - new Date(point.time_start)) / 60000).toFixed(0));
     } else if (pointStatus === 3) {
-      timeOnPoint = parseFloat(((new Date(point.time_finish) - new Date(point.time_start)) / 60000).toFixed(0)); 
+      timeOnPoint = parseFloat(((new Date(point.time_finish) - new Date(point.time_start)) / 60000).toFixed(0));
     }
 
     //--Было прибытие на точку
@@ -1330,7 +1334,7 @@ const RouteScreen = (props: Props) => {
         name="Фото"
         component={PhotoScreen}
         options={{ headerShown: false }}
-      /> 
+      />
     </Navigator>
   );
   const BottomTabBar = ({ navigation, state }) => {
