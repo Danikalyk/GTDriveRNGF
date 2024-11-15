@@ -62,7 +62,8 @@ function useGeolocation(enabledGeo) {
     );
 
     const onHttp: Subscription = BackgroundGeolocation.onHttp(httpEvent => {
-      console.log('[http] ', httpEvent.success, httpEvent.status);
+      const currentTime = new Date().toLocaleTimeString(); // Получаем текущее время
+      console.log('[http] ', httpEvent.success, httpEvent.status, ' [Time] ', currentTime);
     });
 
     const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
@@ -166,15 +167,16 @@ function useGeolocation(enabledGeo) {
       BackgroundGeolocation.ready({
         // Geolocation Config
         enabled: false,
+        reset: true, //-- Сомнительно
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
         distanceFilter: parametrs.distanceFilter, //-- Расстояние при котором идет отсылка координат между точками A и B
-        interval: 5000,
+        interval: 1000,
         // Activity Recognition
         stopTimeout: 5,
         // Application config
-        debug: false, // <-- enable this hear sounds for background-geolocation life-cycle.
+        debug: parametrs.debug, // <-- enable this hear sounds for background-geolocation life-cycle.
         logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
-        stopOnTerminate: false, // <-- Allow the background-service to continue tracking when user closes the app. 20240924 - true
+        stopOnTerminate: parametrs.stopOnTerminate, // <-- Allow the background-service to continue tracking when user closes the app. 20240924 - true
         startOnBoot: true, // <-- Auto start tracking when device is powered-up. default = true
         // HTTP / SQLite config
         url: `${baseUrl}/geo_info_users`,
@@ -201,8 +203,12 @@ function useGeolocation(enabledGeo) {
           },
         },
         desiredOdometerAccuracy: parametrs.desiredOdometerAccuracy, //-- точность выброса, по умолчанию = 100
-        elasticityMultiplier: parametrs.elasticityMultiplier //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
-        //geofenceProximityRadius: 300 //-- радиус геозоны
+        elasticityMultiplier: parametrs.elasticityMultiplier, //--  величение elasticityMultiplier приведет к небольшому количеству выборок местоположений по мере увеличения скорости. По-умолчанию 1
+        locationUpdateInterval: parametrs.locationUpdateInterval, 
+        fastestLocationUpdateInterval: parametrs.fastestLocationUpdateInterval,
+        activityRecognitionInterval: parametrs.activityRecognitionInterval,
+        //disableMotionActivityUpdates: true //-- Отключите плагин, запрашивающий у пользователя авторизацию «Движение и фитнес» (ios) или «Физическая активность» (android >= 10). 
+
       })
         .then(state => {
           setEnabled(state.enabled);

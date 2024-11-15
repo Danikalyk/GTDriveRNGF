@@ -130,13 +130,13 @@ const RouteScreen = (props: Props) => {
       marginTop: 5
     };
 
-    const renderButton = (onPress, text, iconName, disabled = false, appearance = "filled", status = "basic") => (
+    const renderButton = (onPress, text, iconName, disabled = false, appearance = "filled", status = "basic", fillColor) => (
       <Button
         onPress={onPress}
         disabled={disabled}
         appearance={appearance}
         status={status}
-        accessoryLeft={<Icon name={iconName} fill="#FFFFFF" />}
+        accessoryLeft={<Icon name={iconName} fill={fillColor} />}
         style={{ marginTop: 10 }}
       >
         {text}
@@ -147,11 +147,15 @@ const RouteScreen = (props: Props) => {
       const otherRoute = currentRoute && currentRoute !== uid;
       const buttonText = otherRoute ? 'В работе другой маршрут' : 'Начать Маршрут';
       const buttonIcon = otherRoute ? 'stop-circle' : 'flag';
-      const buttonDisabled = pending || otherRoute;
+      const buttonDisabled = pending;
+      const appearance = (pending || otherRoute) ? "outline" : "filled";
+      const fillColor = (appearance === "outline") ? "#3E3346" : "#FFFFFF"; 
+
+      
 
       return (
         <Card style={cardStyle}>
-          {renderButton(getThisRoute, buttonText, buttonIcon, buttonDisabled)}
+          {renderButton(getThisRoute, buttonText, buttonIcon, buttonDisabled, appearance, status = "basic", fillColor)}
         </Card>
       );
     }

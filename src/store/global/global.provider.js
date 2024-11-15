@@ -57,6 +57,8 @@ export const GlobalStateProvider = ({ children }) => {
     });
   }
 
+  //{ text: 'Открыть настройки', onPress: openAppSettings },
+
   async function downloadAndInstallAPK() {
     if (Platform.OS !== 'android') {
       Alert.alert('Недоступно', 'Установка APK доступна только на Android');
@@ -68,7 +70,6 @@ export const GlobalStateProvider = ({ children }) => {
       'Пожалуйста, убедитесь, что предоставлены все необходимые разрешения для приложения.',
       [
         { text: 'Отмена', style: 'cancel' },
-        { text: 'Открыть настройки', onPress: openAppSettings },
         { text: 'Продолжить', onPress: proceedWithDownloadAndInstall }
       ],
       { cancelable: false }

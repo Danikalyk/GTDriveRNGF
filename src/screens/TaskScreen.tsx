@@ -73,7 +73,7 @@ const RouteScreen = (props: Props) => {
   let currentPoint = false;
   const [isInsideGeofence, setIsInsideGeofence] = useState(false);
   const [storageKey, setStorageKey] = useState(null);
-  
+
   // Получаем ширину экрана - 20 пикселей
   const screenWidth = Dimensions.get('window').width;
   const modalWidth = screenWidth - 20;
@@ -160,307 +160,808 @@ const RouteScreen = (props: Props) => {
     setPending(false); // Устанавливаем pending в false
   };
 
-  currentPoint = propsParams?.status === 1 || propsParams?.status === 2;
-  const pointStatus = propsParams?.status;
+    currentPoint = propsParams?.status === 1 || propsParams?.status === 2;
+    const pointStatus = propsParams?.status;
 
-  useLayoutEffect(() => {
-    navigation.setOptions({ title });
-  }, [navigation, title]);
+    useLayoutEffect(() => {
+      navigation.setOptions({ title });
+    }, [navigation, title]);
 
-  let newTitle = 'Точка следования';
+    let newTitle = 'Точка следования';
 
-  if (currentPoint) {
-    newTitle = 'Текущая точка следования';
-  }
-
-  React.useLayoutEffect(() => {
-    navigation.setOptions({ title: newTitle, });
-  }, [navigation, newTitle]);
-
-  const handleOrderStatus = (point, order) => {
-    if (point.point === 1) { // Это Склад
-      if (order.type === 1) {
-        point.status = 2;
-        orders.find(o => o.type === 2).status = 2; // ТС Загружено
-      } else if (order.type === 2) {
-        orders.find(o => o.type === 3).status = 2; // Закрывающие документы получены
-      } else if (order.type === 7) {
-        point.status = 2; // Возврат на склад
-      }
-      order.status = 3;
-    } else {
-      if (order.type === 1) {
-        order.status = 3;
-        point.status = 2;
-        point.orders.forEach(o => {
-          if (o.status === 0) o.status = 1;
-        });
-      } else {
-        order.status = 3;
-      }
+    if (currentPoint) {
+      newTitle = 'Текущая точка следования';
     }
-  };
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    mutate();
+    React.useLayoutEffect(() => {
+      navigation.setOptions({ title: newTitle, });
+    }, [navigation, newTitle]);
 
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  }, []);
-
-  const points = route?.points;
-
-  if (!route || !points) return null;
-
-  const point = find(points, { uidPoint: uidPoint });
-  const orders = point?.orders;
-  const params = {
-    ...route,
-    orders,
-    uidPoint,
-    points,
-  };
-
-  let unfinishedOrders = orders.filter(order => order.status !== 3);
-
-  if (point.status === 2) {
-    unfinishedOrders.sort((a, b) => a.status - b.status); // Сортируем по status (возрастание)
-  }
-
-  if (typePoint === 1) {
-    unfinishedOrders.sort((a, b) => a.type - b.type);
-  }
-
-  useEffect(() => {
-    const getStorageKey = async () => {
-      try {
-        const localStorageKey = await localStorage.getItem('LoginKey');
-        if (localStorageKey) {
-          setStorageKey(localStorageKey);
+    const handleOrderStatus = (point, order) => {
+      if (point.point === 1) { // Это Склад
+        if (order.type === 1) {
+          point.status = 2;
+          orders.find(o => o.type === 2).status = 2; // ТС Загружено
+        } else if (order.type === 2) {
+          orders.find(o => o.type === 3).status = 2; // Закрывающие документы получены
+        } else if (order.type === 7) {
+          point.status = 2; // Возврат на склад
         }
-      } catch (error) {
-        console.error('Error retrieving storage key:', error);
+        order.status = 3;
+      } else {
+        if (order.type === 1) {
+          order.status = 3;
+          point.status = 2;
+          point.orders.forEach(o => {
+            if (o.status === 0) o.status = 1;
+          });
+        } else {
+          order.status = 3;
+        }
       }
     };
 
-    getStorageKey();
-  }, []);
+    const onRefresh = React.useCallback(() => {
+      setRefreshing(true);
+      mutate();
 
-  useEffect(() => {
-    if (storageKey?.acceptPointToRadius && (point.status === 1 || point.status === 2)) {
-      const checkGeofence = async () => {
-        const geofences = await BackgroundGeolocation.getGeofences();
-        const existingGeofence = geofences.find(geofence => geofence.identifier === uidPoint);
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+    }, []);
 
-        if (existingGeofence) {
-          BackgroundGeolocation.onGeofence((event) => {
-            if (event.action === 'ENTER' && event.identifier === uidPoint) {
-              setIsInsideGeofence(true); // Находимся в геозоне
-            } else if (event.action === 'EXIT' && event.identifier === uidPoint) {
-              setIsInsideGeofence(false); // Выходим из геозоны
-            }
-          });
-        } else {
-          console.log(`Геозона с идентификатором ${uidPoint} не найдена.`);
+    const points = route?.points;
+
+    if (!route || !points) return null;
+
+    const point = find(points, { uidPoint: uidPoint });
+    const orders = point?.orders;
+    const params = {
+      ...route,
+      orders,
+      uidPoint,
+      points,
+    };
+
+    let unfinishedOrders = orders.filter(order => order.status !== 3);
+
+    if (point.status === 2) {
+      unfinishedOrders.sort((a, b) => a.status - b.status); // Сортируем по status (возрастание)
+    }
+
+    if (typePoint === 1) {
+      unfinishedOrders.sort((a, b) => a.type - b.type);
+    }
+
+    useEffect(() => {
+      const getStorageKey = async () => {
+        try {
+          const localStorageKey = await localStorage.getItem('LoginKey');
+          if (localStorageKey) {
+            setStorageKey(localStorageKey);
+          }
+        } catch (error) {
+          console.error('Error retrieving storage key:', error);
         }
       };
 
-      checkGeofence();
+      getStorageKey();
+    }, []);
 
-      return () => {
-        BackgroundGeolocation.removeAllListeners();
-      };
-    } else {
-      setIsInsideGeofence(true); // Если условия не выполняются, устанавливаем состояние
-    }
-  }, [storageKey, point.status, uidPoint]); // Зависимости для useEffect
 
-  const renderStatusText = (iconName: string, text: string) => (
-    <View style={styles.currentRouteContainer}>
-      <Icon name={iconName} width={20} height={20} style={styles.textHeaderCardIcon} />
-      <Text category="label" style={styles.titleList}>{text}</Text>
-    </View>
-  );
+    const renderStatusText = (iconName: string, text: string) => (
+      <View style={styles.currentRouteContainer}>
+        <Icon name={iconName} width={20} height={20} style={styles.textHeaderCardIcon} />
+        <Text category="label" style={styles.titleList}>{text}</Text>
+      </View>
+    );
 
-  // ---------- Открытие модального окна происшествия ----------
+    // ---------- Открытие модального окна происшествия ----------
 
-  const [visibleAccident, setVisibleAccident] = React.useState(false);
+    const [visibleAccident, setVisibleAccident] = React.useState(false);
 
-  const handleCloseAccidentModal = () => {
-    setVisibleAccident(false);
-    setUidOrderAccident('00000000-0000-0000-0000-000000000000');
-  };
+    const handleCloseAccidentModal = () => {
+      setVisibleAccident(false);
+      setUidOrderAccident('00000000-0000-0000-0000-000000000000');
+    };
 
-  // ---------- Открытие навигатора ----------
+    // ---------- Открытие навигатора ----------
 
-  const handleOpenNavigator = async params => {
-    const url = `yandexnavi://build_route_on_map?lat_to=${params.lat}&lon_to=${params.lon}`;
+    const handleOpenNavigator = async params => {
+      const url = `yandexnavi://build_route_on_map?lat_to=${params.lat}&lon_to=${params.lon}`;
 
-    openAddressOnMap('', params.lat, params.lon);
+      openAddressOnMap('', params.lat, params.lon);
 
-    // const supportedYa = await Linking.canOpenURL(url)
-    //   .then(supported => supported)
-    //   .catch(err => Alert.alert('Ошибка', err.toString()));
-    const supportedGoogleMaps = await Linking.canOpenURL(urlAndroidMap)
-      .then(supported => supported)
-      .catch(err => Alert.alert('Ошибка', err.toString()));
+      // const supportedYa = await Linking.canOpenURL(url)
+      //   .then(supported => supported)
+      //   .catch(err => Alert.alert('Ошибка', err.toString()));
+      const supportedGoogleMaps = await Linking.canOpenURL(urlAndroidMap)
+        .then(supported => supported)
+        .catch(err => Alert.alert('Ошибка', err.toString()));
 
-    // if (supportedYa) {
-    //   Linking.openURL(url);
+      // if (supportedYa) {
+      //   Linking.openURL(url);
 
-    //   return;
-    // }
+      //   return;
+      // }
 
-    if (supportedGoogleMaps) {
-      Linking.openURL(urlAndroidMap);
+      if (supportedGoogleMaps) {
+        Linking.openURL(urlAndroidMap);
 
-      return;
-    }
+        return;
+      }
 
-    // Alert.alert('Ошибка', 'Пожалуйста, установите Яндекс Навигатор или ');
-  };
+      // Alert.alert('Ошибка', 'Пожалуйста, установите Яндекс Навигатор или ');
+    };
 
-  const onSelect = index => {
-    setSelectedIndex(index);
-  };
+    const onSelect = index => {
+      setSelectedIndex(index);
+    };
 
-  // ---------- Верхняя карточка ----------
+    // ---------- Верхняя карточка ----------
 
-  function renderMainCard(params) {
-    const buttonShipment = checkButtonShipment();
-    const AllowAllShipments = true;
-    const cardStatus = params.status === 3 ? 'success' : (currentPoint ? 'basic' : 'primary');
+    function renderMainCard(params) {
+      const buttonShipment = checkButtonShipment();
+      const AllowAllShipments = true;
+      const cardStatus = params.status === 3 ? 'success' : (currentPoint ? 'basic' : 'primary');
 
-    return (
-      <View style={{ marginTop: 5 }}>
-        <Card
-          status={cardStatus}
-          header={renderMainCardHeader(params)}
-          footer={renderMainCardFooter(params)}
-          style={[
-            styles.containerCards
-          ]}>
-        </Card>
+      return (
+        <View style={{ marginTop: 5 }}>
+          <Card
+            status={cardStatus}
+            header={renderMainCardHeader(params)}
+            footer={renderMainCardFooter(params)}
+            style={[
+              styles.containerCards
+            ]}>
+          </Card>
 
-        {renderNextPointCard()}
+          {renderNextPointCard()}
 
-        <View
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginRight: 5,
-            marginBottom: 7,
-            backgroundColor: 'transparent',
-          }}>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginRight: 5,
+              marginBottom: 7,
+              backgroundColor: 'transparent',
+            }}>
 
-          {unfinishedOrders.length > 0 && (
-            <View style={styles.currentRouteContainer}>
-              <Icon
-                name="flash-outline"
-                width={20}
-                height={20}
-                style={styles.textHeaderCardIcon}
-              />
-
-              <Text category="label" style={styles.titleList}>
-                Действия на точке
-              </Text>
-            </View>
-          ) || (
-              <View style={[styles.currentRouteContainer, { flex: 1, justifyContent: 'center' }]}>
+            {unfinishedOrders.length > 0 && (
+              <View style={styles.currentRouteContainer}>
                 <Icon
-                  name="checkmark-circle-outline"
-                  width={25}
-                  height={25}
+                  name="flash-outline"
+                  width={20}
+                  height={20}
                   style={styles.textHeaderCardIcon}
                 />
 
                 <Text category="label" style={styles.titleList}>
-                  {typePoint === 4 ? 'Все заказы отгружены' : 'Все действия выполнены'}
+                  Действия на точке
                 </Text>
               </View>
+            ) || (
+                <View style={[styles.currentRouteContainer, { flex: 1, justifyContent: 'center' }]}>
+                  <Icon
+                    name="checkmark-circle-outline"
+                    width={25}
+                    height={25}
+                    style={styles.textHeaderCardIcon}
+                  />
+
+                  <Text category="label" style={styles.titleList}>
+                    {typePoint === 4 ? 'Все заказы отгружены' : 'Все действия выполнены'}
+                  </Text>
+                </View>
+              )}
+
+            {buttonShipment && AllowAllShipments && (
+              <View>
+                <Button
+                  size="small"
+                  appearance="filled"
+                  status='basic'
+                  accessoryLeft={<Icon fill="#FFFFFF" name="checkmark-square-2-outline" />}
+                  onPress={() => handleAlertShipmantAllOrders()}>
+                  Отгрузить
+                </Button>
+              </View>
             )}
-
-          {buttonShipment && AllowAllShipments && (
-            <View>
-              <Button
-                size="small"
-                appearance="filled"
-                status='basic'
-                accessoryLeft={<Icon fill="#FFFFFF" name="checkmark-square-2-outline" />}
-                onPress={() => handleAlertShipmantAllOrders()}>
-                Отгрузить
-              </Button>
-            </View>
-          )}
+          </View>
         </View>
-      </View>
-    );
-  }
-
-  const handleAlertShipmantAllOrders = () => {
-    Alert.alert('Отгрузить заказы?', 'Будут отгружены все заказы без заданий', [
-      {
-        text: 'Отмена',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      { text: 'Отгрузить', onPress: () => handleShipmantAllOrders() },
-    ]);
-  };
-
-  const handleShipmantAllOrders = () => {
-    const filteredOrders = point.orders.filter(
-      order =>
-        order.type === 4 && order.status === 2 && order.tasks.length === 0,
-    );
-
-    if (filteredOrders.length > 0) {
-      filteredOrders.forEach(order => {
-        putTimeCardToServer(order);
-      });
-    }
-  };
-
-  const checkButtonShipment = () => {
-    let buttonShipment = false;
-
-    allComplete = point?.orders?.every(order => order.status === 3);
-
-    if (
-      point?.point === 0 &&
-      point?.status == 2 &&
-      orders?.length > 1 &&
-      !allComplete
-    ) {
-      buttonShipment = true;
+      );
     }
 
-    return buttonShipment;
-  };
-
-  const renderMainCardHeader = item => {
-    const telegram = route.telegram;
-    const whatsapp = route.whatsapp;
-    const [menuVisible, setMenuVisible] = useState(false);
-
-    const toggleMenu = () => {
-      setMenuVisible(!menuVisible);
+    const handleAlertShipmantAllOrders = () => {
+      Alert.alert('Отгрузить заказы?', 'Будут отгружены все заказы без заданий', [
+        {
+          text: 'Отмена',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        { text: 'Отгрузить', onPress: () => handleShipmantAllOrders() },
+      ]);
     };
 
-    return (
-      <Layout>
-        <View style={styles.textHeaderCardOrder}>
-          <Text category="s1" style={styles.textHeaderCard}>
-            {item?.address}
-          </Text>
+    const handleShipmantAllOrders = () => {
+      const filteredOrders = point.orders.filter(
+        order =>
+          order.type === 4 && order.status === 2 && order.tasks.length === 0,
+      );
 
-          {item.status !== 0 && (<OverflowMenu
+      if (filteredOrders.length > 0) {
+        filteredOrders.forEach(order => {
+          putTimeCardToServer(order);
+        });
+      }
+    };
+
+    const checkButtonShipment = () => {
+      let buttonShipment = false;
+
+      allComplete = point?.orders?.every(order => order.status === 3);
+
+      if (
+        point?.point === 0 &&
+        point?.status == 2 &&
+        orders?.length > 1 &&
+        !allComplete
+      ) {
+        buttonShipment = true;
+      }
+
+      return buttonShipment;
+    };
+
+    const renderMainCardHeader = item => {
+      const telegram = route.telegram;
+      const whatsapp = route.whatsapp;
+      const [menuVisible, setMenuVisible] = useState(false);
+
+      const toggleMenu = () => {
+        setMenuVisible(!menuVisible);
+      };
+
+      return (
+        <Layout>
+          <View style={styles.textHeaderCardOrder}>
+            <Text category="s1" style={styles.textHeaderCard}>
+              {item?.address}
+            </Text>
+
+            {item.status !== 0 && (<OverflowMenu
+              anchor={() => (
+                <Icon
+                  name="more-vertical"
+                  width={24}
+                  height={24}
+                  style={{ color: 'gray' }}
+                  onPress={toggleMenu}
+                />
+              )}
+              visible={menuVisible}
+              onBackdropPress={toggleMenu}
+            >
+              <MenuItem
+                title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Позвонить</Text>}
+                accessoryLeft={<Icon name="phone" />}
+                onPress={() => openPhoneWithNumber('')}
+
+              />
+              <MenuItem
+                title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Открыть чат</Text>}
+                accessoryLeft={<Icon name="message-square-outline" />}
+                onPress={() => openTelegramWithNumber(telegram)}
+              />
+              <MenuItem
+                title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Открыть чат</Text>}
+                accessoryLeft={<Icon name="message-square-outline" />}
+                onPress={() => openWhatsAppWithNumber(whatsapp)}
+              />
+              <MenuItem
+                title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Происшествие</Text>}
+                accessoryLeft={<Icon name="alert-triangle-outline" fill="#D2475E" />}
+                onPress={() => setVisibleAccident(true)}
+              />
+            </OverflowMenu>)}
+          </View>
+        </Layout>
+      );
+    };
+
+    const openTelegramWithNumber = phoneNumber => {
+      Linking.openURL(`https://t.me/${phoneNumber}`);
+    };
+
+    const openWhatsAppWithNumber = phoneNumber => {
+      Linking.openURL(`https://wa.me/${phoneNumber}`);
+    };
+
+    const openPhoneWithNumber = phoneNumber => {
+      Linking.openURL(`tel:${phoneNumber}`);
+    };
+
+    // ---------- Кнопки ----------
+
+    const renderButtonStartPoint = () => {
+      hasStartedPoint = points.some(
+        item => item.status === 1 || item.status === 2,
+      );
+
+      return (
+        (!hasStartedPoint && (
+          <View>
+            <Button
+              style={{}}
+              appearance="filled"
+              status='basic'
+              accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
+              onPress={startCurrentPoint}>
+              Начать следование
+            </Button>
+          </View>
+        )) || (
+          <View>
+            <Button
+              style={{}}
+              accessoryLeft={<Icon {...props} name="clock-outline" />}
+              appearance="outline"
+              status="basic"
+              onPress={() => Alert.alert('К этой точке можно будет перейти после завершения активной')}>
+              В следовании другая точка
+            </Button>
+          </View>
+        )
+      );
+    };
+
+    const renderButtonOnPoint = () => {
+      return (
+        <View>
+          <Button
+            style={{}}
+            appearance='outline'
+            status='basic'
+            accessoryLeft={<Icon name="star" fill="#3E3346" />}
+            onPress={() => Alert.alert('Для получения информации по точке перейдите на вкладку Информация')}
+          >
+            Вы на точке
+          </Button>
+        </View>
+      );
+    };
+
+    const renderButtonOpenNavigator = params => {
+      return (
+        <View>
+          <Button
+            style={{}}
+            appearance="filled"
+            status='basic'
+            accessoryLeft={<Icon name="compass-outline" fill="#FFFFFF" />}
+            onPress={() => handleOpenNavigator(params)}>
+            Открыть в навигаторе
+          </Button>
+        </View>
+      );
+    };
+
+    const renderButtonFinishPoint = () => {
+      return (
+        !nextPointDrive && (
+          <View>
+            <Button
+              style={{}}
+              onPress={finishCurrentPoint}
+              appearance="filled"
+              status='basic'
+              accessoryLeft={<Icon name="flag" fill="#FFFFFF" />}>
+              Завершить точку
+            </Button>
+          </View>
+        )
+      );
+    };
+
+    const renderButtonCompletePoint = () => {
+      return (
+        <View>
+          <Button
+            style={{}}
+            appearance="outline"
+            status="basic"
+            accessoryLeft={<Icon name="checkmark-outline" />}
+            onPress={() =>
+              Alert.alert(
+                'Точка завершена в ' + point.time_fact + ' / ' + point.date_fact,
+              )
+            }>
+            Точка завершена
+          </Button>
+        </View>
+      );
+    };
+
+    const renderMainCardFooter = (params = {}) => {
+      allOrderFinished = !!params.orders && params.orders.every(order => order.status === 3);
+
+      if (params.point === 0 || params.point === 1) {
+        if (params.status === 0) {
+          return renderButtonStartPoint();
+        } else if (params.status === 1) {
+          return renderButtonOpenNavigator(params);
+        } else if (params.status === 2 && !allOrderFinished) {
+          return renderButtonOnPoint();
+        } else if (params.status === 2 && allOrderFinished) {
+          return renderButtonFinishPoint();
+        } else if (params.status === 3) {
+          return renderButtonCompletePoint();
+        }
+      }
+    };
+
+    // ---------- Карточка следующая точка ----------
+
+    function findNextPoint() {
+      if (!Array.isArray(points)) {
+        return false;
+      }
+
+      // Находим следующий элемент
+      const nextPoint = points
+        .filter(item => item.status !== 3) // Фильтруем по условиям
+        .sort((a, b) => a.sort - b.sort) // Сортируем по sort
+        .shift(); // Берем первый элемент
+
+      return nextPoint || false;
+    }
+
+    const renderNextPointCard = () => {
+      const nextPoint = findNextPoint();
+      const allPointsFinished = points.some(item => item.status === 0);
+      const pointStatus = point.status === 3;
+      const hasDrivePoint = points.some(item => item.status === 1 || item.status === 2);
+
+      //-- Первое условие закомментируй
+      return (
+        (!allPointsFinished && !nextPoint && pointStatus && (
+          <Layout>
+            <Text category="label" style={styles.titleList}>
+              <Icon
+                name="flag-outline"
+                width={20}
+                height={20}
+                style={styles.textHeaderCardIcon}></Icon>
+              Все точки завершены
+            </Text>
+            <Card status="success" style={styles.containerCards}>
+              <View>
+                <Button
+                  style={{}}
+                  appearance="outline"
+                  status="primary"
+                  accessoryLeft={<Icon name="arrow-back-outline" />}
+                  onPress={() => goBack()}>
+                  Вернуться
+                </Button>
+              </View>
+            </Card>
+          </Layout>
+        )) ||
+        (allPointsFinished && nextPoint && !hasDrivePoint && point.status !== 0 && (
+          <>
+            <Text category="label" style={styles.titleList}>
+              <Icon
+                name="corner-up-right-outline"
+                width={20}
+                height={20}
+                style={styles.textHeaderCardIcon}></Icon>
+              Следующая точка
+            </Text>
+            <Card
+              status="basic"
+              style={styles.containerCards}
+              header={renderMainCardHeader(nextPoint)}
+              footer={renderNextPointCardFooter(nextPoint)}>
+              <View style={styles.textBodyCardWithLeftView}>
+                <View style={styles.textTimeLeft}>
+                  <Layout>
+                    <Text
+                      category="s1"
+                      style={{
+                        textAlign: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0)',
+                      }}>
+                      {nextPoint?.time}
+                    </Text>
+                  </Layout>
+                  <Layout>
+                    <Text
+                      category="c2"
+                      style={{
+                        textAlign: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0)',
+                      }}>
+                      {nextPoint?.date}
+                    </Text>
+                  </Layout>
+                </View>
+                {renderNextPointCardText(nextPoint)}
+              </View>
+            </Card>
+          </>
+        ))
+      );
+    };
+
+    const renderNextPointCardText = nextPoint => {
+      const showAddress =
+        nextPoint && nextPoint.address !== nextPoint.client_name;
+      const returnWarehouse = nextPoint.type == 7; //-- 7 это склад
+
+      if (returnWarehouse) {
+        return (
+          <View style={styles.containerCardText}>
+            <Text category="c2">Точка завершения Маршрута</Text>
+          </View>
+        );
+      } else {
+        return (
+          <View style={styles.containerCardText}>
+            {showAddress && (
+              <Text category="c2">Адрес: {nextPoint?.address}</Text>
+            )}
+            <Text category="c2">Объем: {nextPoint?.volume}, м3</Text>
+            <Text category="c2">Вес: {nextPoint?.weight}, кг</Text>
+            <Text category="c2">
+              Количество заказов: {nextPoint?.countOrders}
+            </Text>
+            {/*<Text category="c2">
+        Загрузка: {item?.loading}, %
+      </Text>*/}
+          </View>
+        );
+      }
+    };
+
+    const renderNextPointCardHeader = nextPoint => (
+      <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+        <View style={styles.textHeaderCard}>
+          <Icon
+            name="pin-outline"
+            width={23}
+            height={23}
+            style={styles.textHeaderCardIcon}></Icon>
+          <Text category="h6" style={styles.textHeaderCard}>
+            {nextPoint?.address}
+          </Text>
+        </View>
+      </Layout>
+    );
+
+    const renderNextPointCardFooter = nextPoint => (
+      <View>
+        <Button
+          style={{}}
+          status="basic"
+          accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
+          onPress={() => startNextPoint(nextPoint)}>
+          Начать следование
+        </Button>
+      </View>
+    );
+
+    // ---------- Карточки заказов ----------
+
+    const footerModal = item => (
+      <Layout style={{}} level="1">
+        <Button
+          style={styles.buttonModal}
+          appearance="filled"
+          status='basic'
+          accessoryLeft={<Icon name="checkmark-square-outline" fill="#FFFFFF" />}
+          onPress={() => putTimeCardToServer(item)}>
+          Зафиксировать
+        </Button>
+      </Layout>
+    );
+
+    const headerModal = () => (
+      <Layout style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
+        <Icon name="clock-outline" width={23} height={23} />
+        <Text category="s1" style={styles.textHeaderCard}>Необходимо зафиксировать время</Text>
+      </Layout>
+    );
+
+    const shouldShowAlert = (params, item, orderWithType1AndNotStatus3) => {
+      return (
+        params.status === 0 || (item.status !== 1 && orderWithType1AndNotStatus3)
+      );
+    };
+
+    const shouldShowTimeFixedAlert = item => {
+      return item.tasks.length === 0 && item.status === 3;
+    };
+
+    const shouldShowTimeNotFixedModal = (item, visible) => {
+      return item.tasks.length === 0 && item.status < 3 && !visible;
+    };
+
+    const onPressCardOrder = (item) => {
+      const orderWithType1AndNotStatus3 = params.orders.find(
+        order => order.type === 1 && order.status !== 3,
+      );
+
+      // Проверка на показ алерта
+      if (shouldShowAlert(params, item, orderWithType1AndNotStatus3)) {
+        Alert.alert('Необходимо начать следование или зафиксировать прибытие');
+        return;
+      }
+
+      // Проверка на фиксированное время
+      if (shouldShowTimeFixedAlert(item)) {
+        Alert.alert('Время зафиксировано');
+      } else if (shouldShowTimeNotFixedModal(item, visible)) {
+        // Проверка на нахождение внутри геозоны
+        if (!isInsideGeofence) {
+          Alert.alert('Вы не находитесь внутри геозоны'); // Исправлено сообщение
+          return;
+        }
+
+        // Установка модального контента
+        setModalContent(
+          <Card
+            style={[styles.containerCards, { borderWidth: 0, width: modalWidth }]}
+            disabled={true}
+            status="basic"
+            header={headerModal}
+            footer={footerModal(item)}
+          >
+            <View style={{ padding: 10 }}>
+              <Text category="h6">{item.name}</Text>
+            </View>
+          </Card>
+        );
+        setVisible(true);
+      } else {
+        // Навигация при отсутствии других условий
+        props.navigation.navigate('TaskOrderScreen', { ...item, uidPoint });
+      }
+    };
+
+    const renderItemCard = ({ item, index, }: { item: RouterListItem; index: number; }): React.ReactElement => {
+      currentAction = item.status === 1;
+      currentActionOrder = item.status === 2;
+      finishedAction = item.status === 3;
+
+      const cardStatus = (item.status === 1 || item.status === 2) ? 'primary' : getCardStatus(item.status);
+
+      return (
+        <View>
+          <Card
+            style={[
+              styles.containerCards
+            ]}
+            status={cardStatus}
+            header={() => renderItemCardName(item)}
+            onPress={() => onPressCardOrder(item)}
+          >
+            {renderItemCardText(item)}
+          </Card>
+        </View>
+      );
+    };
+
+    function renderItemCardText(item) {
+      const statusToggle = getToggleCardStatus(item);
+      let formattedDate = getDateFromJSON(item.date);
+      let typeName = 'Время фиксации:'
+
+      if (item.status < 2 && item.type === 1) {
+        typeName = 'План прибытия:';
+        formattedDate = getDateFromJSON(timePlan);
+      }
+
+      if (item.status === 0) {
+        formattedDate = getDateFromJSON(timePlan);
+      }
+
+      if (item.status < 3 && item.type !== 4) {
+        formattedDate = null;
+      }
+
+      let content;
+      if (item.type !== 4) {
+        if (formattedDate) {
+          content = (
+            <Text category="c2">
+              {typeName} {formattedDate}
+            </Text>
+          );
+        } else {
+          content = <Text category="c2">Необходимо зафиксировать время</Text>;
+        }
+      } else {
+        content = (
+          <>
+            <Text category="c2">Объем = {`${item.weight}`}</Text>
+            <Text category="c2">Вес = {`${item.volume}`}</Text>
+
+            {item.status === 3 && (
+              <>
+                <View style={{ paddingTop: 10 }}>
+                  <Divider />
+                  <Text category="c2">Время фиксации: {`${formattedDate}`}</Text>
+                </View>
+              </>
+            )}
+          </>
+        );
+      }
+
+      return (
+        <Layout style={styles.textBodyCardWithLeftView}>
+          <Toggle
+            style={styles.textTimeLeft}
+            checked={statusToggle}
+            disable={statusToggle}
+            onChange={() => onPressCardOrder(item)}>
+          </Toggle>
+          <View style={styles.containerCardText}>
+            {content}
+          </View>
+        </Layout>
+      );
+    }
+
+    const renderItemCardName = (item: RouterListItem) => {
+      const hasTasks = item.tasks.length !== 0;
+      const name = item.name;
+      const thisOrder = item.type === 4;
+      const pointStatus = point.status;
+      const [menuVisible, setMenuVisible] = useState(false);
+
+      const toggleMenu = () => {
+        setMenuVisible(!menuVisible);
+      };
+
+      const handlePress = () => {
+        setUidOrderAccident(item.uidOrder); // Установите новый UID
+        setVisibleAccident(true); // Установите видимость в true
+      };
+
+      return (
+        <View style={styles.textHeaderCardOrder}>
+          <View style={styles.textHeaderCard}>
+            {renderItemCardIcon(item.type)}
+
+            <Text
+              category="label"
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                fontSize: 14,
+              }}>
+              {name}
+            </Text>
+          </View>
+
+          {hasTasks && (
+            <Icon
+              name="bulb-outline"
+              width={22}
+              height={22}
+              style={{ color: 'gray' }}
+              onPress={toggleMenu}
+              fill="#BC4055"
+            />
+          )}
+
+          {thisOrder && pointStatus === 2 && (<OverflowMenu
             anchor={() => (
               <Icon
                 name="more-vertical"
@@ -474,909 +975,380 @@ const RouteScreen = (props: Props) => {
             onBackdropPress={toggleMenu}
           >
             <MenuItem
-              title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Позвонить</Text>}
-              accessoryLeft={<Icon name="phone" />}
-              onPress={() => openPhoneWithNumber('')}
-
+              title={() => (<Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Подробно</Text>)}
+              accessoryLeft={<Icon name="info-outline" />}
+              onPress={() => props.navigation.navigate('TaskOrderInfoScreen', { ...item })}
             />
             <MenuItem
-              title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Открыть чат</Text>}
-              accessoryLeft={<Icon name="message-square-outline" />}
-              onPress={() => openTelegramWithNumber(telegram)}
-            />
-            <MenuItem
-              title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Открыть чат</Text>}
-              accessoryLeft={<Icon name="message-square-outline" />}
-              onPress={() => openWhatsAppWithNumber(whatsapp)}
-            />
-            <MenuItem
-              title={() => <Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Происшествие</Text>}
+              title={() => (<Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Происшествие</Text>)}
               accessoryLeft={<Icon name="alert-triangle-outline" fill="#D2475E" />}
-              onPress={() => setVisibleAccident(true)}
+              onPress={handlePress}
             />
           </OverflowMenu>)}
         </View>
-      </Layout>
-    );
-  };
-
-  const openTelegramWithNumber = phoneNumber => {
-    Linking.openURL(`https://t.me/${phoneNumber}`);
-  };
-
-  const openWhatsAppWithNumber = phoneNumber => {
-    Linking.openURL(`https://wa.me/${phoneNumber}`);
-  };
-
-  const openPhoneWithNumber = phoneNumber => {
-    Linking.openURL(`tel:${phoneNumber}`);
-  };
-
-  // ---------- Кнопки ----------
-
-  const renderButtonStartPoint = () => {
-    hasStartedPoint = points.some(
-      item => item.status === 1 || item.status === 2,
-    );
-
-    return (
-      (!hasStartedPoint && (
-        <View>
-          <Button
-            style={{}}
-            appearance="filled"
-            status='basic'
-            accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
-            onPress={startCurrentPoint}>
-            Начать следование
-          </Button>
-        </View>
-      )) || (
-        <View>
-          <Button
-            style={{}}
-            accessoryLeft={<Icon {...props} name="clock-outline" />}
-            appearance="outline"
-            status="basic"
-            onPress={() => Alert.alert('К этой точке можно будет перейти после завершения активной')}>
-            В следовании другая точка
-          </Button>
-        </View>
-      )
-    );
-  };
-
-  const renderButtonOnPoint = () => {
-    return (
-      <View>
-        <Button
-          style={{}}
-          appearance='outline'
-          status='basic'
-          accessoryLeft={<Icon name="star" fill="#3E3346" />}
-          onPress={() => Alert.alert('Для получения информации по точке перейдите на вкладку Информация')}
-        >
-          Вы на точке
-        </Button>
-      </View>
-    );
-  };
-
-  const renderButtonOpenNavigator = params => {
-    return (
-      <View>
-        <Button
-          style={{}}
-          appearance="filled"
-          status='basic'
-          accessoryLeft={<Icon name="compass-outline" fill="#FFFFFF" />}
-          onPress={() => handleOpenNavigator(params)}>
-          Открыть в навигаторе
-        </Button>
-      </View>
-    );
-  };
-
-  const renderButtonFinishPoint = () => {
-    return (
-      !nextPointDrive && (
-        <View>
-          <Button
-            style={{}}
-            onPress={finishCurrentPoint}
-            appearance="filled"
-            status='basic'
-            accessoryLeft={<Icon name="flag" fill="#FFFFFF" />}>
-            Завершить точку
-          </Button>
-        </View>
-      )
-    );
-  };
-
-  const renderButtonCompletePoint = () => {
-    return (
-      <View>
-        <Button
-          style={{}}
-          appearance="outline"
-          status="basic"
-          accessoryLeft={<Icon name="checkmark-outline" />}
-          onPress={() =>
-            Alert.alert(
-              'Точка завершена в ' + point.time_fact + ' / ' + point.date_fact,
-            )
-          }>
-          Точка завершена
-        </Button>
-      </View>
-    );
-  };
-
-  const renderMainCardFooter = (params = {}) => {
-    allOrderFinished = !!params.orders && params.orders.every(order => order.status === 3);
-
-    if (params.point === 0 || params.point === 1) {
-      if (params.status === 0) {
-        return renderButtonStartPoint();
-      } else if (params.status === 1) {
-        return renderButtonOpenNavigator(params);
-      } else if (params.status === 2 && !allOrderFinished) {
-        return renderButtonOnPoint();
-      } else if (params.status === 2 && allOrderFinished) {
-        return renderButtonFinishPoint();
-      } else if (params.status === 3) {
-        return renderButtonCompletePoint();
-      }
-    }
-  };
-
-  // ---------- Карточка следующая точка ----------
-
-  function findNextPoint() {
-    if (!Array.isArray(points)) {
-      return false;
-    }
-
-    // Находим следующий элемент
-    const nextPoint = points
-      .filter(item => item.status !== 3) // Фильтруем по условиям
-      .sort((a, b) => a.sort - b.sort) // Сортируем по sort
-      .shift(); // Берем первый элемент
-
-    return nextPoint || false;
-  }
-
-  const renderNextPointCard = () => {
-    const nextPoint = findNextPoint();
-    const allPointsFinished = points.some(item => item.status === 0);
-    const pointStatus = point.status === 3;
-    const hasDrivePoint = points.some(item => item.status === 1 || item.status === 2);
-
-    //-- Первое условие закомментируй
-    return (
-      (!allPointsFinished && !nextPoint && pointStatus &&  (
-        <Layout>
-          <Text category="label" style={styles.titleList}>
-            <Icon
-              name="flag-outline"
-              width={20}
-              height={20}
-              style={styles.textHeaderCardIcon}></Icon>
-            Все точки завершены
-          </Text>
-          <Card status="success" style={styles.containerCards}>
-            <View>
-              <Button
-                style={{}}
-                appearance="outline"
-                status="primary"
-                accessoryLeft={<Icon name="arrow-back-outline" />}
-                onPress={() => goBack()}>
-                Вернуться
-              </Button>
-            </View>
-          </Card>
-        </Layout>
-      )) ||
-      (allPointsFinished && nextPoint && !hasDrivePoint && point.status !== 0 && (
-        <>
-          <Text category="label" style={styles.titleList}>
-            <Icon
-              name="corner-up-right-outline"
-              width={20}
-              height={20}
-              style={styles.textHeaderCardIcon}></Icon>
-            Следующая точка
-          </Text>
-          <Card
-            status="basic"
-            style={styles.containerCards}
-            header={renderMainCardHeader(nextPoint)}
-            footer={renderNextPointCardFooter(nextPoint)}>
-            <View style={styles.textBodyCardWithLeftView}>
-              <View style={styles.textTimeLeft}>
-                <Layout>
-                  <Text
-                    category="s1"
-                    style={{
-                      textAlign: 'center',
-                      backgroundColor: 'rgba(255, 255, 255, 0)',
-                    }}>
-                    {nextPoint?.time}
-                  </Text>
-                </Layout>
-                <Layout>
-                  <Text
-                    category="c2"
-                    style={{
-                      textAlign: 'center',
-                      backgroundColor: 'rgba(255, 255, 255, 0)',
-                    }}>
-                    {nextPoint?.date}
-                  </Text>
-                </Layout>
-              </View>
-              {renderNextPointCardText(nextPoint)}
-            </View>
-          </Card>
-        </>
-      ))
-    );
-  };
-
-  const renderNextPointCardText = nextPoint => {
-    const showAddress =
-      nextPoint && nextPoint.address !== nextPoint.client_name;
-    const returnWarehouse = nextPoint.type == 7; //-- 7 это склад
-
-    if (returnWarehouse) {
-      return (
-        <View style={styles.containerCardText}>
-          <Text category="c2">Точка завершения Маршрута</Text>
-        </View>
       );
-    } else {
-      return (
-        <View style={styles.containerCardText}>
-          {showAddress && (
-            <Text category="c2">Адрес: {nextPoint?.address}</Text>
-          )}
-          <Text category="c2">Объем: {nextPoint?.volume}, м3</Text>
-          <Text category="c2">Вес: {nextPoint?.weight}, кг</Text>
-          <Text category="c2">
-            Количество заказов: {nextPoint?.countOrders}
-          </Text>
-          {/*<Text category="c2">
-        Загрузка: {item?.loading}, %
-      </Text>*/}
-        </View>
-      );
-    }
-  };
+    };
 
-  const renderNextPointCardHeader = nextPoint => (
-    <Layout style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-      <View style={styles.textHeaderCard}>
+    const renderItemCardIcon = type => {
+      const iconNames = {
+        1: 'compass-outline',
+        2: 'download-outline',
+        3: 'file-text-outline',
+        4: 'bookmark-outline',
+      };
+
+      const iconName = iconNames[type] || 'file-outline';
+
+      return (
         <Icon
-          name="pin-outline"
+          name={iconName}
           width={23}
           height={23}
-          style={styles.textHeaderCardIcon}></Icon>
-        <Text category="h6" style={styles.textHeaderCard}>
-          {nextPoint?.address}
-        </Text>
-      </View>
-    </Layout>
-  );
-
-  const renderNextPointCardFooter = nextPoint => (
-    <View>
-      <Button
-        style={{}}
-        status="basic"
-        accessoryLeft={<Icon name="corner-up-right-outline"></Icon>}
-        onPress={() => startNextPoint(nextPoint)}>
-        Начать следование
-      </Button>
-    </View>
-  );
-
-  // ---------- Карточки заказов ----------
-
-  const footerModal = item => (
-    <Layout style={{}} level="1">
-      <Button
-        style={styles.buttonModal}
-        appearance="filled"
-        status='basic'
-        accessoryLeft={<Icon name="checkmark-square-outline" fill="#FFFFFF" />}
-        onPress={() => putTimeCardToServer(item)}>
-        Зафиксировать
-      </Button>
-    </Layout>
-  );
-
-  const headerModal = () => (
-    <Layout style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
-      <Icon name="clock-outline" width={23} height={23} />
-      <Text category="s1" style={styles.textHeaderCard}>Необходимо зафиксировать время</Text>
-    </Layout>
-  );
-
-  const shouldShowAlert = (params, item, orderWithType1AndNotStatus3) => {
-    return (
-      params.status === 0 || (item.status !== 1 && orderWithType1AndNotStatus3)
-    );
-  };
-
-  const shouldShowTimeFixedAlert = item => {
-    return item.tasks.length === 0 && item.status === 3;
-  };
-
-  const shouldShowTimeNotFixedModal = (item, visible) => {
-    return item.tasks.length === 0 && item.status < 3 && !visible;
-  };
-
-  const onPressCardOrder = (item) => {
-    const orderWithType1AndNotStatus3 = params.orders.find(
-      order => order.type === 1 && order.status !== 3,
-    );
-
-    // Проверка на показ алерта
-    if (shouldShowAlert(params, item, orderWithType1AndNotStatus3)) {
-      Alert.alert('Необходимо начать следование или зафиксировать прибытие');
-      return;
-    }
-
-    // Проверка на фиксированное время
-    if (shouldShowTimeFixedAlert(item)) {
-      Alert.alert('Время зафиксировано');
-    } else if (shouldShowTimeNotFixedModal(item, visible)) {
-      // Проверка на нахождение внутри геозоны
-      if (!isInsideGeofence) {
-        Alert.alert('Вы не находитесь внутри геозоны'); // Исправлено сообщение
-        return;
-      }
-
-      // Установка модального контента
-      setModalContent(
-        <Card
-          style={[styles.containerCards, { borderWidth: 0, width: modalWidth }]}
-          disabled={true}
-          status="basic"
-          header={headerModal}
-          footer={footerModal(item)}
-        >
-          <View style={{ padding: 10 }}>
-            <Text category="h6">{item.name}</Text>
-          </View>
-        </Card>
+          style={styles.textHeaderCardIcon}
+        />
       );
-      setVisible(true);
-    } else {
-      // Навигация при отсутствии других условий
-      props.navigation.navigate('TaskOrderScreen', { ...item, uidPoint });
+    };
+
+    // ---------- Запросы к серверу ----------
+
+    const startNextPoint = async item => {
+      setPending(true);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      let data = getDataPostRoute();
+      data.screen = 2;
+      data.type = 5;
+      data.point = item.point;
+      data.uidPoint = item.uidPoint;
+
+      updateDate(data, async () => {
+        const dataString = JSON.stringify(data);
+
+        await postRoute(uid, dataString);
+
+        await addGeofenceToNextPoint(item);
+
+        props.navigation.navigate('TaskScreen', { ...item });
+
+        mutate();
+
+        setNextPointDrive(false);
+
+        //setPending(false);
+      });
+    };
+
+    const startCurrentPoint = async () => {
+      setPending(true);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      let data = getDataPostRoute();
+      data.screen = 2;
+      data.type = 5;
+      data.point = point.point;
+      data.uidPoint = point.uidPoint;
+
+      updateDate(data, async () => {
+        const dataString = JSON.stringify(data);
+        await postRoute(uid, dataString);
+
+        await addGeofenceToNextPoint(point);
+
+        mutate();
+
+        //setPending(false);
+      });
+    };
+
+    const finishCurrentPoint = async () => {
+      setPending(true);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      let data = getDataPostRoute();
+      data.screen = 2;
+      data.type = 6;
+      data.point = point.point;
+      data.uidPoint = point.uidPoint;
+
+      updateDate(data, async () => {
+        const dataString = JSON.stringify(data);
+        await postRoute(uid, dataString);
+
+        setNextPointDrive(true);
+
+        mutate();
+
+        //setPending(false);
+      });
+    };
+
+    const putTimeCardToServer = async item => {
+      setVisible(false);
+
+      setPending(true);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      let data = getDataPostRoute();
+      data.screen = 2;
+      data.type = item.type;
+      data.point = point.point;
+      data.uidPoint = point.uidPoint;
+      data.uidOrder = item.uidOrder;
+
+      updateDate(data, async () => {
+        const dataString = JSON.stringify(data);
+        await postRoute(uid, dataString);
+
+        mutate();
+
+        //setPending(false);
+      });
+    };
+
+    // ---------- Модальное окно ----------
+
+    const renderModalWindow = () => {
+      return (
+        <Modal
+          visible={visible}
+          backdropStyle={styles.backdrop}
+          onBackdropPress={() => setVisible(false)}>
+          {modalContent}
+        </Modal>
+      );
+    };
+
+    function TasksScreen() {
+      return (
+        <SafeAreaView style={{ flex: 1 }}>
+          {pending && (
+            <View style={styles.spinnerContainer}>
+              <Spinner size="giant" status='basic' />
+            </View>
+          )}
+
+          <View style={styles.backgroundContainer}>
+            <Image source={backgroundImage} style={styles.background} />
+          </View>
+
+          <FlatList
+            refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+            style={styles.containerFlatList}
+            data={unfinishedOrders}
+            ListHeaderComponent={renderMainCard(point)}
+            renderItem={renderItemCard} />
+
+          {renderModalWindow()}
+
+          <AccidentScreen
+            visibleAccident={visibleAccident}
+            onClose={handleCloseAccidentModal}
+            uidPoint={uidPoint}
+            uid={uid}
+            uidOrder={uidOrderAccident} />
+        </SafeAreaView>
+      );
     }
-  };
 
-  const renderItemCard = ({ item, index, }: { item: RouterListItem; index: number; }): React.ReactElement => {
-    currentAction = item.status === 1;
-    currentActionOrder = item.status === 2;
-    finishedAction = item.status === 3;
+    // ---------- Фотографии ----------
 
-    const cardStatus = (item.status === 1 || item.status === 2) ? 'primary' : getCardStatus(item.status);
+    function PhotoScreen() {
 
-    return (
-      <View>
-        <Card
-          style={[
-            styles.containerCards
-          ]}
-          status={cardStatus}
-          header={() => renderItemCardName(item)}
-          onPress={() => onPressCardOrder(item)}
-        >
-          {renderItemCardText(item)}
-        </Card>
-      </View>
-    );
-  };
+      const renderSpinner = () => (
+        <View style={styles.spinnerContainer}>
+          <Spinner size="giant" />
+        </View>
+      );
 
-  function renderItemCardText(item) {
-    const statusToggle = getToggleCardStatus(item);
-    let formattedDate = getDateFromJSON(item.date);
-    let typeName = 'Время фиксации:'
+      const renderBackground = () => (
+        <View style={styles.backgroundContainer}>
+          <Image source={backgroundImage} style={styles.background} />
+        </View>
+      );
 
-    if (item.status < 2 && item.type === 1) {
-      typeName = 'План прибытия:';
-      formattedDate = getDateFromJSON(timePlan);
-    }
-
-    if (item.status === 0) {
-      formattedDate = getDateFromJSON(timePlan);
-    }
-
-    if (item.status < 3 && item.type !== 4) {
-      formattedDate = null;
-    }
-
-    let content;
-    if (item.type !== 4) {
-      if (formattedDate) {
-        content = (
-          <Text category="c2">
-            {typeName} {formattedDate}
-          </Text>
+      const renderContent = () => {
+        return (
+          <>
+            <ScrollView contentContainerStyle={[styles.wrap, { padding: 5 }]}>
+              <AddPhoto {...props} />
+            </ScrollView>
+          </>
         );
-      } else {
-        content = <Text category="c2">Необходимо зафиксировать время</Text>;
-      }
-    } else {
-      content = (
-        <>
-          <Text category="c2">Объем = {`${item.weight}`}</Text>
-          <Text category="c2">Вес = {`${item.volume}`}</Text>
+      };
 
-          {item.status === 3 && (
+      return (
+        <SafeAreaView style={{ flex: 1 }}>
+          {pending && renderSpinner()}
+          {renderBackground()}
+          {renderContent()}
+        </SafeAreaView>
+      );
+    }
+
+    // ---------- Страница фотографии ----------
+
+    function InformationScreen() {
+
+      const pointType = point.type
+
+      const timeStart = getDateFromJSON(point.time_start);
+      const timeFinish = getDateFromJSON(point.time_finish);
+
+      //-- Время в пути
+      const timeInRoad = parseFloat(((new Date(point.time_plan) - new Date(point.time_start)) / 6000).toFixed(0));
+
+      //-- По всем задачам
+      const completeOrders = orders.filter(order => order.status === 3);
+
+      //-- Заказы и завершенные заказы
+      const unfinishedOrders = orders.filter(item => item.type === 4 && item.status !== 3).length;
+      const finishedOrders = orders.filter(item => item.type === 4 && item.status === 3).length;
+
+      //-- Есть задачи
+      const hasTasks = orders.some(item => item.tasks.length > 0);
+
+      //-- План прибыти
+      const formattedTimePlan = getDateFromJSON(timePlan);
+
+      //-- Время на точке
+      let timeOnPoint = '';
+      if (pointStatus === 2 || pointStatus === 1) {
+        timeOnPoint = parseFloat(((new Date() - new Date(point.time_start)) / 60000).toFixed(0));
+      } else if (pointStatus === 3) {
+        timeOnPoint = parseFloat(((new Date(point.time_finish) - new Date(point.time_start)) / 60000).toFixed(0));
+      }
+
+      //--Было прибытие на точку
+      const onPoint = point.orders.some(order => order.type === 1 && order.date !== "0001-01-01T00:00:00+00:00");;
+
+      const renderMenuInfoText = (text) => (
+        <MenuItem
+          title={<Text style={{}}>{text}</Text>}
+          accessoryLeft={<Icon name="chevron-right-outline" style={{}} />}
+          style={[styles.textInfoCard, {}]}
+        />
+      );
+
+      return (
+        <SafeAreaView style={styles.containerFlatList}>
+          {pending && (
+            <View style={styles.spinnerContainer}>
+              <Spinner size="giant" />
+            </View>
+          )}
+
+          <View style={styles.backgroundContainer}>
+            <Image source={backgroundImage} style={styles.background} />
+          </View>
+
+          <Card
+            status="basic"
+            style={[styles.containerCards, { marginTop: 5 }]}
+          >
+            <Menu>
+
+              {renderMenuInfoText(`План прибытия: ${formattedTimePlan}`)}
+
+              {onPoint && renderMenuInfoText(`Факт прибытия: ${timeStart}`)}
+
+              {pointStatus === 3 && renderMenuInfoText(`Завершение точки ${timeFinish}`)}
+
+              {onPoint && renderMenuInfoText(
+                timeInRoad < 0
+                  ? `Задержка на ${timeInRoad} мин.`
+                  : `Прибытие на ${timeInRoad} мин. раньше времени`
+              )}
+
+              {onPoint && renderMenuInfoText(`Время на точке ${timeOnPoint} мин.`)}
+
+              {pointType === 0 && renderMenuInfoText(`Отгружено ${finishedOrders} из ${unfinishedOrders} заказов`)}
+
+              {pointType === 0 && renderMenuInfoText(`У заказов ${hasTasks ? 'ЕСТЬ задачи' : 'НЕТ задач'}`)}
+
+            </Menu>
+          </Card>
+
+          {completeOrders.length > 0 && (
             <>
-              <View style={{ paddingTop: 10 }}>
-                <Divider />
-                <Text category="c2">Время фиксации: {`${formattedDate}`}</Text>
-              </View>
+              {renderStatusText("code-download-outline", "Завершенные действия")}
+              <FlatList
+                data={completeOrders}
+                keyExtractor={(item, index) => item.uidTask || index.toString()}
+                initialNumToRender={10}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+                renderItem={renderItemCard}
+              />
             </>
           )}
-        </>
+        </SafeAreaView>
       );
     }
 
-    return (
-      <Layout style={styles.textBodyCardWithLeftView}>
-        <Toggle
-          style={styles.textTimeLeft}
-          checked={statusToggle}
-          disable={statusToggle}
-          onChange={() => onPressCardOrder(item)}>
-        </Toggle>
-        <View style={styles.containerCardText}>
-          {content}
-        </View>
-      </Layout>
+    const TabNavigator = () => (
+      <Navigator tabBar={props => <BottomTabBar {...props} />}>
+        <Screen
+          name="Действия"
+          component={TasksScreen}
+          options={{ headerShown: false }}
+        />
+        <Screen
+          name="Информация"
+          component={InformationScreen}
+          options={{ headerShown: false }}
+        />
+        <Screen
+          name="Фото"
+          component={PhotoScreen}
+          options={{ headerShown: false }}
+        />
+      </Navigator>
     );
-  }
-
-  const renderItemCardName = (item: RouterListItem) => {
-    const hasTasks = item.tasks.length !== 0;
-    const name = item.name;
-    const thisOrder = item.type === 4;
-    const pointStatus = point.status;
-    const [menuVisible, setMenuVisible] = useState(false);
-
-    const toggleMenu = () => {
-      setMenuVisible(!menuVisible);
-    };
-
-    const handlePress = () => {
-      setUidOrderAccident(item.uidOrder); // Установите новый UID
-      setVisibleAccident(true); // Установите видимость в true
-    };
-
-    return (
-      <View style={styles.textHeaderCardOrder}>
-        <View style={styles.textHeaderCard}>
-          {renderItemCardIcon(item.type)}
-
-          <Text
-            category="label"
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              fontSize: 14,
-            }}>
-            {name}
-          </Text>
-        </View>
-
-        {hasTasks && (
-          <Icon
-            name="bulb-outline"
-            width={22}
-            height={22}
-            style={{ color: 'gray' }}
-            onPress={toggleMenu}
-            fill="#BC4055"
-          />
-        )}
-
-        {thisOrder && pointStatus === 2 && (<OverflowMenu
-          anchor={() => (
-            <Icon
-              name="more-vertical"
-              width={24}
-              height={24}
-              style={{ color: 'gray' }}
-              onPress={toggleMenu}
-            />
-          )}
-          visible={menuVisible}
-          onBackdropPress={toggleMenu}
-        >
-          <MenuItem
-            title={() => (<Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Подробно</Text>)}
-            accessoryLeft={<Icon name="info-outline" />}
-            onPress={() => props.navigation.navigate('TaskOrderInfoScreen', { ...item })}
-          />
-          <MenuItem
-            title={() => (<Text category='s2' style={{ textAlign: 'right', flex: 1 }}>Происшествие</Text>)}
-            accessoryLeft={<Icon name="alert-triangle-outline" fill="#D2475E" />}
-            onPress={handlePress}
-          />
-        </OverflowMenu>)}
-      </View>
-    );
-  };
-
-  const renderItemCardIcon = type => {
-    const iconNames = {
-      1: 'compass-outline',
-      2: 'download-outline',
-      3: 'file-text-outline',
-      4: 'bookmark-outline',
-    };
-
-    const iconName = iconNames[type] || 'file-outline';
-
-    return (
-      <Icon
-        name={iconName}
-        width={23}
-        height={23}
-        style={styles.textHeaderCardIcon}
-      />
-    );
-  };
-
-  // ---------- Запросы к серверу ----------
-
-  const startNextPoint = async item => {
-    setPending(true);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    let data = getDataPostRoute();
-    data.screen = 2;
-    data.type = 5;
-    data.point = item.point;
-    data.uidPoint = item.uidPoint;
-
-    updateDate(data, async () => {
-      const dataString = JSON.stringify(data);
-
-      await postRoute(uid, dataString);
-
-      await addGeofenceToNextPoint(item);
-
-      props.navigation.navigate('TaskScreen', { ...item });
-
-      mutate();
-
-      setNextPointDrive(false);
-
-      //setPending(false);
-    });
-  };
-
-  const startCurrentPoint = async () => {
-    setPending(true);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    let data = getDataPostRoute();
-    data.screen = 2;
-    data.type = 5;
-    data.point = point.point;
-    data.uidPoint = point.uidPoint;
-
-    updateDate(data, async () => {
-      const dataString = JSON.stringify(data);
-      await postRoute(uid, dataString);
-
-      await addGeofenceToNextPoint(point);
-
-      mutate();
-
-      //setPending(false);
-    });
-  };
-
-  const finishCurrentPoint = async () => {
-    setPending(true);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    let data = getDataPostRoute();
-    data.screen = 2;
-    data.type = 6;
-    data.point = point.point;
-    data.uidPoint = point.uidPoint;
-
-    updateDate(data, async () => {
-      const dataString = JSON.stringify(data);
-      await postRoute(uid, dataString);
-
-      setNextPointDrive(true);
-
-      mutate();
-
-      //setPending(false);
-    });
-  };
-
-  const putTimeCardToServer = async item => {
-    setVisible(false);
-
-    setPending(true);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    let data = getDataPostRoute();
-    data.screen = 2;
-    data.type = item.type;
-    data.point = point.point;
-    data.uidPoint = point.uidPoint;
-    data.uidOrder = item.uidOrder;
-
-    updateDate(data, async () => {
-      const dataString = JSON.stringify(data);
-      await postRoute(uid, dataString);
-
-      mutate();
-
-      //setPending(false);
-    });
-  };
-
-  // ---------- Модальное окно ----------
-
-  const renderModalWindow = () => {
-    return (
-      <Modal
-        visible={visible}
-        backdropStyle={styles.backdrop}
-        onBackdropPress={() => setVisible(false)}>
-        {modalContent}
-      </Modal>
-    );
-  };
-
-  function TasksScreen() {
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
-        {pending && (
-          <View style={styles.spinnerContainer}>
-            <Spinner size="giant" status='basic' />
-          </View>
-        )}
-
-        <View style={styles.backgroundContainer}>
-          <Image source={backgroundImage} style={styles.background} />
-        </View>
-
-        <FlatList
-          refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
-          style={styles.containerFlatList}
-          data={unfinishedOrders}
-          ListHeaderComponent={renderMainCard(point)}
-          renderItem={renderItemCard} />
-
-        {renderModalWindow()}
-
-        <AccidentScreen
-          visibleAccident={visibleAccident}
-          onClose={handleCloseAccidentModal}
-          uidPoint={uidPoint}
-          uid={uid}
-          uidOrder={uidOrderAccident} />
-      </SafeAreaView>
-    );
-  }
-
-  // ---------- Фотографии ----------
-
-  function PhotoScreen() {
-
-    const renderSpinner = () => (
-      <View style={styles.spinnerContainer}>
-        <Spinner size="giant" />
-      </View>
-    );
-
-    const renderBackground = () => (
-      <View style={styles.backgroundContainer}>
-        <Image source={backgroundImage} style={styles.background} />
-      </View>
-    );
-
-    const renderContent = () => {
-      return (
-        <>
-          <ScrollView contentContainerStyle={[styles.wrap, { padding: 5 }]}>
-            <AddPhoto {...props} />
-          </ScrollView>
-        </>
-      );
-    };
-
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
-        {pending && renderSpinner()}
-        {renderBackground()}
-        {renderContent()}
-      </SafeAreaView>
-    );
-  }
-
-  // ---------- Страница фотографии ----------
-
-  function InformationScreen() {
-
-    const pointType = point.type
-
-    const timeStart = getDateFromJSON(point.time_start);
-    const timeFinish = getDateFromJSON(point.time_finish);
-
-    //-- Время в пути
-    const timeInRoad = parseFloat(((new Date(point.time_plan) - new Date(point.time_start)) / 6000).toFixed(0));
-
-    //-- По всем задачам
-    const completeOrders = orders.filter(order => order.status === 3);
-
-    //-- Заказы и завершенные заказы
-    const unfinishedOrders = orders.filter(item => item.type === 4 && item.status !== 3).length;
-    const finishedOrders = orders.filter(item => item.type === 4 && item.status === 3).length;
-
-    //-- Есть задачи
-    const hasTasks = orders.some(item => item.tasks.length > 0);
-
-    //-- План прибыти
-    const formattedTimePlan = getDateFromJSON(timePlan);
-
-    //-- Время на точке
-    let timeOnPoint = '';
-    if (pointStatus === 2 || pointStatus === 1) {
-      timeOnPoint = parseFloat(((new Date() - new Date(point.time_start)) / 60000).toFixed(0));
-    } else if (pointStatus === 3) {
-      timeOnPoint = parseFloat(((new Date(point.time_finish) - new Date(point.time_start)) / 60000).toFixed(0));
-    }
-
-    //--Было прибытие на точку
-    const onPoint = point.orders.some(order => order.type === 1 && order.date !== "0001-01-01T00:00:00+00:00");;
-
-    const renderMenuInfoText = (text) => (
-      <MenuItem
-        title={<Text style={{}}>{text}</Text>}
-        accessoryLeft={<Icon name="chevron-right-outline" style={{}} />}
-        style={[styles.textInfoCard, {}]}
-      />
-    );
-
-    return (
-      <SafeAreaView style={styles.containerFlatList}>
-        {pending && (
-          <View style={styles.spinnerContainer}>
-            <Spinner size="giant" />
-          </View>
-        )}
-
-        <View style={styles.backgroundContainer}>
-          <Image source={backgroundImage} style={styles.background} />
-        </View>
-
-        <Card
-          status="basic"
-          style={[styles.containerCards, { marginTop: 5 }]}
-        >
-          <Menu>
-
-            {renderMenuInfoText(`План прибытия: ${formattedTimePlan}`)}
-
-            {onPoint && renderMenuInfoText(`Факт прибытия: ${timeStart}`)}
-
-            {pointStatus === 3 && renderMenuInfoText(`Завершение точки ${timeFinish}`)}
-
-            {onPoint && renderMenuInfoText(
-              timeInRoad < 0
-                ? `Задержка на ${timeInRoad} мин.`
-                : `Прибытие на ${timeInRoad} мин. раньше времени`
-            )}
-
-            {onPoint && renderMenuInfoText(`Время на точке ${timeOnPoint} мин.`)}
-
-            {pointType === 0 && renderMenuInfoText(`Отгружено ${finishedOrders} из ${unfinishedOrders} заказов`)}
-
-            {pointType === 0 && renderMenuInfoText(`У заказов ${hasTasks ? 'ЕСТЬ задачи' : 'НЕТ задач'}`)}
-
-          </Menu>
-        </Card>
-
-        {completeOrders.length > 0 && (
-          <>
-            {renderStatusText("code-download-outline", "Завершенные действия")}
-            <FlatList
-              data={completeOrders}
-              keyExtractor={(item, index) => item.uidTask || index.toString()}
-              initialNumToRender={10}
-              maxToRenderPerBatch={5}
-              windowSize={5}
-              refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
-              renderItem={renderItemCard}
-            />
-          </>
-        )}
-      </SafeAreaView>
-    );
-  }
-
-  const TabNavigator = () => (
-    <Navigator tabBar={props => <BottomTabBar {...props} />}>
-      <Screen
-        name="Действия"
-        component={TasksScreen}
-        options={{ headerShown: false }}
-      />
-      <Screen
-        name="Информация"
-        component={InformationScreen}
-        options={{ headerShown: false }}
-      />
-      <Screen
-        name="Фото"
-        component={PhotoScreen}
-        options={{ headerShown: false }}
-      />
-    </Navigator>
-  );
-  const BottomTabBar = ({ navigation, state }) => {
-
-    const handleTabSelect = (index) => {
-      const titleMap = {
-        "Действия": point.status === 1 || point.status === 2 ? "Текущая точка следования" : point.status === 1 ? "Точка завершена" : "Точка следования",
-        "Информация": "Информация по точке",
-        "Фото": point.status === 1 || point.status === 2 ? "Добавить фотографию" : "Фото",
+    const BottomTabBar = ({ navigation, state }) => {
+
+      const handleTabSelect = (index) => {
+        const titleMap = {
+          "Действия": point.status === 1 || point.status === 2 ? "Текущая точка следования" : point.status === 1 ? "Точка завершена" : "Точка следования",
+          "Информация": "Информация по точке",
+          "Фото": point.status === 1 || point.status === 2 ? "Добавить фотографию" : "Фото",
+        };
+        setTitle(titleMap[state.routeNames[index]]);
+        navigation.navigate(state.routeNames[index]);
       };
-      setTitle(titleMap[state.routeNames[index]]);
-      navigation.navigate(state.routeNames[index]);
+
+      const routeNameToIconName: Record<string, string> = {
+        "Действия": "bookmark-outline",
+        "Информация": "info-outline",
+        "Фото": "camera-outline",
+      };
+
+      return (
+        <BottomNavigation
+          selectedIndex={state.index}
+          onSelect={handleTabSelect}
+        >
+          {state.routeNames.map((routeName) => (
+            <BottomNavigationTab
+              key={routeName}
+              title={routeName}
+              icon={<Icon {...props} name={routeNameToIconName[routeName]} />}
+            />
+          ))}
+        </BottomNavigation>
+      );
     };
 
-    const routeNameToIconName: Record<string, string> = {
-      "Действия": "bookmark-outline",
-      "Информация": "info-outline",
-      "Фото": "camera-outline",
-    };
-
+    // ---------- Отрисовка ----------
     return (
-      <BottomNavigation
-        selectedIndex={state.index}
-        onSelect={handleTabSelect}
-      >
-        {state.routeNames.map((routeName) => (
-          <BottomNavigationTab
-            key={routeName}
-            title={routeName}
-            icon={<Icon {...props} name={routeNameToIconName[routeName]} />}
-          />
-        ))}
-      </BottomNavigation>
+      <NavigationContainer independent={true}>
+        <TabNavigator />
+      </NavigationContainer>
     );
   };
 
-  // ---------- Отрисовка ----------
-  return (
-    <NavigationContainer independent={true}>
-      <TabNavigator />
-    </NavigationContainer>
-  );
-};
-
-export default RouteScreen;
+  export default RouteScreen;

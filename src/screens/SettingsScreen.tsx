@@ -222,7 +222,7 @@ const SettingsScreen = ({ navigation }: Props) => {
               value={database}
               onChangeText={(text) => setDatabase(text.replace(/\s+/g, ''))}
             />
-
+            
             <Button
               style={{ marginTop: 10 }}
               onPress={onCheckServer}
