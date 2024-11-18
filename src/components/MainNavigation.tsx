@@ -165,7 +165,7 @@ const MainNavigation = (props: Props) => {
       const serverInfo = (await localStorage.getItem('serverInfo')) || {};
       const {server, port, database} = serverInfo;
       if (server && port && database) {
-        setInitialScreen('Login');
+        setInitialScreen('LoginScreen');
       } else {
         setInitialScreen('SettingsScreen');
       }

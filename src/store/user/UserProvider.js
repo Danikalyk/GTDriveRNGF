@@ -1,7 +1,7 @@
-import {createContext, useContext, useEffect, useState} from 'react';
-
-import {NavigationContext} from '@react-navigation/native';
-import {GlobalState} from '../global/global.state';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { deleteAllGeofences } from '../../components/functions';
+import { NavigationContext } from '@react-navigation/native';
+import { GlobalState } from '../global/global.state';
 
 export const UserContext = createContext();
 
@@ -12,6 +12,7 @@ export const UserProvider = ({children}) => {
   const context = useContext(GlobalState);
 
   const logoutUser = () => {
+    deleteAllGeofences();
     context.logout();
     setUser(null);
   };

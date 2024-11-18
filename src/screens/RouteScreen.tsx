@@ -23,6 +23,7 @@ import BackgroundGeolocation from 'react-native-background-geolocation';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider } from '@ui-kitten/components';
 import { default as mapping } from '../styles/mapping';
+import localStorage from '../store/localStorage';
 
 type Props = {};
 
@@ -43,7 +44,9 @@ const RouteScreen = (props: Props) => {
   const context = useContext(GlobalState);
   const navigation = useNavigation();
   const [pending, setPending] = useState(false);
+  const [odometer, setOdometer] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [userLite, setUserLite] = useState(false);
   const uid = props?.route?.params?.uid;
   const mainDesription = props?.route?.params?.descriptions;
   const goBack = () => {
@@ -74,6 +77,20 @@ const RouteScreen = (props: Props) => {
     }
   }, [error, route, uid, mutate]);
 
+  useEffect(() => {
+    const fetchOdometer = async () => {
+      try {
+        const odometerValue = await BackgroundGeolocation.getOdometer();
+
+        setOdometer(odometerValue);
+      } catch (error) {
+        console.error('Ошибка при получении одометра:', error);
+      }
+    };
+
+    fetchOdometer();
+  }, []);
+
   const updateDate = async (data, callback = () => { }) => {
     const netInfo = await NetInfo.fetch();
     mutate((currentData) => {
@@ -99,6 +116,21 @@ const RouteScreen = (props: Props) => {
     navigation.setOptions({ title });
   }, [navigation, title]);
 
+  
+  useEffect(() => {
+    const fetchStorageKey = async () => {
+      try {
+        const storageKey = await localStorage.getItem('LoginKey');
+
+        setUserLite(storageKey.parametrs);
+      } catch (error) {
+        console.error('Error retrieving storage key:', error);
+      }
+    };
+
+    fetchStorageKey();
+  }, []);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     mutate();
@@ -108,7 +140,7 @@ const RouteScreen = (props: Props) => {
   const routeItem = route;
 
   if (!routeItem || !routeItem.points) return null;
-
+  
   let points = [...route.points].sort((a, b) => a.sort - b.sort); //-- Сортируем по статусу маршурта
   //points = points.filter(point => point.status !== 3);
 
@@ -150,8 +182,6 @@ const RouteScreen = (props: Props) => {
       const buttonDisabled = pending;
       const appearance = (pending || otherRoute) ? "outline" : "filled";
       const fillColor = (appearance === "outline") ? "#3E3346" : "#FFFFFF"; 
-
-      
 
       return (
         <Card style={cardStyle}>
@@ -353,6 +383,8 @@ const RouteScreen = (props: Props) => {
   function InformationScreen() {
     const pointsComplete = points.filter(point => point.status === 3);
     const timeStart = points[0]?.time_start;
+
+    console.log(JSON.stringify(points[0]));
     
     //-- Точки и завершенные точки
     const lengthPoints = points.length;
@@ -374,7 +406,7 @@ const RouteScreen = (props: Props) => {
     }, { unfinishedOrders: 0, finishedOrders: 0 });
   
     //-- одометр
-    const odometer = isNaN(BackgroundGeolocation.getOdometer()) ? 0 : BackgroundGeolocation.getOdometer() / 1000;
+    const odometerNew = (odometer/ 1000).toFixed(2);
   
     const renderMenuInfoText = (text) => (
       <MenuItem
@@ -407,7 +439,7 @@ const RouteScreen = (props: Props) => {
               </>
             )}
   
-            {renderMenuInfoText(`Пройдено ~ ${odometer} км.`)}
+            {renderMenuInfoText(`Пройдено ~ ${odometerNew} км.`)}
             {renderMenuInfoText(`Посещено точек ${lengthPointsComplete} из ${lengthPoints}`)}
             {renderMenuInfoText(`Отгружено заказов ${finishedOrders} из ${unfinishedOrders}`)}
   
@@ -561,9 +593,13 @@ const RouteScreen = (props: Props) => {
     const data = prepareRouteData();
     await updateDate(data, () => postRouteData(data));
 
-    if (route.lite) {
-      await Promise.all(points.map(point => addGeofenceToNextPoint(point)));
+    if (userLite) {
+      await Promise.all(points.map(point => addGeofenceToNextPoint(point)));  
     }
+
+    /*if (route.lite) { //-- Последнюю точку отмечаем автоматически, если она склад. Добавь условие
+      await Promise.all(points.map(point => addGeofenceToNextPoint(point)));
+    }*/
 
     setPending(false);
   };

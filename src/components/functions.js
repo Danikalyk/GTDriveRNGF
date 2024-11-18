@@ -92,18 +92,16 @@ export const addGeofenceToNextPoint = async (point) => {
   if (point.uidPoint === "00000000-0000-0000-0000-000000000000") {
     return;
   }
+
   // Получаем список геозон асинхронно
   const geofences = await BackgroundGeolocation.getGeofences();
-
+  
   // Проверяем, существует ли задача с идентификатором point.uidPoint
   const existingGeofence = geofences.find(geofence => geofence.identifier === point.uidPoint);
-
   if (!existingGeofence) {
 
     const LoginKey = await localStorage.getItem('LoginKey');
     const parametrs = LoginKey.parametrs.bgGeo;
-
-    //console.log({point});
     
     await BackgroundGeolocation.addGeofence({
       identifier: point.uidPoint,
@@ -115,7 +113,7 @@ export const addGeofenceToNextPoint = async (point) => {
       notifyOnExit: true,
       notifyOnDwell: true
     }).then(() => {
-      console.log('[addGeofence] success');
+      console.log('[addGeofence] success ' + point.uidPoint);
     }).catch((error) => {
       console.log('[addGeofence] FAILURE: ', error);
     });
@@ -134,7 +132,7 @@ export const deleteAllGeofences = async () => {
   for (const geofence of geofences) {
     await BackgroundGeolocation.removeGeofence(geofence.identifier);
 
-    console.log(`Задача с идентификатором ${geofence.identifier} в BackgroundGeolocation`);
+    console.log(`Задача с идентификатором ${geofence.identifier} удалена из BackgroundGeolocation`);
   }
 }
 
