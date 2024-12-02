@@ -150,7 +150,8 @@ export const DrawerNavigator = () => (
       name="SettingsScreen"
       component={SettingsScreen}
       options={{
-        header: props => <TopNavigationHeader {...props} />,
+        header: props => <TopNavigationHeader {...props} isBack />,
+        title: 'Настройки',
       }}
     />
   </Navigator>
@@ -185,20 +186,28 @@ const MainNavigation = (props: Props) => {
         <DrawerNavigator />
       ) : (
         <Stack.Navigator
-          screenOptions={{headerShown: false}}
+          screenOptions={{headerShown: true}}
           initialRouteName={initialScreen}>
           <Stack.Screen
             name="Login"
             component={LoginScreen}
             options={{
               title: 'Sign in',
+              headerShown: false,
               // When logging out, a pop animation feels intuitive
               // You can remove this if you want the default 'push' animation
               animationTypeForReplace: isLoggedIn ? 'pop' : 'push',
             }}
           />
 
-          <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+          <Stack.Screen
+            name="SettingsScreen"
+            component={SettingsScreen}
+            options={{
+              
+              title: 'Настройки',
+            }}
+          />
         </Stack.Navigator>
       )}
     </NavigationContainer>
