@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import { getDevTokens, getTokens } from '../api/auth';
 import { getBaseUrl } from '../api/axios';
@@ -43,7 +43,7 @@ function useGeolocation(enabledGeo) {
       };
   
       if (!netInfo.isConnected) {
-        data.needJSON = false;
+        //data.needJSON = false;
         queue.enqueue(callbackFunc); // Добавляем в очередь, если нет сети
       } else {
         // Здесь мы вызываем callbackFunc без await, так как это не обязательно
@@ -102,7 +102,8 @@ function useGeolocation(enabledGeo) {
         }
       },
     );
-
+    
+    //-- Подписка на геозоны 
     const onGeofence: Subscription = BackgroundGeolocation.onGeofence(
       async (geofenceEvent) => {
         if (!currentRoute) {
@@ -128,6 +129,7 @@ function useGeolocation(enabledGeo) {
           //Alert.alert(`Вышли из геозон: ${geofenceEvent.identifier}`);
 
           data.type = 9; 
+          
           updateDate(data, async () => {
             const dataString = JSON.stringify(data);
             
@@ -138,6 +140,8 @@ function useGeolocation(enabledGeo) {
         } else if (geofenceEvent.action === 'DWELL') {
           await BackgroundGeolocation.setConfig({ autoSync: false }); //-- Пока в геозоне остановим отправку координат
 
+          console.log(JSON.stringify(geofenceEvent));
+
           console.log(`Находимся в геозоне: ${geofenceEvent.identifier} более ${geofenceEvent.dwellDelay / 1000} секунд`);
           //Alert.alert(`Находимся в геозоне: ${geofenceEvent.identifier}`);
 
@@ -145,7 +149,7 @@ function useGeolocation(enabledGeo) {
           updateDate(data, async () => {
             const dataString = JSON.stringify(data);
             
-            await postRoute(currentRoute, dataString);
+           await postRoute(currentRoute, dataString);
           });            
         }
       }

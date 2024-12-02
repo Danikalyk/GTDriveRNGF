@@ -806,10 +806,12 @@ const RouteScreen = (props: Props) => {
         Alert.alert('Время зафиксировано');
       } else if (shouldShowTimeNotFixedModal(item, visible)) {
         // Проверка на нахождение внутри геозоны
-        if (!isInsideGeofence) {
+        
+        /*if (!isInsideGeofence) {
           Alert.alert('Вы не находитесь внутри геозоны'); // Исправлено сообщение
+          
           return;
-        }
+        }*/
 
         // Установка модального контента
         setModalContent(
