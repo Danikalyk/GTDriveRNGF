@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // ---------- Страница Текущий маршрут ----------
 
 import map_scripts from '../map_scripts';
@@ -55,6 +56,16 @@ const RouteScreen = (props: Props) => {
 
   const { data: route, mutate, error } = useRouteData(uid);
 
+  const logRouteData = (route) => {
+    console.log('Route data:', route);
+  };
+
+  useEffect(() => {
+    if (route) {
+      logRouteData(route);
+    }
+  }, [route]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       mutate();
@@ -71,11 +82,13 @@ const RouteScreen = (props: Props) => {
     return () => unsubscribe();
   }, []);
 
+  const { cache } = useSWRConfig(); // Вынесли получение cache на уровень компонента
+
   useEffect(() => {
     if (error && (!route || !route?.points)) {
-      mutate(`/route/${uid}`, getCachedData(`/route/${uid}`), false);
+      mutate(`/route/${uid}`, cache.get(`/route/${uid}`), false);
     }
-  }, [error, route, uid, mutate]);
+  }, [error, route, uid, mutate, cache]);
 
   useEffect(() => {
     const fetchOdometer = async () => {
@@ -572,12 +585,14 @@ const RouteScreen = (props: Props) => {
     data.type = 5;
     data.uid = uid;
     if (finish) data.finish = true;
+    console.log('Отправленные данные: ', data);
     return data;
   };
 
   const postRouteData = async (data) => {
     const dataString = JSON.stringify(data);
     await postRoute(uid, dataString);
+    console.log('Отправленные данные: ', dataString);
     mutate();
   };
 
@@ -591,16 +606,17 @@ const RouteScreen = (props: Props) => {
     BackgroundGeolocation.resetOdometer();
 
     const data = prepareRouteData();
+    
     await updateDate(data, () => postRouteData(data));
 
     if (userLite) {
-      await Promise.all(points.map(point => addGeofenceToNextPoint(point)));  
+      await Promise.all(points.map(point => addGeofenceToNextPoint(point)));
     }
 
     /*if (route.lite) { //-- Последнюю точку отмечаем автоматически, если она склад. Добавь условие
       await Promise.all(points.map(point => addGeofenceToNextPoint(point)));
     }*/
-
+    console.log('Отправленные данные: ', data);
     setPending(false);
   };
 
@@ -619,6 +635,7 @@ const RouteScreen = (props: Props) => {
 
     goBack();
     setPending(false);
+
   };
 
   // ---------- Табы ----------
@@ -680,3 +697,5 @@ const RouteScreen = (props: Props) => {
 };
 
 export default RouteScreen;
+
+

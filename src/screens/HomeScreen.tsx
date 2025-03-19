@@ -5,12 +5,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Icon, Layout, Text, Spinner } from '@ui-kitten/components';
 import { GlobalState } from '../store/global/global.state';
 import { UserContext } from '../store/user/UserProvider';
-import { getRoutes } from '../api/routes';
-import { getCardStatus, addGeofenceToNextPoint, deleteAllGeofences } from '../components/functions';
+import { getRoutes, postRoute } from '../api/routes';
+import { getCardStatus, addGeofenceToNextPoint, deleteAllGeofences, getDataPostRoute } from '../components/functions';
 import { styles } from '../styles';
 import useSWR, { useSWRConfig } from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
+import BackgroundGeolocation from 'react-native-background-geolocation';
+import { RouterListItem } from '../types';
 
 const HomeScreen = (props) => {
   const { cache } = useSWRConfig();
@@ -26,6 +29,91 @@ const HomeScreen = (props) => {
   const { data: routes, mutate, error } = useSWR(`/routes?user=${currentUser}`, () => getRoutes(currentUser), {
     fallbackData: cache.get(`/routes?user=${currentUser}`),
   });
+
+  // Функция для запуска маршрута
+  const startRoute = async (routeToStart: RouterListItem) => {
+    setPending(true);
+    setRoute(routeToStart.uid);
+
+    await new Promise((resolve) => resolve(null));
+
+    context.enableGeo();
+    BackgroundGeolocation.resetOdometer();
+
+    const data = getDataPostRoute();
+    data.screen = 0;
+    data.type = 5;
+    data.uid = routeToStart.uid;
+
+    try {
+      const netInfo = await NetInfo.fetch();
+      mutate((currentData: RouterListItem[]) => {
+        const updatedData = { ...currentData, status: 2, check: true };
+        return updatedData;
+      }, false);
+
+      const dataString = JSON.stringify(data);
+      await postRoute(routeToStart.uid, dataString);
+      console.log('Отправленные данные:', dataString);
+      
+      if (routeToStart.points) {
+        await Promise.all(routeToStart.points.map((point: any) => addGeofenceToNextPoint(point)));
+      }
+
+      mutate();
+    } catch (error) {
+      console.error('Ошибка при запуске маршрута:', error);
+    }
+
+    setPending(false);
+  };
+
+  // Функция для добавления геозон
+  const addGeofencesToRoute = async (startRoute) => {
+    await addGeofenceToNextPoint(startRoute.startGeo);
+
+    for (const point of startRoute.followingPoints) {
+      await addGeofenceToNextPoint(point);
+    }
+  };
+
+  // Функция для сброса геозон 
+  const resetGeofences = async () => {
+    setRoute(null);
+    setStartGeo(false);
+    context.disableGeo();
+    await deleteAllGeofences();
+  };
+
+  // Функция для удаления сохраненных фотографий
+  const deleteSavedPhotos = async () => {
+    const keys = await AsyncStorage.getAllKeys();
+    const savedPhotosKeys = keys.filter(uid => uid.startsWith('savedPhotos_'));
+    const validUids = routes?.map(item => item.uid) || [];
+    const keysToRemove = savedPhotosKeys.filter(key => !validUids.includes(key.replace('savedPhotos_', '')));
+    await AsyncStorage.multiRemove(keysToRemove);
+  };
+
+  // Функция для логирования маршрутов
+  const logRoutes = () => {
+    if (routes && routes.length > 0) {
+      console.log('Полученные маршруты (форматированный вывод):');
+      routes.forEach((route: { name: string; uid: string; status: string; start: boolean; firstInQueue?: boolean }, index: number) => {
+        console.log(`Маршрут ${index + 1}:`);
+        console.log(`- Название: ${route.name}`);
+        console.log(`- ID: ${route.uid}`);
+        console.log(`- Статус: ${route.status}`);
+        console.log(`- Активный: ${route.start ? 'Да' : 'Нет'}`);
+        console.log(`- Автозапуск: ${route.firstInQueue ? 'Да' : 'Нет'}`);
+        console.log('------------------------');
+      });
+
+      console.log('\nJSON данные маршрутов:');
+      console.log(JSON.stringify(routes, null, 2));
+    } else {
+      console.log('Маршруты не найдены');
+    }
+  };
 
   // Обработка ошибок и кэширование данных
   if (error && !routes) {
@@ -44,21 +132,70 @@ const HomeScreen = (props) => {
   // Эффект для обработки маршрутов и геозон
   useEffect(() => {
     if (routes) {
+      logRoutes();
       deleteSavedPhotos();
 
-      const hasStartGeo = routes.some(route => route.start === true);
+      const hasStartGeo = routes.some((route: RouterListItem) => route.start === true);
       setStartGeo(hasStartGeo);
 
       if (!renderComplete) {
         setRenderComplete(true);
         
         if (hasStartGeo) {
-          const startRoute = routes.find(route => route.start === true);
+          const startRoute = routes.find((route: RouterListItem) => route.start === true);
           setRoute(startRoute.uid);
           context.enableGeo();
           addGeofencesToRoute(startRoute);
         } else {
-          resetGeofences();
+          // Проверяем наличие маршрутов с firstInQueue: true
+          const queuedRoutes = routes.filter((route: RouterListItem) => 
+            (route.firstInQueue === true || route.firstInQueue === "true") && !route.start
+          );
+          console.log('Найдены маршруты с firstInQueue:', queuedRoutes);
+          
+          if (queuedRoutes.length > 0) {
+            // Сортируем по дате и берем самый ранний
+            const routeToStart = queuedRoutes.sort((a: RouterListItem, b: RouterListItem) => {
+              const dateA = new Date(a.date);
+              const dateB = new Date(b.date);
+              return dateA.getTime() - dateB.getTime();
+            })[0];
+
+            console.log('Выбран маршрут для автозапуска:', routeToStart);
+            startRoute(routeToStart);
+          } else {
+            console.log('Нет маршрутов для автозапуска');
+            resetGeofences();
+          }
+        }
+      } else {
+        // Проверяем, есть ли завершенный маршрут и следующий для автозапуска
+        const finishedRoute = routes.find((route: RouterListItem) => route.status === 3 && route.start);
+        
+        if (finishedRoute) {
+          console.log('Найден завершенный маршрут:', finishedRoute);
+          
+          // Ищем следующий маршрут для автозапуска
+          const nextQueuedRoutes = routes.filter((route: RouterListItem) => 
+            (route.firstInQueue === true || route.firstInQueue === "true") && 
+            !route.start && 
+            route.date > finishedRoute.date
+          );
+          
+          if (nextQueuedRoutes.length > 0) {
+            // Сортируем по дате и берем самый ранний
+            const nextRouteToStart = nextQueuedRoutes.sort((a: RouterListItem, b: RouterListItem) => {
+              const dateA = new Date(a.date);
+              const dateB = new Date(b.date);
+              return dateA.getTime() - dateB.getTime();
+            })[0];
+            
+            console.log('Найден следующий маршрут для автозапуска:', nextRouteToStart);
+            startRoute(nextRouteToStart);
+          } else {
+            console.log('Нет подходящих маршрутов для автозапуска после завершенного маршрута');
+            resetGeofences();
+          }
         }
       }
     }
@@ -68,24 +205,20 @@ const HomeScreen = (props) => {
     });
 
     return unsubscribe;
-  }, [navigation, routes, context, startGeo, renderComplete]);
-
-  // Функция для добавления геозон
-  const addGeofencesToRoute = async (startRoute) => {
-    await addGeofenceToNextPoint(startRoute.startGeo);
-
-    for (const point of startRoute.followingPoints) {
-      await addGeofenceToNextPoint(point);
-    }
-  };
-
-  // Функция для сброса геозон 
-  const resetGeofences = async () => {
-    setRoute(null);
-    setStartGeo(false);
-    context.disableGeo();
-    await deleteAllGeofences();
-  };
+  }, [
+    navigation, 
+    routes, 
+    context, 
+    startGeo, 
+    renderComplete, 
+    startRoute, 
+    setRoute, 
+    addGeofencesToRoute, 
+    resetGeofences, 
+    deleteSavedPhotos, 
+    logRoutes, 
+    mutate
+  ]);
 
   // Функция для фильтрации и сортировки данных
   const filteredData = routes?.filter(route => route.start || route.status)
@@ -134,15 +267,6 @@ const HomeScreen = (props) => {
       </Layout>
     </View>
   );
-
-  // Функция для удаления сохраненных фотографий
-  const deleteSavedPhotos = async () => {
-    const keys = await AsyncStorage.getAllKeys();
-    const savedPhotosKeys = keys.filter(uid => uid.startsWith('savedPhotos_'));
-    const validUids = filteredData.map(item => item.uid);
-    const keysToRemove = savedPhotosKeys.filter(key => !validUids.includes(key.replace('savedPhotos_', '')));
-    await AsyncStorage.multiRemove(keysToRemove);
-  };
 
   // Функция для отображения текущего маршрута
   const renderCurrentRouteTextIcon = () => (
