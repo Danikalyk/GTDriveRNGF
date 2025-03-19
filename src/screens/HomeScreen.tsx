@@ -138,6 +138,15 @@ const HomeScreen = (props) => {
       const hasStartGeo = routes.some((route: RouterListItem) => route.start === true);
       setStartGeo(hasStartGeo);
 
+      // Добавляем слушатель событий backgroundGeolocation
+      BackgroundGeolocation.onGeofence(geofence => {
+        if (geofence.action === 'EXIT') {
+          // Обновляем данные маршрутов после выхода из геозоны
+          console.log('Выход из геозоны, обновляем данные маршрутов');
+          mutate();
+        }
+      });
+
       if (!renderComplete) {
         setRenderComplete(true);
         
