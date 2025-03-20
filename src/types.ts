@@ -8,18 +8,46 @@ export interface RouterListItem {
   name: string;
   loading_date?: string;
   loading_time?: string;
-  date: string;
   description?: string;
   status: number;
   start: boolean;
   startGeo: {
-    uidPoint: string;
-    lat: string | number;
-    lon: string | number;
+    lat: number;
+    lon: number;
+    status: number;
+    address: string;
+    client_name: string;
+    orders: any[];
+    time: string;
+    date: string;
+    time_fact?: string;
+    date_fact?: string;
   };
-  followingPoints: any[];
-  descriptions: {
-    [key: string]: string;
-  };
+  followingPoints: Array<{
+    lat: number;
+    lon: number;
+    status: number;
+    address: string;
+    client_name: string;
+    orders: any[];
+    time: string;
+    date: string;
+    time_fact?: string;
+    date_fact?: string;
+  }>;
+  descriptions: Record<string, string>;
+  date: string;
   firstInQueue?: boolean | string;
+  points?: Array<{
+    lat: number;
+    lon: number;
+    status: number;
+    address: string;
+    client_name: string;
+    orders: any[];
+    time: string;
+    date: string;
+    time_fact?: string;
+    date_fact?: string;
+  }>;
 }
